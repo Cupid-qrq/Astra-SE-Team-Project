@@ -43,7 +43,7 @@ archive/           两份选定提交的只读原件
 ```powershell
 python tools/check_repository.py
 python -m unittest discover -s tools/tests -v
-git diff --check
+git diff --check -- . ':(exclude)archive/submissions/**'
 ```
 
 业务构建、测试和部署命令由 P0 建立并接入质量门槛；现阶段文档检查不代表软件功能通过验收。

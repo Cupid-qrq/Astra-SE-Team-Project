@@ -35,7 +35,7 @@ if ($LASTEXITCODE -ne 0) { throw '仓库静态检查失败' }
 if ($LASTEXITCODE -ne 0) { throw '开发工具回归失败' }
 & python tools/check_commits.py --base origin/main --head HEAD
 if ($LASTEXITCODE -ne 0) { throw '新commit标题不合规范' }
-& git diff --check origin/main...HEAD
+& git diff --check origin/main...HEAD -- . ':(exclude)archive/submissions/**'
 if ($LASTEXITCODE -ne 0) { throw 'diff空白检查失败' }
 & python tools/check_runtime.py
 if ($LASTEXITCODE -ne 0) { throw '完整开发检查失败' }

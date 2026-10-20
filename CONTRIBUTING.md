@@ -55,7 +55,7 @@ git switch -c feat/a/p1-course-members
 
 ## 5. 检查与CI
 
-规划阶段运行`python tools/check_repository.py`、`python -m unittest discover -s tools/tests -v`和`git diff --check`。P0第一份工程PR必须同时提交该工程的真实验证命令；后续按引入的能力补充验证，不要求空工程运行尚不存在的功能测试。
+规划阶段运行`python tools/check_repository.py`、`python -m unittest discover -s tools/tests -v`和`git diff --check -- . ':(exclude)archive/submissions/**'`。归档原件另由白名单、SHA-256和ZIP一致性检查验证，不对其换行做格式化。P0第一份工程PR必须同时提交该工程的真实验证命令；后续按引入的能力补充验证，不要求空工程运行尚不存在的功能测试。
 
 | 能力进入仓库时 | 同一PR必须具备的检查 |
 | --- | --- |
