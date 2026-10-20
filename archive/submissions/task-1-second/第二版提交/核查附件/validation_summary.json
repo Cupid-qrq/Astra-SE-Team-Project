@@ -1,0 +1,151 @@
+{
+  "generated_at": "2026-09-28T13:27:53.424815+00:00",
+  "python": "3.13.2",
+  "script_sha256": "cbf12abb41168ef2f6c8c422aa9575711e70a90fda3fa21adbf5f1b521944463",
+  "srs_sha256": "45de9087575b353824be3fc3a9647944797ca3eefdb4e7d30a7887c42681d611",
+  "test_count": 26,
+  "failed": 0,
+  "fr_priorities": {
+    "高": 25,
+    "中": 3,
+    "低": 1
+  },
+  "nfr_priorities": {
+    "高": 22,
+    "中": 1,
+    "低": 1
+  },
+  "scope": "AI document structure and reference examples only; no system acceptance",
+  "results": [
+    {
+      "name": "DOC-FR",
+      "passed": true,
+      "detail": "29 unique ordered FR definitions"
+    },
+    {
+      "name": "DOC-NFR",
+      "passed": true,
+      "detail": "24 unique ordered NFR definitions"
+    },
+    {
+      "name": "DOC-PRIORITY",
+      "passed": true,
+      "detail": "FR=25/3/1; NFR=22/1/1"
+    },
+    {
+      "name": "DOC-AC-SOURCE",
+      "passed": true,
+      "detail": "Each FR has own AC and a source/BR"
+    },
+    {
+      "name": "DOC-NT-SOURCE",
+      "passed": true,
+      "detail": "Each NFR has own NT and source"
+    },
+    {
+      "name": "DOC-TRACE",
+      "passed": true,
+      "detail": "29 row FR-to-AC trace index"
+    },
+    {
+      "name": "DOC-ST",
+      "passed": true,
+      "detail": "17 cross-functional test definitions"
+    },
+    {
+      "name": "DOC-REF-RANGE",
+      "passed": true,
+      "detail": "Out-of-range references: []"
+    },
+    {
+      "name": "DOC-TIME",
+      "passed": true,
+      "detail": "Grade release and retention included"
+    },
+    {
+      "name": "DOC-FENCES",
+      "passed": true,
+      "detail": "Balanced Markdown code fences"
+    },
+    {
+      "name": "RULE-TIME",
+      "passed": true,
+      "detail": "Open inclusive; due exclusive; +/-1ms"
+    },
+    {
+      "name": "RULE-ZONE",
+      "passed": true,
+      "detail": "UTC and UTC+8 equivalent"
+    },
+    {
+      "name": "RULE-NO-ZONE",
+      "passed": true,
+      "detail": "Naive timestamps rejected"
+    },
+    {
+      "name": "RULE-TOKENS",
+      "passed": true,
+      "detail": "7 token comparisons, including non-ASCII whitespace"
+    },
+    {
+      "name": "RULE-SE",
+      "passed": true,
+      "detail": "30 confirmed and pending, not final zero for SE"
+    },
+    {
+      "name": "RULE-RECOVERY",
+      "passed": true,
+      "detail": "Recovery yields 70"
+    },
+    {
+      "name": "RULE-PRACTICE",
+      "passed": true,
+      "detail": "Practice does not add formal points"
+    },
+    {
+      "name": "RULE-REJUDGE",
+      "passed": true,
+      "detail": "New active version yields 40, not old 70"
+    },
+    {
+      "name": "RULE-PENDING",
+      "passed": true,
+      "detail": "An AC does not mask another pending submission"
+    },
+    {
+      "name": "RULE-QUOTA",
+      "passed": true,
+      "detail": "Quota counts READY + reservations"
+    },
+    {
+      "name": "RULE-QUOTA-DAY",
+      "passed": true,
+      "detail": "Quota uses acceptance date in UTC+8"
+    },
+    {
+      "name": "RULE-COMPENSATION",
+      "passed": true,
+      "detail": "5-minute outage -> 10-minute minimum window"
+    },
+    {
+      "name": "RULE-LONG-OUTAGE",
+      "passed": true,
+      "detail": "30-minute outage -> 30-minute window after approval"
+    },
+    {
+      "name": "RULE-CAPACITY",
+      "passed": true,
+      "detail": "100-student average fits; 300-student average exceeds assumed service rate"
+    },
+    {
+      "name": "RULE-QUALITY",
+      "passed": true,
+      "detail": "Thresholds and single safety failure are independent gates"
+    },
+    {
+      "name": "RECORD-SCORE",
+      "passed": true,
+      "detail": "Feedback components sum to 92.0"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+Executed UTC: 2026-09-28T13:27:53.424815+00:00
+Python: 3.13.2
+Script SHA256: cbf12abb41168ef2f6c8c422aa9575711e70a90fda3fa21adbf5f1b521944463
+SRS SHA256: 45de9087575b353824be3fc3a9647944797ca3eefdb4e7d30a7887c42681d611
+AI document structure and reference examples only; no system acceptance
+
+PASS DOC-FR: 29 unique ordered FR definitions
+PASS DOC-NFR: 24 unique ordered NFR definitions
+PASS DOC-PRIORITY: FR=25/3/1; NFR=22/1/1
+PASS DOC-AC-SOURCE: Each FR has own AC and a source/BR
+PASS DOC-NT-SOURCE: Each NFR has own NT and source
+PASS DOC-TRACE: 29 row FR-to-AC trace index
+PASS DOC-ST: 17 cross-functional test definitions
+PASS DOC-REF-RANGE: Out-of-range references: []
+PASS DOC-TIME: Grade release and retention included
+PASS DOC-FENCES: Balanced Markdown code fences
+PASS RULE-TIME: Open inclusive; due exclusive; +/-1ms
+PASS RULE-ZONE: UTC and UTC+8 equivalent
+PASS RULE-NO-ZONE: Naive timestamps rejected
+PASS RULE-TOKENS: 7 token comparisons, including non-ASCII whitespace
+PASS RULE-SE: 30 confirmed and pending, not final zero for SE
+PASS RULE-RECOVERY: Recovery yields 70
+PASS RULE-PRACTICE: Practice does not add formal points
+PASS RULE-REJUDGE: New active version yields 40, not old 70
+PASS RULE-PENDING: An AC does not mask another pending submission
+PASS RULE-QUOTA: Quota counts READY + reservations
+PASS RULE-QUOTA-DAY: Quota uses acceptance date in UTC+8
+PASS RULE-COMPENSATION: 5-minute outage -> 10-minute minimum window
+PASS RULE-LONG-OUTAGE: 30-minute outage -> 30-minute window after approval
+PASS RULE-CAPACITY: 100-student average fits; 300-student average exceeds assumed service rate
+PASS RULE-QUALITY: Thresholds and single safety failure are independent gates
+PASS RECORD-SCORE: Feedback components sum to 92.0
+
+Checks=26; failed=0

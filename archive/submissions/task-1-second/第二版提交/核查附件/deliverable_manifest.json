@@ -1,0 +1,37 @@
+{
+  "version": "v1.0-rc1",
+  "date": "2026-09-28",
+  "status": "candidate; pending human review items are listed in 03",
+  "files": [
+    {
+      "path": "01_需求分析文档.md",
+      "bytes": 89871,
+      "sha256": "45de9087575b353824be3fc3a9647944797ca3eefdb4e7d30a7887c42681d611"
+    },
+    {
+      "path": "02_AI协作记录.md",
+      "bytes": 37777,
+      "sha256": "f74bd4be7a6c3b7b56c09665b5f7cd4d0cc9f4b653204e8ad7754ef7376e50c9"
+    },
+    {
+      "path": "03_人工核实说明.md",
+      "bytes": 23475,
+      "sha256": "0c5aa500a6693f8dc022f661e87493ce7db40b3eeab3155cb618ad71ce210461"
+    },
+    {
+      "path": "核查附件/requirements_rule_checks.py",
+      "bytes": 9573,
+      "sha256": "cbf12abb41168ef2f6c8c422aa9575711e70a90fda3fa21adbf5f1b521944463"
+    },
+    {
+      "path": "核查附件/rule_check_output.txt",
+      "bytes": 1797,
+      "sha256": "350e73e5e95664279090f1d0cde2f0687aaaf8fd394de61a3b894a86f4513991"
+    },
+    {
+      "path": "核查附件/validation_summary.json",
+      "bytes": 3792,
+      "sha256": "755cdf0ce3813a526877a644791b98eee0f9fa34cb949c5fa40710fae77689ae"
+    }
+  ]
+}
