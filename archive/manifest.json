@@ -1,0 +1,73 @@
+{
+  "retained_submissions": [
+    "task-1-second",
+    "task-2-third"
+  ],
+  "files": [
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/01_需求分析文档.md",
+      "bytes": 89871,
+      "sha256": "45de9087575b353824be3fc3a9647944797ca3eefdb4e7d30a7887c42681d611"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/02_AI协作记录.md",
+      "bytes": 37777,
+      "sha256": "f74bd4be7a6c3b7b56c09665b5f7cd4d0cc9f4b653204e8ad7754ef7376e50c9"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/03_人工核实说明.md",
+      "bytes": 23475,
+      "sha256": "0c5aa500a6693f8dc022f661e87493ce7db40b3eeab3155cb618ad71ce210461"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/核查附件/deliverable_manifest.json",
+      "bytes": 1167,
+      "sha256": "97d1dddae59dc41c3484ded9300c1c3991426653c42436cc3ee5dd9701ff7a40"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/核查附件/requirements_rule_checks.py",
+      "bytes": 9573,
+      "sha256": "cbf12abb41168ef2f6c8c422aa9575711e70a90fda3fa21adbf5f1b521944463"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/核查附件/rule_check_output.txt",
+      "bytes": 1797,
+      "sha256": "350e73e5e95664279090f1d0cde2f0687aaaf8fd394de61a3b894a86f4513991"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交/核查附件/validation_summary.json",
+      "bytes": 3792,
+      "sha256": "755cdf0ce3813a526877a644791b98eee0f9fa34cb949c5fa40710fae77689ae"
+    },
+    {
+      "path": "archive/submissions/task-1-second/第二版提交材料_v1.0-rc1.zip",
+      "bytes": 70906,
+      "sha256": "c99f13a8d81c3cdebfb80e8d21e11b2cfaeb3d5e40d0c284bdc897114904625f"
+    },
+    {
+      "path": "archive/submissions/task-2-third/阶段二提交/01_架构与系统设计文档.md",
+      "bytes": 166479,
+      "sha256": "b51fa74ecd8aad9f8fc7522888a4c17b820cd21de803a652a9b789f2ff618e9b"
+    },
+    {
+      "path": "archive/submissions/task-2-third/阶段二提交/02_需求基线说明.md",
+      "bytes": 5807,
+      "sha256": "90692f1288157c35323bd908346f1b98ef8573df1ba2978171b0fe459fb33d76"
+    },
+    {
+      "path": "archive/submissions/task-2-third/阶段二提交/03_第三次提交改进说明.md",
+      "bytes": 14996,
+      "sha256": "3e67f05f8744bdaa42c262a0d822e8a5602524818e74fbd320d03116db076349"
+    },
+    {
+      "path": "archive/submissions/task-2-third/阶段二提交/基线/01_需求分析文档_v1.0-冻结.md",
+      "bytes": 90831,
+      "sha256": "632aacb48e3c4767a643a507939a1fc3c84e5435af2f001a351a9ed58a0a7b15"
+    },
+    {
+      "path": "archive/submissions/task-2-third/阶段二第三次提交材料_v0.3.zip",
+      "bytes": 115674,
+      "sha256": "60dfb1c5a7b62648089ea47f8e4bbf80c793adaf8a32f0affa63c09c20c975a4"
+    }
+  ]
+}

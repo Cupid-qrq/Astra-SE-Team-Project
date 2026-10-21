@@ -1,0 +1,1096 @@
+{
+  "schema_version": 2,
+  "FR": [
+    {
+      "id": "FR-01",
+      "owner": "A",
+      "phase": "P1",
+      "module": "identity",
+      "acceptance": "AC-01",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1"
+      ],
+      "api": [
+        "POST /auth/login"
+      ],
+      "data": [
+        "users",
+        "sessions"
+      ]
+    },
+    {
+      "id": "FR-02",
+      "owner": "A",
+      "phase": "P1",
+      "module": "identity",
+      "acceptance": "AC-02",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1",
+        "P1-B3"
+      ],
+      "api": [
+        "POST /admin/users"
+      ],
+      "data": [
+        "users"
+      ]
+    },
+    {
+      "id": "FR-03",
+      "owner": "A",
+      "phase": "P1",
+      "module": "identity",
+      "acceptance": "AC-03",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1",
+        "P1-B2",
+        "P1-B3"
+      ],
+      "api": [
+        "GET /auth/session"
+      ],
+      "data": [
+        "users",
+        "course_members"
+      ]
+    },
+    {
+      "id": "FR-04",
+      "owner": "A",
+      "phase": "P1",
+      "module": "courses",
+      "acceptance": "AC-04",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1"
+      ],
+      "api": [
+        "PUT /courses/{id}/members/{user_id}"
+      ],
+      "data": [
+        "courses",
+        "course_members"
+      ]
+    },
+    {
+      "id": "FR-05",
+      "owner": "A",
+      "phase": "P1",
+      "module": "problems",
+      "acceptance": "AC-05",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A2"
+      ],
+      "api": [
+        "POST /problem-versions"
+      ],
+      "data": [
+        "problem_versions"
+      ]
+    },
+    {
+      "id": "FR-06",
+      "owner": "A",
+      "phase": "P1",
+      "module": "problems",
+      "acceptance": "AC-06",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A2"
+      ],
+      "api": [
+        "PUT /problem-versions/{id}/testcases/{order}"
+      ],
+      "data": [
+        "testcases"
+      ]
+    },
+    {
+      "id": "FR-07",
+      "owner": "B",
+      "phase": "P1",
+      "module": "judging",
+      "acceptance": "AC-07",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B1",
+        "P1-A2"
+      ],
+      "api": [
+        "POST /problem-versions/{id}/preflight"
+      ],
+      "data": [
+        "preflight_runs",
+        "preflight_cases",
+        "preflight_jobs"
+      ]
+    },
+    {
+      "id": "FR-08",
+      "owner": "A",
+      "phase": "P1",
+      "module": "problems",
+      "acceptance": "AC-08",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A2",
+        "P1-B1"
+      ],
+      "api": [
+        "POST /problem-versions/{id}/publish"
+      ],
+      "data": [
+        "problems",
+        "problem_versions"
+      ]
+    },
+    {
+      "id": "FR-09",
+      "owner": "A",
+      "phase": "P2",
+      "module": "assignments",
+      "acceptance": "AC-09",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A3",
+        "P2-B2"
+      ],
+      "api": [
+        "PATCH /assignments/{id}/deadline"
+      ],
+      "data": [
+        "assignments",
+        "incident_assignments"
+      ]
+    },
+    {
+      "id": "FR-10",
+      "owner": "A",
+      "phase": "P1",
+      "module": "assignments",
+      "acceptance": "AC-10",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A3"
+      ],
+      "api": [
+        "GET /assignments/{id}"
+      ],
+      "data": [
+        "assignments",
+        "assignment_items"
+      ]
+    },
+    {
+      "id": "FR-11",
+      "owner": "B",
+      "phase": "P1",
+      "module": "submissions",
+      "acceptance": "AC-11",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "api": [
+        "POST /submissions"
+      ],
+      "data": [
+        "submissions",
+        "result_bases",
+        "processing_cycles",
+        "attempts",
+        "queue_jobs"
+      ]
+    },
+    {
+      "id": "FR-12",
+      "owner": "B",
+      "phase": "P1",
+      "module": "submissions",
+      "acceptance": "AC-12",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "api": [
+        "POST /submissions"
+      ],
+      "data": [
+        "submissions"
+      ]
+    },
+    {
+      "id": "FR-13",
+      "owner": "B",
+      "phase": "P2",
+      "module": "judging",
+      "acceptance": "AC-13",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2",
+        "P2-B1"
+      ],
+      "api": [
+        "GET /submissions/{id}"
+      ],
+      "data": [
+        "queue_jobs",
+        "scheduler_control",
+        "execution_slots"
+      ]
+    },
+    {
+      "id": "FR-14",
+      "owner": "B",
+      "phase": "P1",
+      "module": "submissions",
+      "acceptance": "AC-14",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "api": [
+        "GET /submissions/{id}"
+      ],
+      "data": [
+        "attempts",
+        "case_results"
+      ]
+    },
+    {
+      "id": "FR-15",
+      "owner": "B",
+      "phase": "P1",
+      "module": "submissions",
+      "acceptance": "AC-15",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "api": [
+        "GET /submissions/{id}/attempts"
+      ],
+      "data": [
+        "submissions",
+        "attempts"
+      ]
+    },
+    {
+      "id": "FR-16",
+      "owner": "B",
+      "phase": "P1",
+      "module": "judging",
+      "acceptance": "AC-16",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "api": [
+        "POST /submissions/{id}/retry"
+      ],
+      "data": [
+        "processing_cycles",
+        "attempts",
+        "adapter_runs",
+        "execution_slots"
+      ]
+    },
+    {
+      "id": "FR-17",
+      "owner": "B",
+      "phase": "P1",
+      "module": "grades",
+      "acceptance": "AC-17",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B3"
+      ],
+      "api": [
+        "GET /assignments/{id}/grades"
+      ],
+      "data": [
+        "grade_versions",
+        "grade_students",
+        "grade_items"
+      ]
+    },
+    {
+      "id": "FR-18",
+      "owner": "B",
+      "phase": "P2",
+      "module": "grades",
+      "acceptance": "AC-18",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B3",
+        "P2-B2"
+      ],
+      "api": [
+        "POST /assignments/{id}/grades/publish"
+      ],
+      "data": [
+        "grade_versions",
+        "assignments"
+      ]
+    },
+    {
+      "id": "FR-19",
+      "owner": "A",
+      "phase": "P2",
+      "module": "learning",
+      "acceptance": "AC-19",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A4",
+        "P2-A1"
+      ],
+      "api": [
+        "POST /feedback-catalogs/{id}/publish"
+      ],
+      "data": [
+        "feedback_catalogs",
+        "feedback_versions"
+      ]
+    },
+    {
+      "id": "FR-20",
+      "owner": "A",
+      "phase": "P2",
+      "module": "learning",
+      "acceptance": "AC-20",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A2",
+        "P2-A3"
+      ],
+      "api": [
+        "POST /ai-hints"
+      ],
+      "data": [
+        "ai_hints",
+        "hint_jobs"
+      ]
+    },
+    {
+      "id": "FR-21",
+      "owner": "A",
+      "phase": "P2",
+      "module": "learning",
+      "acceptance": "AC-21",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A1",
+        "P2-A2"
+      ],
+      "api": [
+        "POST /ai-hints/{id}/feedback"
+      ],
+      "data": [
+        "ai_hints",
+        "hint_feedback",
+        "problem_families"
+      ]
+    },
+    {
+      "id": "FR-22",
+      "owner": "A",
+      "phase": "P2",
+      "module": "learning",
+      "acceptance": "AC-22",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A2"
+      ],
+      "api": [
+        "POST /ai-hints"
+      ],
+      "data": [
+        "quota_ledger",
+        "budget_accounts",
+        "budget_reservations"
+      ]
+    },
+    {
+      "id": "FR-23",
+      "owner": "B",
+      "phase": "P2",
+      "module": "grades",
+      "acceptance": "AC-23",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-B1"
+      ],
+      "api": [
+        "POST /rejudge-batches/{id}/activate"
+      ],
+      "data": [
+        "rejudge_batches",
+        "rejudge_members",
+        "grade_versions"
+      ]
+    },
+    {
+      "id": "FR-24",
+      "owner": "B",
+      "phase": "P2",
+      "module": "operations",
+      "acceptance": "AC-24",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2",
+        "P1-B3",
+        "P2-B2"
+      ],
+      "api": [
+        "GET /admin/health"
+      ],
+      "data": [
+        "audit_events",
+        "emergency_grants"
+      ]
+    },
+    {
+      "id": "FR-25",
+      "owner": "B",
+      "phase": "P3",
+      "module": "reporting",
+      "acceptance": "AC-25",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-B1"
+      ],
+      "api": [
+        "GET /assignments/{id}/grades.csv"
+      ],
+      "data": [
+        "grade_versions",
+        "grade_items"
+      ]
+    },
+    {
+      "id": "FR-26",
+      "owner": "A",
+      "phase": "P3",
+      "module": "learning",
+      "acceptance": "AC-26",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-A1"
+      ],
+      "api": [
+        "GET /review-items"
+      ],
+      "data": [
+        "submissions",
+        "result_bases"
+      ]
+    },
+    {
+      "id": "FR-27",
+      "owner": "B",
+      "phase": "P3",
+      "module": "notifications",
+      "acceptance": "AC-27",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-B1"
+      ],
+      "api": [
+        "GET /notifications"
+      ],
+      "data": [
+        "outbox_events",
+        "notifications"
+      ]
+    },
+    {
+      "id": "FR-28",
+      "owner": "A",
+      "phase": "P3",
+      "module": "learning",
+      "acceptance": "AC-28",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-A1"
+      ],
+      "api": [
+        "GET /practice-problems/{id}"
+      ],
+      "data": [
+        "problems",
+        "problem_versions",
+        "problem_families"
+      ]
+    },
+    {
+      "id": "FR-29",
+      "owner": "B",
+      "phase": "P2",
+      "module": "operations",
+      "acceptance": "AC-29",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-B3"
+      ],
+      "api": [
+        "POST /admin/retention/{id}/execute"
+      ],
+      "data": [
+        "retention_plans",
+        "retention_holds",
+        "retention_confirmations"
+      ]
+    }
+  ],
+  "NFR": [
+    {
+      "id": "NFR-01",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-01",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-B2"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-02",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-02",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-B2"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-03",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-03",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-04",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-04",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-05",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-05",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A2",
+        "P2-A3"
+      ],
+      "implementation_phase": "P2"
+    },
+    {
+      "id": "NFR-06",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-06",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P0-B2"
+      ],
+      "implementation_phase": "P0"
+    },
+    {
+      "id": "NFR-07",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-07",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-08",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-08",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A1"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-09",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-09",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-10",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-10",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-11",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-11",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-B3",
+        "P3-B3"
+      ],
+      "implementation_phase": "P2"
+    },
+    {
+      "id": "NFR-12",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-12",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-13",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-13",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-A2",
+        "P3-B2"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-14",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-14",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A3"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-15",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-15",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-A2",
+        "P3-B2"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-16",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-16",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P0-B1",
+        "P0-A2",
+        "P0-A3"
+      ],
+      "implementation_phase": "P0"
+    },
+    {
+      "id": "NFR-17",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-17",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-18",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-18",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A2",
+        "P2-A3"
+      ],
+      "implementation_phase": "P2"
+    },
+    {
+      "id": "NFR-19",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-19",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-A2",
+        "P2-A3"
+      ],
+      "implementation_phase": "P2"
+    },
+    {
+      "id": "NFR-20",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-20",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P2-B3"
+      ],
+      "implementation_phase": "P2"
+    },
+    {
+      "id": "NFR-21",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-21",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-B1"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-22",
+      "owner": "B",
+      "phase": "P3",
+      "acceptance": "NT-22",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    },
+    {
+      "id": "NFR-23",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-23",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P3-A2",
+        "P3-B2"
+      ],
+      "implementation_phase": "P3"
+    },
+    {
+      "id": "NFR-24",
+      "owner": "A",
+      "phase": "P3",
+      "acceptance": "NT-24",
+      "status": "planned",
+      "evidence": null,
+      "tasks": [
+        "P1-A2",
+        "P1-A3",
+        "P1-B2"
+      ],
+      "implementation_phase": "P1"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P0-A1",
+      "owner": "A",
+      "phase": "P0",
+      "person_days": 1,
+      "depends_on": []
+    },
+    {
+      "id": "P0-B1",
+      "owner": "B",
+      "phase": "P0",
+      "person_days": 3,
+      "depends_on": [
+        "P0-A1"
+      ]
+    },
+    {
+      "id": "P0-A2",
+      "owner": "A",
+      "phase": "P0",
+      "person_days": 2,
+      "depends_on": [
+        "P0-B1"
+      ]
+    },
+    {
+      "id": "P0-A3",
+      "owner": "A",
+      "phase": "P0",
+      "person_days": 1,
+      "depends_on": [
+        "P0-A2",
+        "P0-B1"
+      ]
+    },
+    {
+      "id": "P0-B2",
+      "owner": "B",
+      "phase": "P0",
+      "person_days": 2,
+      "depends_on": [
+        "P0-A1"
+      ]
+    },
+    {
+      "id": "P0-A4",
+      "owner": "A",
+      "phase": "P0",
+      "person_days": 1,
+      "depends_on": [
+        "P0-A1"
+      ]
+    },
+    {
+      "id": "P1-A1",
+      "owner": "A",
+      "phase": "P1",
+      "person_days": 3,
+      "depends_on": []
+    },
+    {
+      "id": "P1-A2",
+      "owner": "A",
+      "phase": "P1",
+      "person_days": 4,
+      "depends_on": [
+        "P1-A1"
+      ]
+    },
+    {
+      "id": "P1-A3",
+      "owner": "A",
+      "phase": "P1",
+      "person_days": 4,
+      "depends_on": [
+        "P1-A1"
+      ]
+    },
+    {
+      "id": "P1-A4",
+      "owner": "A",
+      "phase": "P1",
+      "person_days": 1,
+      "depends_on": [
+        "P1-A1"
+      ]
+    },
+    {
+      "id": "P1-B1",
+      "owner": "B",
+      "phase": "P1",
+      "person_days": 2,
+      "depends_on": []
+    },
+    {
+      "id": "P1-B2",
+      "owner": "B",
+      "phase": "P1",
+      "person_days": 6,
+      "depends_on": [
+        "P1-A1"
+      ]
+    },
+    {
+      "id": "P1-B3",
+      "owner": "B",
+      "phase": "P1",
+      "person_days": 3,
+      "depends_on": [
+        "P1-B2"
+      ]
+    },
+    {
+      "id": "P2-A1",
+      "owner": "A",
+      "phase": "P2",
+      "person_days": 3,
+      "depends_on": []
+    },
+    {
+      "id": "P2-A2",
+      "owner": "A",
+      "phase": "P2",
+      "person_days": 4,
+      "depends_on": [
+        "P2-A1",
+        "P0-A4"
+      ]
+    },
+    {
+      "id": "P2-A3",
+      "owner": "A",
+      "phase": "P2",
+      "person_days": 1,
+      "depends_on": [
+        "P2-A2"
+      ]
+    },
+    {
+      "id": "P2-B1",
+      "owner": "B",
+      "phase": "P2",
+      "person_days": 4,
+      "depends_on": []
+    },
+    {
+      "id": "P2-B2",
+      "owner": "B",
+      "phase": "P2",
+      "person_days": 2,
+      "depends_on": [
+        "P2-B1"
+      ]
+    },
+    {
+      "id": "P2-B3",
+      "owner": "B",
+      "phase": "P2",
+      "person_days": 2,
+      "depends_on": [
+        "P2-B2"
+      ]
+    },
+    {
+      "id": "P3-A1",
+      "owner": "A",
+      "phase": "P3",
+      "person_days": 2,
+      "depends_on": []
+    },
+    {
+      "id": "P3-B1",
+      "owner": "B",
+      "phase": "P3",
+      "person_days": 2,
+      "depends_on": []
+    },
+    {
+      "id": "P3-A2",
+      "owner": "A",
+      "phase": "P3",
+      "person_days": 2,
+      "depends_on": [
+        "P3-A1",
+        "P3-B1"
+      ]
+    },
+    {
+      "id": "P3-B2",
+      "owner": "B",
+      "phase": "P3",
+      "person_days": 2,
+      "depends_on": [
+        "P3-B1"
+      ]
+    },
+    {
+      "id": "P3-B3",
+      "owner": "B",
+      "phase": "P3",
+      "person_days": 2,
+      "depends_on": [
+        "P3-B2"
+      ]
+    },
+    {
+      "id": "P3-A3",
+      "owner": "A",
+      "phase": "P3",
+      "person_days": 1,
+      "depends_on": [
+        "P3-A2",
+        "P3-B3"
+      ]
+    }
+  ]
+}
