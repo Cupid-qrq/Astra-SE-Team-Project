@@ -1,0 +1,39 @@
+"""A integration contracts; B adapters bind these to its shared UoW/audit layer.
+
+Modules never import the standalone a_line validation application.
+The repository and all effects must use the SAME caller-owned transaction.
+"""
+
+from datetime import datetime
+from typing import Any, Protocol
+
+Record = dict[str, Any]
+
+
+class Repository(Protocol):
+    def get(self, table: str, key: Any, *, lock: bool = False) -> Record | None: ...
+    def rows(self, table: str, **filters: Any) -> list[Record]: ...
+    def add(self, table: str, data: Record) -> Record: ...
+    def change(self, table: str, key: Any, **values: Any) -> Record: ...
+    def remove(self, table: str, key: Any) -> None: ...
+    def now(self) -> datetime: ...
+    def guard(self) -> None: ...
+
+
+class Effects(Protocol):
+    def record(
+        self,
+        repo: Repository,
+        actor: str | None,
+        action: str,
+        object_id: str,
+        reason: str = "",
+        summary: Record | None = None,
+    ) -> None: ...
+    def membership_changed(self, repo: Repository, course_id: str) -> None: ...
+    def account_disabled(self, repo: Repository, user_id: str) -> None: ...
+
+
+class Passwords(Protocol):
+    def hash(self, password: str) -> str: ...
+    def verify(self, password: str, encoded: str | None) -> bool: ...

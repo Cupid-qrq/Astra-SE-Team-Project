@@ -14,3 +14,7 @@
 *.html text eol=lf
 *.zip binary
 archive/submissions/** -text
+*.sql text eol=lf
+*.ini text eol=lf
+*.toml text eol=lf
+*.lock text eol=lf

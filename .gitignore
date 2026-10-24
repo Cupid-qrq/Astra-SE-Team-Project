@@ -18,6 +18,7 @@ dist/
 build/
 test-results/
 test-results-production/
+test-results-integration/
 playwright-report/
 artifacts/
 .local/

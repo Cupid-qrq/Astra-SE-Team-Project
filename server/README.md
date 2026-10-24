@@ -13,4 +13,4 @@ tests/unit/              领域与应用用例
 tests/integration/       真实PostgreSQL与适配器集成
 ```
 
-所有进程共用规则实现；Worker不能绕过授权和事务直接修改成绩。当前只包含目录约定，尚未提供API和迁移。
+所有进程共用规则实现；Worker不能绕过授权和事务直接修改成绩。A 已在 `app/modules` 实现身份/课程、题目、作业和固定帮助基础；独立 API、PostgreSQL 迁移和检查方法见 [A线接入说明](a_line/README.md)。B 负责的正式总入口、shared 层、Worker 和总迁移仍待集成；独立验证入口不作为生产入口。

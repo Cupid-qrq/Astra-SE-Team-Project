@@ -9,6 +9,13 @@ import { Field } from '../../components/ui/Field'
 export function LoginPage() {
   const navigate = useNavigate()
   const [fields, setFields] = useState<Record<string, string>>({})
+  const [cleanupWarning] = useState(() => {
+    try {
+      return sessionStorage.getItem('astra.draftCleanupWarning') || ''
+    } catch {
+      return ''
+    }
+  })
   const mutation = useMutation({
     mutationFn: api.login,
     onSuccess: (session) => {
@@ -58,6 +65,11 @@ export function LoginPage() {
         <div className="login-form">
           <h2>欢迎回来</h2>
           <p className="muted">登录你的课程工作区。</p>
+          {cleanupWarning && (
+            <p className="form-error" role="alert">
+              {cleanupWarning}
+            </p>
+          )}
           <form noValidate onSubmit={submit}>
             <Field
               label="账号"

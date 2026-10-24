@@ -24,7 +24,8 @@ class RuntimeGateTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             for name in ('apps/web/src/main.tsx', 'apps/web/node_modules/dep/README.md',
-                         'apps/web/dist/index.html', 'apps/web/test-results/run/error.md'):
+                         'apps/web/dist/index.html', 'apps/web/test-results/run/error.md',
+                         'apps/web/test-results-integration/run/error.md'):
                 path = root / name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text('sample', encoding='utf-8')

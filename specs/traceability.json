@@ -7,8 +7,8 @@
       "phase": "P1",
       "module": "identity",
       "acceptance": "AC-01",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1"
       ],
@@ -26,8 +26,8 @@
       "phase": "P1",
       "module": "identity",
       "acceptance": "AC-02",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1",
         "P1-B3"
@@ -45,8 +45,8 @@
       "phase": "P1",
       "module": "identity",
       "acceptance": "AC-03",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1",
         "P1-B2",
@@ -66,8 +66,8 @@
       "phase": "P1",
       "module": "courses",
       "acceptance": "AC-04",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1"
       ],
@@ -85,8 +85,8 @@
       "phase": "P1",
       "module": "problems",
       "acceptance": "AC-05",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A2"
       ],
@@ -103,8 +103,8 @@
       "phase": "P1",
       "module": "problems",
       "acceptance": "AC-06",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A2"
       ],
@@ -142,8 +142,8 @@
       "phase": "P1",
       "module": "problems",
       "acceptance": "AC-08",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A2",
         "P1-B1"
@@ -162,8 +162,8 @@
       "phase": "P2",
       "module": "assignments",
       "acceptance": "AC-09",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A3",
         "P2-B2"
@@ -182,8 +182,8 @@
       "phase": "P1",
       "module": "assignments",
       "acceptance": "AC-10",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A3"
       ],
@@ -361,8 +361,8 @@
       "phase": "P2",
       "module": "learning",
       "acceptance": "AC-19",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A4",
         "P2-A1"
@@ -654,8 +654,8 @@
       "owner": "A",
       "phase": "P3",
       "acceptance": "NT-07",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1"
       ],
@@ -666,8 +666,8 @@
       "owner": "A",
       "phase": "P3",
       "acceptance": "NT-08",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A1"
       ],
@@ -715,8 +715,8 @@
       "owner": "B",
       "phase": "P3",
       "acceptance": "NT-12",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-B2"
       ],
@@ -740,8 +740,8 @@
       "owner": "A",
       "phase": "P3",
       "acceptance": "NT-14",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-A3"
       ],
@@ -752,8 +752,8 @@
       "owner": "A",
       "phase": "P3",
       "acceptance": "NT-15",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P3-A2",
         "P3-B2"
@@ -765,8 +765,8 @@
       "owner": "B",
       "phase": "P3",
       "acceptance": "NT-16",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P0-B1",
         "P0-A2",
@@ -779,8 +779,8 @@
       "owner": "B",
       "phase": "P3",
       "acceptance": "NT-17",
-      "status": "planned",
-      "evidence": null,
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
       "tasks": [
         "P1-B2"
       ],

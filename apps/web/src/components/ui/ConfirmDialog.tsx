@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Button } from './Button'
 type Props = {
@@ -9,6 +9,7 @@ type Props = {
   onCancel: () => void
   onConfirm: () => void
   busy?: boolean
+  children?: ReactNode
 }
 export function ConfirmDialog({
   open,
@@ -18,6 +19,7 @@ export function ConfirmDialog({
   onCancel,
   onConfirm,
   busy = false,
+  children,
 }: Props) {
   const titleId = useId()
   const descriptionId = useId()
@@ -98,6 +100,7 @@ export function ConfirmDialog({
       >
         <h2 id={titleId}>{title}</h2>
         <p id={descriptionId}>{description}</p>
+        {children}
         <div className="dialog-actions">
           <button
             ref={cancel}
