@@ -128,6 +128,32 @@ export function createApiClient({
     session,
     login,
     logout,
+    changePassword: (body: components['schemas']['Password']) =>
+      checked(
+        client.POST('/auth/password', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),
+      ),
+    createCourse: (body: components['schemas']['CreateCourse']) =>
+      unwrap(client.POST('/courses', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
+    updateCourse: (id: string, body: components['schemas']['UpdateCourse']) =>
+      unwrap(
+        client.PATCH('/courses/{id}', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    members: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/courses/{id}/members', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
+    updateMember: (id: string, user_id: string, body: components['schemas']['UpdateMember']) =>
+      unwrap(
+        client.PUT('/courses/{id}/members/{user_id}', {
+          body,
+          params: { path: { id, user_id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
     courses: (cursor?: string) =>
       unwrap(client.GET('/courses', { params: { query: { ...(cursor ? { cursor } : {}) } } })),
     course: (id: string) => unwrap(client.GET('/courses/{id}', { params: { path: { id } } })),

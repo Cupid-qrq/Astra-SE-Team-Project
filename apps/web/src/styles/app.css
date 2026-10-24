@@ -677,3 +677,36 @@ tbody tr:hover {
     scroll-behavior: auto !important;
   }
 }
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.inline-form .field {
+  flex: 1 1 240px;
+  margin-bottom: 0;
+}
+.inline-form > [role='alert'],
+.inline-form > [role='status'] {
+  flex-basis: 100%;
+}
+.management-panel {
+  background: var(--surface, #fff);
+  border: 1px solid #dcd9d1;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+.management-panel > form:not(.inline-form) {
+  max-width: 480px;
+}
+.management-panel h2 {
+  margin-top: 0;
+}
+@media (max-width: 600px) {
+  .management-panel {
+    padding: 16px;
+  }
+}

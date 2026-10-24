@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
-import { api } from '../../app/runtime'
+import { api, sessionKey } from '../../app/runtime'
+import { CourseManagement } from './CourseForms'
 import { DataTable } from '../../components/ui/DataTable'
 import { StatePanel } from '../../components/ui/StatePanel'
 import { Button } from '../../components/ui/Button'
@@ -13,6 +14,7 @@ const states = {
   ARCHIVED: '已归档',
 }
 export function CoursePage() {
+  const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
   const { id = '' } = useParams()
   const course = useQuery({ queryKey: ['course', id], queryFn: () => api.course(id) })
   const assignments = useInfiniteQuery({
@@ -45,6 +47,9 @@ export function CoursePage() {
           {course.data.status === 'ACTIVE' ? '进行中' : '已归档'}
         </span>
       </header>
+      {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (
+        <CourseManagement key={id} course={course.data} />
+      )}
       <h2 className="section-title">课程作业</h2>
       {assignments.isPending ? (
         <StatePanel kind="loading" title="正在加载作业…" />

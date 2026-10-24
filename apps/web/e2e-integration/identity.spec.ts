@@ -1,0 +1,27 @@
+import { expect, test } from '@playwright/test'
+
+test('真实数据库：教师建课、改名、成员停用和恢复', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByLabel('账号', { exact: true }).fill('teacher_a')
+  await page.getByLabel('密码', { exact: true }).fill('ExamplePassword123!')
+  await page.getByRole('button', { name: '登录', exact: true }).click()
+  const title = `程序设计-${crypto.randomUUID().slice(0, 8)}`
+  await page.getByLabel('新课程名称').fill(title)
+  await page.getByRole('button', { name: '创建课程', exact: true }).click()
+  await page.getByRole('link', { name: title, exact: true }).click()
+  await page.getByLabel('课程名称', { exact: true }).fill(title + '修订')
+  await page.getByRole('button', { name: '保存名称' }).click()
+  await expect(page.getByRole('heading', { name: title + '修订', exact: true })).toBeVisible()
+  await page.getByLabel('学生账号编号').fill('10000000-0000-4000-8000-000000000003')
+  await page.getByRole('button', { name: '加入课程' }).click()
+  await expect(page.getByRole('cell', { name: 'student_a', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '停用成员' }).click()
+  await page.getByRole('button', { name: '确认变更' }).click()
+  await expect(page.getByRole('cell', { name: '已停用', exact: true })).toBeVisible()
+  await page.getByRole('button', { name: '恢复成员' }).click()
+  await page.getByRole('button', { name: '确认变更' }).click()
+  await expect(page.getByRole('cell', { name: '在课', exact: true })).toBeVisible()
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.getByRole('button', { name: '退出登录', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '欢迎回来' })).toBeVisible()
+})

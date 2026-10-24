@@ -1,13 +1,15 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight, Search } from 'lucide-react'
-import { api } from '../../app/runtime'
+import { api, sessionKey } from '../../app/runtime'
+import { CreateCourseForm } from './CourseForms'
 import { DataTable } from '../../components/ui/DataTable'
 import { StatePanel } from '../../components/ui/StatePanel'
 import { Button } from '../../components/ui/Button'
 
 export function CoursesPage() {
+  const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('ALL')
   const query = useInfiniteQuery({
@@ -31,6 +33,7 @@ export function CoursesPage() {
         </div>
         <span className="quiet-note">一步一步，学有所获。</span>
       </header>
+      {session.data?.user?.role === 'TEACHER' && <CreateCourseForm />}
       <section className="course-section" aria-label="课程列表">
         <div className="list-toolbar">
           <div className="filters" role="group" aria-label="课程状态">

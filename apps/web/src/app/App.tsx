@@ -3,6 +3,7 @@ import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom'
 import { BookOpen, ChevronRight, LogOut } from 'lucide-react'
 import { api, clearSession, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
+import { PasswordPage } from '../features/auth/PasswordPage'
 import { CoursesPage } from '../features/courses/CoursesPage'
 import { CoursePage } from '../features/courses/CoursePage'
 import { Button } from '../components/ui/Button'
@@ -82,7 +83,9 @@ function Workspace() {
               {logout.error.message} 请重试退出。
             </div>
           )}
-          {user.role === 'ADMIN' ? (
+          {user.must_change_password ? (
+            <PasswordPage />
+          ) : user.role === 'ADMIN' ? (
             <StatePanel
               kind="forbidden"
               title="请使用管理员工作区"
