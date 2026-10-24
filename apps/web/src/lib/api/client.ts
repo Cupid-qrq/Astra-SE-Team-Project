@@ -259,6 +259,14 @@ export function createApiClient({
     courses: (cursor?: string) =>
       unwrap(client.GET('/courses', { params: { query: { ...(cursor ? { cursor } : {}) } } })),
     course: (id: string) => unwrap(client.GET('/courses/{id}', { params: { path: { id } } })),
+    submissionFeedback: (id: string) =>
+      unwrap(client.GET('/submissions/{id}/feedback', { params: { path: { id } } })),
+    feedbackVersion: (id: string, version: number) =>
+      unwrap(
+        client.GET('/feedback-catalogs/{id}/versions/{version}', {
+          params: { path: { id, version } },
+        }),
+      ),
     assignments: (id: string, cursor?: string) =>
       unwrap(
         client.GET('/courses/{id}/assignments', {

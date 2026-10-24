@@ -7,7 +7,9 @@ def register(add):
     add(
         "GET",
         "/courses/{id}/problems",
-        lambda c: c["page"](c["problems"].visible(c["actor"], c["path"]["id"]), "problem_id"),
+        lambda c: c["page"](
+            c["problems"].visible(c["actor"], c["path"]["id"], c["query"].get("tag")), "problem_id"
+        ),
     )
     add("POST", "/problems", lambda c: c["problems"].create(c["actor"], c["body"]))
     add(

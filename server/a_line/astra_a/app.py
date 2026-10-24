@@ -13,6 +13,8 @@ from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses, public_course
 from app.modules.identity.application import Identity, public_user
 from app.modules.identity.domain import Fault, require, role
+from app.modules.learning.api import register as learning_routes
+from app.modules.learning.application import Learning
 from app.modules.problems.api import register as problem_routes
 from app.modules.problems.application import Problems
 from fastapi import FastAPI, Request
@@ -46,6 +48,7 @@ def create_app(
     profiles=None,
     assignment_guard=None,
     submission_query=None,
+    feedback_submissions=None,
 ) -> FastAPI:
     require(len(secret) >= 32, "CONFIGURATION_ERROR", "会话密钥至少32字节。", 500)
     require(origin.startswith("https://"), "CONFIGURATION_ERROR", "验证应用要求HTTPS来源。", 500)
@@ -119,6 +122,7 @@ def create_app(
     route("GET", "/problem-profiles", runtime_profiles)
     problem_routes(route)
     assignment_routes(route)
+    learning_routes(route)
 
     def error_response(error: Fault, request_id: str) -> JSONResponse:
         return JSONResponse(
@@ -202,6 +206,29 @@ def create_app(
                         "未知查询参数。",
                         422,
                     )
+                    require(
+                        len(request.query_params.multi_items()) == len(request.query_params),
+                        "VALIDATION_ERROR",
+                        "查询参数不得重复。",
+                        422,
+                    )
+                    for parameter in operation.get("parameters", []):
+                        if (
+                            parameter.get("in") == "query"
+                            and parameter["name"] in request.query_params
+                        ):
+                            value = request.query_params[parameter["name"]]
+                            schema = parameter["schema"]
+                            if schema.get("type") == "integer":
+                                require(
+                                    value.isascii() and value.isdigit(),
+                                    "VALIDATION_ERROR",
+                                    "查询数值无效。",
+                                    422,
+                                )
+                                validate(schema, int(value))
+                            else:
+                                validate(schema, value)
                     for key, value in request.path_params.items():
                         if key in ("id", "user_id", "problem_id"):
                             try:
@@ -210,6 +237,7 @@ def create_app(
                                 raise Fault(422, "VALIDATION_ERROR", "对象编号格式无效。") from None
                     context: dict[str, Any] = dict(
                         repo=repo,
+                        learning=Learning(repo, effects, feedback_submissions),
                         assignments=Assignments(repo, effects, assignment_guard),
                         problems=Problems(repo, effects, preflight),
                         identity=identity,
@@ -218,15 +246,39 @@ def create_app(
                         token=token,
                         body=body,
                         path=request.path_params,
+                        query=dict(request.query_params),
                         source=request.client.host if request.client else "unknown",
                     )
-                    context["page"] = lambda rows, key: page(
-                        rows,
-                        key,
-                        dict(request.query_params),
-                        (actor["user_id"] if actor else "anonymous") + str(request.url.path),
-                        secret,
-                    )
+
+                    def paginated(rows, key):
+                        filters = {
+                            k: v
+                            for k, v in request.query_params.items()
+                            if k not in ("cursor", "limit", "tag")
+                        }
+                        rows = [r for r in rows if all(r.get(k) == v for k, v in filters.items())]
+                        return page(
+                            rows,
+                            key,
+                            {
+                                k: v
+                                for k, v in request.query_params.items()
+                                if k in ("cursor", "limit")
+                            },
+                            (actor["user_id"] if actor else "anonymous")
+                            + str(request.url.path)
+                            + json.dumps(
+                                {
+                                    k: v
+                                    for k, v in request.query_params.items()
+                                    if k not in ("cursor", "limit")
+                                },
+                                sort_keys=True,
+                            ),
+                            secret,
+                        )
+
+                    context["page"] = paginated
                     result = handler(context)
                     new_cookie = None
                     if path in ("/auth/session", "/auth/login"):
@@ -302,18 +354,27 @@ def create_app(
                     return error_response(
                         Fault(413, "PAYLOAD_TOO_LARGE", "请求正文超过上限。"), request_id
                     )
-            return await run_in_threadpool(perform, request, bytes(raw), request_id)
+            try:
+                return await run_in_threadpool(perform, request, bytes(raw), request_id)
+            except OperationalError:
+                return error_response(
+                    Fault(503, "DATABASE_UNAVAILABLE", "数据库暂不可用，请稍后重试。", retry=2),
+                    request_id,
+                )
 
         return handle
 
     for method, path, handler in routes:
         app.add_api_route("/api/v1" + path, endpoint(method, path, handler), methods=[method])
     # Runtime validates both directions against these canonical schemas.
-    app.openapi_schema = {
+    runtime_document = {
         **SPEC,
         "paths": {
             p: {m.lower(): SPEC["paths"][p][m.lower()] for m, q, _ in routes if p == q}
             for _, p, _ in routes
         },
     }
+    # Public FastAPI extension hook: assigning only the cache is invalidated by
+    # route-version tracking in recent FastAPI releases.
+    app.openapi = lambda: runtime_document  # type: ignore[method-assign]
     return app

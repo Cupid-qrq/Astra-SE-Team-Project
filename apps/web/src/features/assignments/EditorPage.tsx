@@ -285,7 +285,7 @@ function DraftEditor({
   useEffect(() => {
     let cancelled = false
     if (initial?.pending)
-      void restoreSubmissionAttempt(initial.pending)
+      void restoreSubmissionAttempt(initial.pending, draftKey)
         .then((value) => {
           if (!cancelled) {
             setAttempt(value)
@@ -298,7 +298,7 @@ function DraftEditor({
     return () => {
       cancelled = true
     }
-  }, [initial])
+  }, [initial, draftKey])
   useEffect(() => {
     if (readOnly || restoring) return
     latest.current = { code, pending: attempt?.intent }

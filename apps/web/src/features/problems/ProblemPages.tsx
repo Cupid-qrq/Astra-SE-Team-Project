@@ -245,7 +245,7 @@ function VersionWorkspace({
         onEdit={() => setSaved(false)}
         busy={mutation.isPending}
         error={mutation.error?.message}
-        readOnly={!!version.published_at}
+        readOnly={!!version.published_at || mutation.isPending}
       />
       {saved && <p role="status">题面已保存。</p>}
       {mutation.error && (

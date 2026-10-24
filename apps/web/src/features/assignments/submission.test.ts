@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest'
-import { createSubmissionAttempt } from './submission'
+import { createSubmissionAttempt, restoreSubmissionAttempt } from './submission'
 import { ApiError } from '../../lib/api/client'
 
 it('未知受理和限流重试保持同一键、摘要与原代码，修改代码不能混入重放', async () => {
@@ -36,4 +36,21 @@ it('空白和UTF-8超限源码不得创建提交意图', async () => {
         intent: 'FORMAL',
       }),
     ).rejects.toThrow()
+})
+
+it('本地待重放快照必须属于当前作业题目和语言', async () => {
+  const attempt = await createSubmissionAttempt({
+    assignment_id: 'a',
+    problem_id: 'p',
+    language_key: 'python3',
+    code: 'print(1)',
+    intent: 'FORMAL',
+  })
+  await expect(
+    restoreSubmissionAttempt(attempt.intent, {
+      assignmentId: 'other',
+      problemId: 'p',
+      language: 'python3',
+    }),
+  ).rejects.toThrow('不属于')
 })

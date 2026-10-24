@@ -1,6 +1,6 @@
 """Pure identity rules. No database, environment or wall-clock access."""
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 
@@ -42,7 +42,7 @@ def role(user: dict[str, Any], allowed: tuple[str, ...]) -> None:
 
 
 def utc(value: datetime) -> str:
-    return value.isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    return value.astimezone(UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def byte_limit(value: str, maximum: int, field: str) -> None:

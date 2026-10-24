@@ -8,7 +8,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_DIRS = ("apps", "server", "tests", "infra")
 IGNORED = {"node_modules", ".venv", "__pycache__", ".pytest_cache", ".mypy_cache",
-           "dist", "build", "test-results", "test-results-production", "playwright-report", "coverage", ".local"}
+           "dist", "build", "test-results", "test-results-production", "test-results-integration", "playwright-report", "coverage", ".local"}
 
 
 def source_files(directory):

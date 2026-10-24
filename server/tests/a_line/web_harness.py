@@ -186,6 +186,9 @@ def main():
         assignments.publish(
             actor, aid, {"expected_revision": 1, "reason": "专供浏览器独立测试的固定教学作业"}
         )
+        from app.modules.learning.application import seed_global_feedback
+
+        seed_global_feedback(repo, "10000000-0000-4000-8000-000000000004")
     app = create_app(
         engine,
         TestEffects(),

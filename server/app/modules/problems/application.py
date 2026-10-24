@@ -54,7 +54,7 @@ class Problems:
             "published_at": utc(version["published_at"]) if version["published_at"] else None,
         }
 
-    def visible(self, actor: Record, cid: str) -> list[Record]:
+    def visible(self, actor: Record, cid: str, tag: str | None = None) -> list[Record]:
         self.courses.access(actor, cid, teacher=True)
         result = []
         for p in self.repo.rows("problems", owner_course_id=cid):
@@ -62,6 +62,8 @@ class Problems:
                 self.repo.rows("problem_versions", problem_id=p["problem_id"]),
                 key=lambda v: v["version_no"],
             )
+            if tag is not None and not any(tag in v["tags"] for v in versions):
+                continue
             result.append(
                 {
                     **{

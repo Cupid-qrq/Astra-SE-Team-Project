@@ -37,6 +37,7 @@ export function VersionMaterials({
   const [reason, setReason] = useState('')
   const [confirm, setConfirm] = useState(false)
   const [deleteOrder, setDeleteOrder] = useState<number | null>(null)
+  const [reloadError, setReloadError] = useState('')
   const cache = useQueryClient()
   const cases = useQuery({ queryKey: ['testcases', id], queryFn: () => api.testcases(id) })
   const refs = useQuery({ queryKey: ['references', id], queryFn: () => api.references(id) })
@@ -105,175 +106,204 @@ export function VersionMaterials({
     start.error ||
     progress.error ||
     publish.error
+  const pending =
+    saveCase.isPending || saveReference.isPending || removeCase.isPending || publish.isPending
   return (
     <>
-      <section className="management-panel">
-        <h2>配对测试</h2>
-        <p>隐藏数据仅用于教师维护和预检，不会进入学生题面。</p>
-        {cases.error && <p role="alert">{cases.error.message}</p>}
-        <div className="action-row">
-          {cases.data?.items.map((c) => (
-            <span key={c.testcase_id}>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setOrder(c.order)
-                  setInput(c.input_text)
-                  setAnswer(c.answer_text)
-                  setCaseDirty(false)
+      <fieldset className="material-fields" disabled={pending}>
+        <section className="management-panel">
+          <h2>配对测试</h2>
+          <p>隐藏数据仅用于教师维护和预检，不会进入学生题面。</p>
+          {cases.error && <p role="alert">{cases.error.message}</p>}
+          <div className="action-row">
+            {cases.data?.items.map((c) => (
+              <span key={c.testcase_id}>
+                <Button
+                  variant="secondary"
+                  disabled={caseDirty}
+                  onClick={() => {
+                    setOrder(c.order)
+                    setInput(c.input_text)
+                    setAnswer(c.answer_text)
+                    setCaseDirty(false)
+                  }}
+                >
+                  载入测试 {c.order}
+                </Button>
+                {!readOnly && (
+                  <Button variant="quiet" onClick={() => setDeleteOrder(c.order)}>
+                    删除测试 {c.order}
+                  </Button>
+                )}
+              </span>
+            ))}
+          </div>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              saveCase.mutate()
+            }}
+          >
+            <Field
+              label="测试编号"
+              type="number"
+              value={order}
+              min={1}
+              max={10}
+              required
+              readOnly={readOnly}
+              onChange={(e) => {
+                setOrder(Number(e.target.value))
+                setCaseDirty(true)
+              }}
+            />
+            <div className="pair-fields">
+              <TextArea
+                label="测试输入"
+                value={input}
+                rows={4}
+                readOnly={readOnly}
+                onChange={(e) => {
+                  setInput(e.target.value)
+                  setCaseDirty(true)
+                }}
+              />
+              <TextArea
+                label="预期答案"
+                value={answer}
+                rows={4}
+                readOnly={readOnly}
+                onChange={(e) => {
+                  setAnswer(e.target.value)
+                  setCaseDirty(true)
+                }}
+              />
+            </div>
+            {!readOnly && (
+              <Button type="submit" busy={saveCase.isPending}>
+                保存配对测试
+              </Button>
+            )}
+            {saveCase.isSuccess && <p role="status">测试点已保存。</p>}
+          </form>
+        </section>
+        <section className="management-panel">
+          <h2>参考程序</h2>
+          <p>每种允许语言各保存一份参考程序。</p>
+          {refs.error && <p role="alert">{refs.error.message}</p>}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              saveReference.mutate()
+            }}
+          >
+            <label className="field">
+              参考语言
+              <select
+                value={language}
+                disabled={referenceDirty}
+                onChange={(e) => {
+                  const lang = e.target.value as 'cpp17' | 'python3'
+                  setLanguage(lang)
+                  setCode(refs.data?.items.find((r) => r.language_key === lang)?.code || '')
+                  setReferenceDirty(false)
                 }}
               >
-                载入测试 {c.order}
-              </Button>
-              {!readOnly && (
-                <Button variant="quiet" onClick={() => setDeleteOrder(c.order)}>
-                  删除测试 {c.order}
-                </Button>
-              )}
-            </span>
-          ))}
-        </div>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            saveCase.mutate()
-          }}
-        >
-          <Field
-            label="测试编号"
-            type="number"
-            value={order}
-            min={1}
-            max={10}
-            required
-            readOnly={readOnly}
-            onChange={(e) => {
-              setOrder(Number(e.target.value))
-              setCaseDirty(true)
-            }}
-          />
-          <div className="pair-fields">
-            <TextArea
-              label="测试输入"
-              value={input}
-              rows={4}
-              readOnly={readOnly}
-              onChange={(e) => {
-                setInput(e.target.value)
-                setCaseDirty(true)
-              }}
-            />
-            <TextArea
-              label="预期答案"
-              value={answer}
-              rows={4}
-              readOnly={readOnly}
-              onChange={(e) => {
-                setAnswer(e.target.value)
-                setCaseDirty(true)
-              }}
-            />
-          </div>
-          {!readOnly && (
-            <Button type="submit" busy={saveCase.isPending}>
-              保存配对测试
-            </Button>
-          )}
-          {saveCase.isSuccess && <p role="status">测试点已保存。</p>}
-        </form>
-      </section>
-      <section className="management-panel">
-        <h2>参考程序</h2>
-        <p>每种允许语言各保存一份参考程序。</p>
-        {refs.error && <p role="alert">{refs.error.message}</p>}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            saveReference.mutate()
-          }}
-        >
-          <label className="field">
-            参考语言
-            <select
-              value={language}
-              onChange={(e) => {
-                const lang = e.target.value as 'cpp17' | 'python3'
-                setLanguage(lang)
-                setCode(refs.data?.items.find((r) => r.language_key === lang)?.code || '')
+                {version.profile.languages.map((l) => (
+                  <option key={l.language_key} value={l.language_key}>
+                    {l.language_key}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Button
+              variant="quiet"
+              disabled={referenceDirty || refs.isPending || !!refs.error}
+              onClick={() => {
+                setCode(refs.data?.items.find((r) => r.language_key === language)?.code || '')
                 setReferenceDirty(false)
               }}
             >
-              {version.profile.languages.map((l) => (
-                <option key={l.language_key} value={l.language_key}>
-                  {l.language_key}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Button
-            variant="quiet"
-            onClick={() => {
-              setCode(refs.data?.items.find((r) => r.language_key === language)?.code || '')
-              setReferenceDirty(false)
-            }}
-          >
-            载入已保存参考程序
-          </Button>
-          <TextArea
-            label="参考程序"
-            value={code}
-            rows={8}
-            required
-            readOnly={readOnly}
-            onChange={(e) => {
-              setCode(e.target.value)
-              setReferenceDirty(true)
-            }}
-          />
-          {!readOnly && (
-            <Button type="submit" busy={saveReference.isPending}>
-              保存参考程序
+              载入已保存参考程序
             </Button>
-          )}
-          {saveReference.isSuccess && <p role="status">参考程序已保存。</p>}
-        </form>
-      </section>
-      {!readOnly && (
-        <section className="management-panel">
-          <h2>预检与发布</h2>
-          <p>预检必须通过全部语言、公开样例和隐藏测试。修改内容后需要重新预检。</p>
-          <Button onClick={() => start.mutate(revision)} busy={start.isPending} disabled={dirty}>
-            启动预检
-          </Button>
-          {dirty && <p>请先保存所有修改。</p>}
-          {activeJob && (
-            <p role="status">
-              预检状态：{result?.state}
-              {result?.summary ? ` · ${result.summary}` : ''}
-            </p>
-          )}
-          <Field
-            label="发布理由"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            minLength={10}
-            maxLength={500}
-            hint="10—500 个字符。发布后该版本内容不可修改。"
-          />
-          <Button
-            variant="secondary"
-            onClick={() => setConfirm(true)}
-            disabled={dirty || !activeJob || result?.state !== 'PASSED' || [...reason].length < 10}
-          >
-            发布题目版本
-          </Button>
+            <TextArea
+              label="参考程序"
+              value={code}
+              rows={8}
+              required
+              readOnly={readOnly}
+              onChange={(e) => {
+                setCode(e.target.value)
+                setReferenceDirty(true)
+              }}
+            />
+            {!readOnly && (
+              <Button type="submit" busy={saveReference.isPending}>
+                保存参考程序
+              </Button>
+            )}
+            {saveReference.isSuccess && <p role="status">参考程序已保存。</p>}
+          </form>
         </section>
-      )}
-      {error && (
-        <p role="alert" className="form-error">
-          {error.message}
-        </p>
-      )}
+        {!readOnly && (
+          <section className="management-panel">
+            <h2>预检与发布</h2>
+            <p>预检必须通过全部语言、公开样例和隐藏测试。修改内容后需要重新预检。</p>
+            <Button onClick={() => start.mutate(revision)} busy={start.isPending} disabled={dirty}>
+              启动预检
+            </Button>
+            {dirty && <p>请先保存所有修改。</p>}
+            {activeJob && (
+              <p role="status">
+                预检状态：{result?.state}
+                {result?.summary ? ` · ${result.summary}` : ''}
+              </p>
+            )}
+            <Field
+              label="发布理由"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              minLength={10}
+              maxLength={500}
+              hint="10—500 个字符。发布后该版本内容不可修改。"
+            />
+            <Button
+              variant="secondary"
+              onClick={() => setConfirm(true)}
+              disabled={
+                dirty || !activeJob || result?.state !== 'PASSED' || [...reason].length < 10
+              }
+            >
+              发布题目版本
+            </Button>
+          </section>
+        )}
+        {error && (
+          <div role="alert" className="form-error">
+            <p>{error.message}</p>
+            <Button
+              variant="quiet"
+              onClick={async () => {
+                try {
+                  const latest = await api.version(id)
+                  onRevision(latest.revision)
+                  await reload()
+                  saveCase.reset()
+                  saveReference.reset()
+                  removeCase.reset()
+                  publish.reset()
+                  setReloadError('')
+                } catch (e) {
+                  setReloadError((e as Error).message)
+                }
+              }}
+            >
+              重新读取修订，保留测试和参考程序输入
+            </Button>
+          </div>
+        )}
+        {reloadError && <p role="alert">{reloadError}</p>}
+      </fieldset>
       <ConfirmDialog
         open={confirm}
         title="确认发布题目版本"

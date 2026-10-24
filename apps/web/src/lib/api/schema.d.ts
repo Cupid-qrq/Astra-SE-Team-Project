@@ -3835,8 +3835,6 @@ export interface operations {
     listProblemProfiles: {
         parameters: {
             query?: {
-                status?: "DRAFT" | "PUBLISHED";
-                tag?: string;
                 limit?: number;
                 cursor?: string;
             };

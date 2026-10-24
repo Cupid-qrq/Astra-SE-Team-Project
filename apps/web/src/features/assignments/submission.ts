@@ -45,7 +45,14 @@ export async function createSubmissionAttempt(input: Input): Promise<SubmissionA
 }
 export async function restoreSubmissionAttempt(
   intent: SubmissionIntent,
+  context: { assignmentId: string; problemId: string; language: string },
 ): Promise<SubmissionAttempt> {
+  if (
+    intent.assignment_id !== context.assignmentId ||
+    intent.problem_id !== context.problemId ||
+    intent.language_key !== context.language
+  )
+    throw new Error('本机提交快照不属于当前作业、题目或语言，请保留代码并联系教师。')
   if ((await codeDigest(intent.code)) !== intent.code_sha256)
     throw new Error('本机提交快照摘要不一致，请保留代码并联系教师。')
   return attemptFrom(intent, true)
