@@ -1,6 +1,7 @@
 """Standalone A validation migration; B assigns the integrated revision."""
 
 from pathlib import Path
+
 from alembic import op
 
 revision = "a001"

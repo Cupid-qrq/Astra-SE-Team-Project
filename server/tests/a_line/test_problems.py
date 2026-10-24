@@ -114,6 +114,7 @@ def attach_evidence(env, vid):
         origin="https://testserver",
         clock=env.clock,
         preflight=env.preflight,
+        assignment_guard=env.coordination,
     )
     return evidence
 

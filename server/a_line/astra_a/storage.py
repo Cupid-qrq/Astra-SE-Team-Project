@@ -4,6 +4,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Any
 
+import app.modules.assignments.models  # noqa: F401
 import app.modules.courses.models  # noqa: F401
 import app.modules.problems.models  # noqa: F401
 from app.modules.identity.models import metadata

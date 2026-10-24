@@ -43,10 +43,25 @@ class TestEffects:
         )
 
     def membership_changed(self, repo, course_id):
-        pass
+        from app.modules.assignments.application import membership_changed
+
+        membership_changed(repo, course_id)
 
     def account_disabled(self, repo, user_id):
-        pass
+        for member in repo.rows("course_members", user_id=user_id, status="ACTIVE"):
+            repo.get("courses", member["course_id"], lock=True)
+            self.membership_changed(repo, member["course_id"])
+
+
+class TestCoordination:
+    def before_change(self, repo, assignment, action):
+        return None
+
+    def status(self, repo, assignment):
+        return {
+            "grade_state": "REJUDGING" if assignment["active_rejudge_batch_id"] else "PROVISIONAL",
+            "fairness_notice": None,
+        }
 
 
 @pytest.fixture
@@ -85,6 +100,7 @@ class Environment:
     def __init__(self, engine):
         self.engine, self.clock, self.effects = engine, Clock(), TestEffects()
         self.tables, self.users = metadata.tables, {}
+        self.coordination = TestCoordination()
         passwords = ArgonPasswords()
         with engine.begin() as connection:
             repo = SqlRepository(connection, self.clock)
@@ -118,6 +134,7 @@ class Environment:
             secret=b"test-only-session-key-32-bytes-long",
             origin="https://testserver",
             clock=self.clock,
+            assignment_guard=self.coordination,
         )
 
     def client(self):

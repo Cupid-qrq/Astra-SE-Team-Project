@@ -1,0 +1,60 @@
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    Column,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    String,
+    Table,
+)
+
+from app.modules.identity.models import metadata, timestamp, uid
+
+assignments = Table(
+    "assignments",
+    metadata,
+    uid("assignment_id", primary_key=True),
+    uid("course_id", ForeignKey("courses.course_id"), nullable=False),
+    Column("title", String(100), nullable=False),
+    timestamp("open_at", nullable=False),
+    timestamp("due_at", nullable=False),
+    Column("ai_policy", String(10), nullable=False),
+    timestamp("published_at"),
+    Column("revision", Integer, nullable=False),
+    Column("grade_epoch", BigInteger, nullable=False),
+    Column("fairness_review", String(10), nullable=False),
+    uid("active_grade_version"),
+    uid("active_rejudge_batch_id"),
+    timestamp("created_at", nullable=False),
+    timestamp("updated_at", nullable=False),
+    CheckConstraint("open_at < due_at", name="time_range"),
+    CheckConstraint("revision > 0 AND grade_epoch > 0", name="revisions"),
+    CheckConstraint("ai_policy IN ('DISABLED','GUIDED')", name="ai_policy"),
+    CheckConstraint("fairness_review IN ('NONE','PENDING','RESOLVED')", name="fairness"),
+    CheckConstraint("char_length(title) BETWEEN 1 AND 100", name="title"),
+    Index("ix_assignments_course_due", "course_id", "due_at"),
+)
+items = Table(
+    "assignment_items",
+    metadata,
+    uid("assignment_id", ForeignKey("assignments.assignment_id"), primary_key=True),
+    uid("problem_id", ForeignKey("problems.problem_id"), primary_key=True),
+    uid("original_version_id", nullable=False),
+    uid("effective_version_id", nullable=False),
+    Column("points", Integer, nullable=False),
+    CheckConstraint("points BETWEEN 1 AND 100", name="points"),
+    ForeignKeyConstraint(
+        ["problem_id", "original_version_id"],
+        ["problem_versions.problem_id", "problem_versions.version_id"],
+        name="fk_items_original_version",
+    ),
+    ForeignKeyConstraint(
+        ["problem_id", "effective_version_id"],
+        ["problem_versions.problem_id", "problem_versions.version_id"],
+        name="fk_items_effective_version",
+    ),
+    Index("ix_items_original_version", "original_version_id"),
+    Index("ix_items_effective_version", "effective_version_id"),
+)

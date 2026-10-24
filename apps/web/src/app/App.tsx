@@ -1,7 +1,7 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router-dom'
-import { BookOpen, ChevronRight, LogOut } from 'lucide-react'
-import { api, clearSession, sessionKey, identityKey } from './runtime'
+import { useQuery } from '@tanstack/react-query'
+import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { BookOpen, ChevronRight } from 'lucide-react'
+import { api, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
 import { PasswordPage } from '../features/auth/PasswordPage'
 import {
@@ -12,12 +12,16 @@ import {
 } from '../features/problems/ProblemPages'
 import { CoursesPage } from '../features/courses/CoursesPage'
 import { CoursePage } from '../features/courses/CoursePage'
-import { Button } from '../components/ui/Button'
+import { LogoutControl } from '../features/auth/LogoutControl'
+import { AssignmentPage, CreateAssignmentPage } from '../features/assignments/AssignmentPages'
+import { EditorPage } from '../features/assignments/EditorPage'
+import { ExpiredDraftPage } from '../features/assignments/ExpiredDraftPage'
+import { currentDraft } from '../features/assignments/drafts'
 import { StatePanel } from '../components/ui/StatePanel'
 
 function Workspace() {
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session, refetchInterval: 60_000 })
-  const logout = useMutation({ mutationFn: api.logout, onSuccess: clearSession })
+  const location = useLocation()
   if (session.isPending) return <StatePanel kind="loading" title="正在读取会话…" />
   if (session.isError)
     return (
@@ -28,7 +32,12 @@ function Workspace() {
         onRetry={() => void session.refetch()}
       />
     )
-  if (!session.data.authenticated || !session.data.user) return <Navigate to="/login" replace />
+  if (!session.data.authenticated || !session.data.user)
+    return location.pathname.includes('/problems/') && currentDraft() ? (
+      <ExpiredDraftPage />
+    ) : (
+      <Navigate to="/login" replace />
+    )
   const user = session.data.user
   return (
     <div className="workspace">
@@ -65,15 +74,7 @@ function Workspace() {
             <strong>{user.display_name}</strong>
             <span>{{ STUDENT: '学生', TEACHER: '教师', ADMIN: '管理员' }[user.role]}</span>
           </div>
-          <Button
-            variant="quiet"
-            aria-label="退出登录"
-            title="退出登录"
-            busy={logout.isPending}
-            onClick={() => logout.mutate()}
-          >
-            <LogOut size={18} aria-hidden="true" />
-          </Button>
+          <LogoutControl userId={user.user_id} />
         </div>
       </aside>
       <div className="workspace-body">
@@ -84,11 +85,6 @@ function Workspace() {
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
-          {logout.isError && (
-            <div role="alert" className="form-error">
-              {logout.error.message} 请重试退出。
-            </div>
-          )}
           {user.must_change_password ? (
             <PasswordPage />
           ) : user.role === 'ADMIN' ? (
@@ -112,6 +108,9 @@ export function App() {
       <Route element={<Workspace />}>
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
+        <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
+        <Route path="/assignments/:id" element={<AssignmentPage />} />
+        <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
         <Route path="/courses/:id/problems" element={<ProblemsPage />} />
         <Route path="/teacher/problems/:id" element={<VersionsPage />} />
         <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />

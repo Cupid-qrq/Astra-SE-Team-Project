@@ -1,0 +1,52 @@
+import { ApiError } from '../../lib/api/client'
+import type { SubmissionIntent, SubmissionReceipt } from '../integrations/teaching'
+type Input = Omit<SubmissionIntent, 'idempotency_key' | 'code_sha256'>
+export type SubmissionAttempt = {
+  intent: Readonly<SubmissionIntent>
+  uncertain: boolean
+  send: (
+    transport: (value: Readonly<SubmissionIntent>) => Promise<SubmissionReceipt>,
+  ) => Promise<SubmissionReceipt>
+}
+async function codeDigest(code: string) {
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code)))]
+    .map((n) => n.toString(16).padStart(2, '0'))
+    .join('')
+}
+function attemptFrom(intent: SubmissionIntent, uncertain: boolean): SubmissionAttempt {
+  const attempt: SubmissionAttempt = {
+    intent: Object.freeze({ ...intent }),
+    uncertain,
+    async send(transport) {
+      try {
+        const result = await transport(attempt.intent)
+        attempt.uncertain = false
+        return result
+      } catch (error) {
+        if (
+          !(error instanceof ApiError) ||
+          (error.code !== 'INTEGRATION_UNAVAILABLE' && (error.status === 0 || error.status >= 500))
+        )
+          attempt.uncertain = true
+        throw error
+      }
+    },
+  }
+  return attempt
+}
+export async function createSubmissionAttempt(input: Input): Promise<SubmissionAttempt> {
+  if (!input.code.trim()) throw new Error('代码不能为空白。')
+  if (new TextEncoder().encode(input.code).byteLength > 65536)
+    throw new Error('源码超过 UTF-8 64 KiB 上限。')
+  return attemptFrom(
+    { ...input, code_sha256: await codeDigest(input.code), idempotency_key: crypto.randomUUID() },
+    false,
+  )
+}
+export async function restoreSubmissionAttempt(
+  intent: SubmissionIntent,
+): Promise<SubmissionAttempt> {
+  if ((await codeDigest(intent.code)) !== intent.code_sha256)
+    throw new Error('本机提交快照摘要不一致，请保留代码并联系教师。')
+  return attemptFrom(intent, true)
+}

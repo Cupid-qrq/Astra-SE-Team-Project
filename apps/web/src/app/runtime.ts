@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query'
 import { createApiClient, type Session } from '../lib/api/client'
+import { activateDraftAccount } from '../features/assignments/drafts'
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,6 +15,8 @@ export function identityKey(session: Session) {
 }
 export function reconcileSession(next: Session): Session {
   const previous = queryClient.getQueryData<Session>(sessionKey)
+  if (next.user && (!previous?.user || previous.user.user_id !== next.user.user_id))
+    activateDraftAccount(next.user.user_id)
   if (previous && identityKey(previous) !== identityKey(next)) {
     const accountQueries = {
       predicate: (query: { queryKey: readonly unknown[] }) => query.queryKey[0] !== 'session',
@@ -37,4 +40,6 @@ const transport = createApiClient({ onUnauthorized: clearSession })
 export const api = {
   ...transport,
   session: async () => reconcileSession(await transport.session()),
+  login: async (...args: Parameters<typeof transport.login>) =>
+    reconcileSession(await transport.login(...args)),
 }

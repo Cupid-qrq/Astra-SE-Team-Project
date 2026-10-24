@@ -128,6 +128,44 @@ export function createApiClient({
     session,
     login,
     logout,
+    assignment: (id: string) =>
+      unwrap(client.GET('/assignments/{id}', { params: { path: { id } } })),
+    assignmentProblem: (id: string, problem_id: string) =>
+      unwrap(
+        client.GET('/assignments/{id}/problems/{problem_id}', {
+          params: { path: { id, problem_id } },
+        }),
+      ),
+    createAssignment: (body: components['schemas']['CreateAssignment']) =>
+      unwrap(client.POST('/assignments', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
+    updateAssignment: (id: string, body: components['schemas']['UpdateAssignment']) =>
+      unwrap(
+        client.PATCH('/assignments/{id}', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    publishAssignment: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(
+        client.POST('/assignments/{id}/publish', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    extendAssignment: (id: string, body: components['schemas']['DeadlineCommand']) =>
+      unwrap(
+        client.PATCH('/assignments/{id}/deadline', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    assignmentPolicy: (id: string, body: components['schemas']['PolicyCommand']) =>
+      unwrap(
+        client.PATCH('/assignments/{id}/ai-policy', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
     profiles: () => unwrap(client.GET('/problem-profiles')),
     problems: (id: string, cursor?: string) =>
       unwrap(

@@ -8,6 +8,8 @@ from collections.abc import Callable
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.modules.assignments.api import register as assignment_routes
+from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses, public_course
 from app.modules.identity.application import Identity, public_user
 from app.modules.identity.domain import Fault, require, role
@@ -116,7 +118,7 @@ def create_app(
 
     route("GET", "/problem-profiles", runtime_profiles)
     problem_routes(route)
-    route("GET", "/courses/{id}/assignments", lambda c: unavailable_list(c, False))
+    assignment_routes(route)
 
     def error_response(error: Fault, request_id: str) -> JSONResponse:
         return JSONResponse(
@@ -208,6 +210,7 @@ def create_app(
                                 raise Fault(422, "VALIDATION_ERROR", "对象编号格式无效。") from None
                     context: dict[str, Any] = dict(
                         repo=repo,
+                        assignments=Assignments(repo, effects, assignment_guard),
                         problems=Problems(repo, effects, preflight),
                         identity=identity,
                         courses=Courses(repo, effects),

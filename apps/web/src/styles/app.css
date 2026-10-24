@@ -779,3 +779,114 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+.assignment-choice {
+  border-top: 1px solid #dcd9d1;
+  padding: 20px 0;
+  display: grid;
+  gap: 16px;
+}
+.assignment-choice > label:first-child {
+  font-weight: 600;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.editor-workspace {
+  display: grid;
+  border: 1px solid #dcd9d1;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+}
+.problem-pane,
+.code-pane {
+  min-width: 0;
+  padding: 20px;
+}
+.problem-pane pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #f7f6f2;
+  padding: 12px;
+  border-radius: 4px;
+}
+.problem-pane {
+  max-height: 700px;
+  overflow-y: auto;
+}
+.editor-divider {
+  background: #f0efea;
+  cursor: col-resize;
+  touch-action: none;
+}
+.editor-divider:hover,
+.editor-divider:focus-visible {
+  background: #9c4b32;
+}
+.code-editor {
+  min-height: 360px;
+  border: 1px solid #dcd9d1;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.editor-actions {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #dcd9d1;
+}
+.editor-actions select {
+  margin-left: 8px;
+  padding: 6px;
+  border: 1px solid #dcd9d1;
+  border-radius: 4px;
+  background: white;
+}
+.save-status {
+  color: #66635c;
+  font-size: 13px;
+}
+.editor-tabs {
+  display: none;
+}
+@media (max-width: 1023px) {
+  .editor-workspace {
+    display: block;
+  }
+  .editor-divider {
+    display: none;
+  }
+  .editor-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .editor-tabs button {
+    border: 1px solid #dcd9d1;
+    padding: 8px 20px;
+    border-radius: 4px;
+    background: white;
+  }
+  .editor-tabs [aria-selected='true'] {
+    color: white;
+    background: #302f2c;
+  }
+  .editor-tab-problem .code-pane,
+  .editor-tab-code .problem-pane {
+    display: none;
+  }
+}
+@media (max-width: 599px) {
+  .editor-tab-problem .code-pane {
+    display: block;
+  }
+  .problem-pane,
+  .code-pane {
+    padding: 16px;
+  }
+}

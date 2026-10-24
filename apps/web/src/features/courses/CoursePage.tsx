@@ -49,7 +49,8 @@ export function CoursePage() {
       </header>
       {session.data?.user?.role === 'TEACHER' && (
         <p>
-          <Link to={`/courses/${id}/problems`}>管理题目</Link>
+          <Link to={`/courses/${id}/problems`}>管理题目</Link> ·{' '}
+          <Link to={`/courses/${id}/assignments/new`}>新建作业</Link>
         </p>
       )}
       {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (
@@ -72,7 +73,11 @@ export function CoursePage() {
           rowKey={(row) => row.assignment_id}
           empty="暂无已发布的作业。"
           columns={[
-            { key: 'title', heading: '作业名称', render: (row) => row.title },
+            {
+              key: 'title',
+              heading: '作业名称',
+              render: (row) => <Link to={`/assignments/${row.assignment_id}`}>{row.title}</Link>,
+            },
             { key: 'state', heading: '状态', render: (row) => states[row.state] },
             {
               key: 'due',
