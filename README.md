@@ -2,7 +2,7 @@
 
 Astra 为课程教学提供作业管理、代码评测、成绩管理和学习反馈。支持学生、任课教师、管理员三类角色，以及 C++17、Python 3 单文件程序。
 
-正式仓库：[Cupid-qrq/Astra-SE-Team-Project](https://github.com/Cupid-qrq/Astra-SE-Team-Project)。当前为已审定的开发规划基线v0.3，后续按P0—P3推进；业务代码尚未实现。
+正式仓库：[Cupid-qrq/Astra-SE-Team-Project](https://github.com/Cupid-qrq/Astra-SE-Team-Project)。以已审定开发规划v0.3为基线，当前A线已建立P0前端、契约与离线模型准备；真实业务闭环及阶段验收尚未完成，详见项目状态。
 
 ## 开发文档
 
@@ -34,7 +34,7 @@ docs/              当前开发规范
 archive/           两份选定提交的只读原件
 ```
 
-功能实现从 P0 的环境和纵向联调开始。各目录目前包含职责说明；不能据目录存在判断模块已完成。原提交材料只用于追溯，开发按当前文档执行。
+功能实现从P0环境和纵向联调开始。[前端启动与检查](apps/web/README.md)提供显式Mock与真实API模式；Mock不代表数据库联通。原提交材料只用于追溯，开发按当前文档执行。
 
 ## 本地文档检查
 
@@ -46,4 +46,4 @@ python -m unittest discover -s tools/tests -v
 git diff --check -- . ':(exclude)archive/submissions/**'
 ```
 
-业务构建、测试和部署命令由 P0 建立并接入质量门槛；现阶段文档检查不代表软件功能通过验收。
+已引入工程通过`python tools/check_runtime.py`执行唯一入口；首次需按前端README安装Node/pnpm、浏览器及离线schema依赖。现阶段检查不代表完整业务或I0验收。

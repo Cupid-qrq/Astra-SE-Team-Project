@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Astra hint sections v1",
+  "description": "Validate combined serialized content <=2000 codepoints and <=8192 UTF-8 bytes separately. Structural validation is not a content safety assessment.",
+  "type": "object", "additionalProperties": false,
+  "required": ["error_category", "location_clues", "checks", "learning_advice"],
+  "properties": {
+    "error_category": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S"},
+    "location_clues": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S"},
+    "checks": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S"},
+    "learning_advice": {"type": "string", "minLength": 1, "maxLength": 500, "pattern": "\\S"}
+  }
+}

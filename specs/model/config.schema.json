@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Astra disabled P0 model configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "enabled",
+    "provider",
+    "base_url",
+    "model_id",
+    "version_label",
+    "api_key_env",
+    "terms_review_ref",
+    "price_verified_at",
+    "input_cny_per_million",
+    "output_cny_per_million",
+    "max_input_tokens",
+    "max_output_tokens",
+    "execution_timeout_seconds",
+    "automatic_retries",
+    "daily_budget_cny",
+    "project_budget_cny"
+  ],
+  "properties": {
+    "enabled": {
+      "const": false
+    },
+    "provider": {
+      "const": "deepseek"
+    },
+    "base_url": {
+      "const": "https://api.deepseek.com"
+    },
+    "model_id": {
+      "const": null
+    },
+    "version_label": {
+      "const": null
+    },
+    "api_key_env": {
+      "const": "DEEPSEEK_API_KEY"
+    },
+    "terms_review_ref": {
+      "const": null
+    },
+    "price_verified_at": {
+      "const": null
+    },
+    "input_cny_per_million": {
+      "const": null
+    },
+    "output_cny_per_million": {
+      "const": null
+    },
+    "max_input_tokens": {
+      "const": null
+    },
+    "max_output_tokens": {
+      "const": null
+    },
+    "execution_timeout_seconds": {
+      "const": 20
+    },
+    "automatic_retries": {
+      "const": 0
+    },
+    "daily_budget_cny": {
+      "const": "20.00"
+    },
+    "project_budget_cny": {
+      "const": "500.00"
+    }
+  }
+}

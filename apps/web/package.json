@@ -1,0 +1,64 @@
+{
+  "name": "@astra/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24.0.0 <25"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "dev:mock": "vite --mode mock --host 127.0.0.1",
+    "build": "tsc -b && vite build",
+    "production:check": "node scripts/check-production.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc -b",
+    "lint": "eslint . --max-warnings 0",
+    "format:check": "prettier --check src e2e e2e-production scripts *.ts *.js *.json index.html",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "e2e:production": "playwright test -c playwright.production.config.ts",
+    "contracts:generate": "node scripts/generate-api.mjs",
+    "contracts:check": "node scripts/generate-api.mjs --check && vitest run src/lib/api/contract.test.ts"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.104.5",
+    "lucide-react": "^1.61.0",
+    "openapi-fetch": "^0.17.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^13.1.0",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.3",
+    "msw": "^3.0.3",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.0",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
+  }
+}

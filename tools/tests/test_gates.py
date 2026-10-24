@@ -17,6 +17,20 @@ class PushDestinationTests(unittest.TestCase):
         self.assertIn('push URL', result.stdout + result.stderr)
 
 class RuntimeGateTests(unittest.TestCase):
+    def test_runtime_walk_prunes_dependencies_and_generated_artifacts(self):
+        import tempfile
+        from unittest.mock import patch
+        module = self.runtime_module()
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            for name in ('apps/web/src/main.tsx', 'apps/web/node_modules/dep/README.md',
+                         'apps/web/dist/index.html', 'apps/web/test-results/run/error.md'):
+                path = root / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text('sample', encoding='utf-8')
+            with patch.object(module, 'ROOT', root):
+                self.assertEqual(list(module.runtime_files()), ['apps/web/src/main.tsx'])
+
     def test_planning_checkout_skips_runtime_without_error(self):
         from unittest.mock import patch
         module = self.runtime_module()

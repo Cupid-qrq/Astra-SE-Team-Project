@@ -1,0 +1,10 @@
+{
+  "schema_version": "1",
+  "public_problem": "读取两个整数，输出它们的和。",
+  "public_samples": [{"input": "2 3", "output": "5"}],
+  "student_code": "a, b = map(int, input().split())\nprint(a - b)",
+  "language_key": "python3",
+  "sanitized_diagnostic": "",
+  "verdict": "WA",
+  "question": "我应该先检查哪个运算？"
+}

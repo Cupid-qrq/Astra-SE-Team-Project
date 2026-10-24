@@ -1,0 +1,18 @@
+{
+  "enabled": false,
+  "provider": "deepseek",
+  "base_url": "https://api.deepseek.com",
+  "model_id": null,
+  "version_label": null,
+  "api_key_env": "DEEPSEEK_API_KEY",
+  "terms_review_ref": null,
+  "price_verified_at": null,
+  "input_cny_per_million": null,
+  "output_cny_per_million": null,
+  "max_input_tokens": null,
+  "max_output_tokens": null,
+  "execution_timeout_seconds": 20,
+  "automatic_retries": 0,
+  "daily_budget_cny": "20.00",
+  "project_budget_cny": "500.00"
+}
