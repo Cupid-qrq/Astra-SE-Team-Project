@@ -47,6 +47,11 @@ export function CoursePage() {
           {course.data.status === 'ACTIVE' ? '进行中' : '已归档'}
         </span>
       </header>
+      {session.data?.user?.role === 'TEACHER' && (
+        <p>
+          <Link to={`/courses/${id}/problems`}>管理题目</Link>
+        </p>
+      )}
       {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (
         <CourseManagement key={id} course={course.data} />
       )}

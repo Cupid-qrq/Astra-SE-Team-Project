@@ -11,12 +11,13 @@ from uuid import UUID, uuid4
 from app.modules.courses.application import Courses, public_course
 from app.modules.identity.application import Identity, public_user
 from app.modules.identity.domain import Fault, require, role
+from app.modules.problems.api import register as problem_routes
+from app.modules.problems.application import Problems
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.exc import IntegrityError, OperationalError
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
-
 
 from .contracts import SPEC, page, validate
 from .security import ArgonPasswords
@@ -40,6 +41,7 @@ def create_app(
     origin: str,
     clock: Callable | None = None,
     preflight=None,
+    profiles=None,
     assignment_guard=None,
     submission_query=None,
 ) -> FastAPI:
@@ -106,7 +108,14 @@ def create_app(
         c["courses"].access(c["actor"], c["path"]["id"], teacher=teacher)
         raise Fault(503, "INTEGRATION_UNAVAILABLE", "服务尚未接入。", retry=5)
 
-    route("GET", "/courses/{id}/problems", lambda c: unavailable_list(c, True))
+    def runtime_profiles(c):
+        role(c["actor"], ("TEACHER",))
+        if profiles is None:
+            raise Fault(503, "PROFILE_UNAVAILABLE", "运行环境尚未配置，请联系管理员。", retry=5)
+        return c["page"](profiles, "profile_id")
+
+    route("GET", "/problem-profiles", runtime_profiles)
+    problem_routes(route)
     route("GET", "/courses/{id}/assignments", lambda c: unavailable_list(c, False))
 
     def error_response(error: Fault, request_id: str) -> JSONResponse:
@@ -199,6 +208,7 @@ def create_app(
                                 raise Fault(422, "VALIDATION_ERROR", "对象编号格式无效。") from None
                     context: dict[str, Any] = dict(
                         repo=repo,
+                        problems=Problems(repo, effects, preflight),
                         identity=identity,
                         courses=Courses(repo, effects),
                         actor=actor,

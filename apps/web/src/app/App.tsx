@@ -4,6 +4,12 @@ import { BookOpen, ChevronRight, LogOut } from 'lucide-react'
 import { api, clearSession, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
 import { PasswordPage } from '../features/auth/PasswordPage'
+import {
+  ProblemsPage,
+  VersionsPage,
+  CreateVersionPage,
+  VersionPage,
+} from '../features/problems/ProblemPages'
 import { CoursesPage } from '../features/courses/CoursesPage'
 import { CoursePage } from '../features/courses/CoursePage'
 import { Button } from '../components/ui/Button'
@@ -106,6 +112,10 @@ export function App() {
       <Route element={<Workspace />}>
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
+        <Route path="/courses/:id/problems" element={<ProblemsPage />} />
+        <Route path="/teacher/problems/:id" element={<VersionsPage />} />
+        <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />
+        <Route path="/teacher/problem-versions/:id" element={<VersionPage />} />
       </Route>
       <Route path="/" element={<Navigate to="/courses" replace />} />
       <Route

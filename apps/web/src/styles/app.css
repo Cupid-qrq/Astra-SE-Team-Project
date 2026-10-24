@@ -710,3 +710,72 @@ tbody tr:hover {
     padding: 16px;
   }
 }
+.field textarea,
+.field select {
+  width: 100%;
+  border: 1px solid #dcd9d1;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  min-width: 0;
+}
+.field textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+.field textarea:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid #9c4b32;
+  outline-offset: 2px;
+}
+.pair-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.pair-fields > * {
+  min-width: 0;
+}
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+.resource-list {
+  list-style: none;
+  padding: 0;
+  border-top: 1px solid #dcd9d1;
+}
+.resource-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid #dcd9d1;
+}
+.resource-list li > a:first-child {
+  flex: 1 1 180px;
+  font-weight: 600;
+}
+.resource-list span {
+  color: #66635c;
+  font-size: 13px;
+}
+.markdown {
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+.markdown pre {
+  white-space: pre-wrap;
+  padding: 16px;
+  background: #f7f6f2;
+}
+@media (max-width: 720px) {
+  .pair-fields {
+    grid-template-columns: 1fr;
+  }
+}

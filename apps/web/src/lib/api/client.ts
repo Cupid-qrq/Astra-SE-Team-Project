@@ -128,6 +128,70 @@ export function createApiClient({
     session,
     login,
     logout,
+    profiles: () => unwrap(client.GET('/problem-profiles')),
+    problems: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/courses/{id}/problems', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
+    createProblem: (body: components['schemas']['CreateProblem']) =>
+      unwrap(client.POST('/problems', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
+    versions: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/problems/{id}/versions', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
+    version: (id: string) =>
+      unwrap(client.GET('/problem-versions/{id}', { params: { path: { id } } })),
+    createVersion: (body: components['schemas']['CreateVersion']) =>
+      unwrap(
+        client.POST('/problem-versions', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),
+      ),
+    updateVersion: (id: string, body: components['schemas']['UpdateVersion']) =>
+      unwrap(
+        client.PATCH('/problem-versions/{id}', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    testcases: (id: string) =>
+      unwrap(client.GET('/problem-versions/{id}/testcases', { params: { path: { id } } })),
+    references: (id: string) =>
+      unwrap(client.GET('/problem-versions/{id}/references', { params: { path: { id } } })),
+    putTestcase: (id: string, order: number, body: components['schemas']['PutTestcase']) =>
+      unwrap(
+        client.PUT('/problem-versions/{id}/testcases/{order}', {
+          body,
+          params: { path: { id, order }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    deleteTestcase: (id: string, order: number, body: components['schemas']['RevisionCommand']) =>
+      checked(
+        client.DELETE('/problem-versions/{id}/testcases/{order}', {
+          body,
+          params: { path: { id, order }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    putReference: (
+      id: string,
+      language_key: 'cpp17' | 'python3',
+      body: components['schemas']['PutReference'],
+    ) =>
+      unwrap(
+        client.PUT('/problem-versions/{id}/references/{language_key}', {
+          body,
+          params: { path: { id, language_key }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    publishVersion: (id: string, body: components['schemas']['PublishVersion']) =>
+      unwrap(
+        client.POST('/problem-versions/{id}/publish', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
     changePassword: (body: components['schemas']['Password']) =>
       checked(
         client.POST('/auth/password', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),

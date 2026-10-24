@@ -24,6 +24,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
+from test_problems import profile
 
 
 def main():
@@ -100,7 +101,13 @@ def main():
                     updated_at=repo.now(),
                 ),
             )
-    app = create_app(engine, TestEffects(), secret=os.urandom(32), origin="https://localhost:4175")
+    app = create_app(
+        engine,
+        TestEffects(),
+        secret=os.urandom(32),
+        origin="https://localhost:4175",
+        profiles=[profile()],
+    )
 
     @app.get("/health")
     def health():

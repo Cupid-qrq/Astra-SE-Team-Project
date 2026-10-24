@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 import app.modules.courses.models  # noqa: F401
+import app.modules.problems.models  # noqa: F401
 from app.modules.identity.models import metadata
 from app.modules.identity.ports import Record
 from sqlalchemy import select, text
