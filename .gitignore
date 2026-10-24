@@ -17,11 +17,13 @@ htmlcov/
 dist/
 build/
 test-results/
+test-results-production/
 playwright-report/
 artifacts/
 .local/
 .worktrees/
 *.log
+*.tsbuildinfo
 .DS_Store
 Thumbs.db
 .idea/

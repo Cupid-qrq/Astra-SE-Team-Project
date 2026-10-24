@@ -1,0 +1,8 @@
+node_modules
+dist
+public/mockServiceWorker.js
+src/lib/api/schema.d.ts
+pnpm-lock.yaml
+test-results
+test-results-production
+playwright-report

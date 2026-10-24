@@ -8,7 +8,7 @@ import sys
 from urllib.parse import unquote
 import zipfile
 
-from check_runtime import requires_runtime, runtime_files
+from check_runtime import requires_runtime, runtime_files, source_files
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -37,7 +37,7 @@ def main():
 
     files = [ROOT / n for n in ("README.md", "AGENTS.md", "CONTRIBUTING.md")]
     for folder in ("docs", "apps", "server", "tests", "infra", "specs", ".github"):
-        files.extend((ROOT / folder).rglob("*.md"))
+        files.extend(path for path in source_files(ROOT / folder) if path.suffix == '.md')
     files.append(ROOT / "archive/README.md")
     for file in files:
         if not file.is_file():

@@ -1,0 +1,34 @@
+:root {
+  color-scheme: light;
+  --page: #f7f6f2;
+  --surface: #ffffff;
+  --sidebar: #f0efea;
+  --text: #242320;
+  --muted: #66635c;
+  --border: #dcd9d1;
+  --primary: #302f2c;
+  --brand: #9c4b32;
+  --success: #256644;
+  --warning: #8a5714;
+  --error: #aa3434;
+  --font-body: 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-heading: 'Noto Serif SC', 'Source Han Serif SC', 'Songti SC', SimSun, serif;
+  --font-code: 'JetBrains Mono', Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-control: 6px;
+  --radius-panel: 8px;
+  --sidebar-width: 232px;
+  --topbar-height: 56px;
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--page);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  line-height: 1.6;
+}

@@ -1,12 +1,22 @@
 """Run the product checks when runtime files exist; share this gate locally and in CI."""
 
 from pathlib import Path, PurePosixPath
+import os
 import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME_DIRS = ("apps", "server", "tests", "infra")
-IGNORED = {"node_modules", ".venv", "__pycache__", ".pytest_cache", ".mypy_cache"}
+IGNORED = {"node_modules", ".venv", "__pycache__", ".pytest_cache", ".mypy_cache",
+           "dist", "build", "test-results", "test-results-production", "playwright-report", "coverage", ".local"}
+
+
+def source_files(directory):
+    """Prune generated directories before walking; never inspect vendored docs."""
+    for current, directories, files in os.walk(directory):
+        directories[:] = sorted(name for name in directories if name not in IGNORED)
+        for name in sorted(files):
+            yield Path(current) / name
 
 
 def requires_runtime(paths):
@@ -20,7 +30,7 @@ def requires_runtime(paths):
 
 def runtime_files():
     return (p.relative_to(ROOT).as_posix() for name in RUNTIME_DIRS
-            for p in (ROOT / name).rglob("*") if p.is_file())
+            for p in source_files(ROOT / name))
 
 
 def run_runtime_check(script):
