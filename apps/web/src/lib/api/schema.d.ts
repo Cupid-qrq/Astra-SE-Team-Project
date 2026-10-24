@@ -1757,7 +1757,10 @@ export interface operations {
     getSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -1901,7 +1904,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -1971,7 +1977,10 @@ export interface operations {
     getCourse: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2049,7 +2058,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2129,7 +2141,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2240,7 +2255,10 @@ export interface operations {
     getVersion: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2356,7 +2374,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2392,7 +2413,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2635,7 +2659,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2707,7 +2734,10 @@ export interface operations {
     getAssignment: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2781,7 +2811,10 @@ export interface operations {
     getAssignmentProblem: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
                 problem_id: string;
@@ -2938,7 +2971,10 @@ export interface operations {
     getSubmissionFeedback: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -2975,7 +3011,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3045,7 +3084,10 @@ export interface operations {
     getFeedbackDraft: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -3160,7 +3202,10 @@ export interface operations {
     getFeedbackVersion: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
                 version: number;
@@ -3198,7 +3243,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3268,7 +3316,10 @@ export interface operations {
     getTemplateDraft: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -3383,7 +3434,10 @@ export interface operations {
     getTemplateVersion: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
                 version: number;
@@ -3465,7 +3519,10 @@ export interface operations {
     getHint: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 hint_id: string;
             };
@@ -3544,7 +3601,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3577,7 +3637,10 @@ export interface operations {
             query?: {
                 course_id?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3608,7 +3671,10 @@ export interface operations {
     getPracticeProblem: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -3647,7 +3713,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };
@@ -3802,7 +3871,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path: {
                 id: string;
             };
@@ -3838,7 +3910,10 @@ export interface operations {
                 limit?: number;
                 cursor?: string;
             };
-            header?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
             path?: never;
             cookie?: never;
         };

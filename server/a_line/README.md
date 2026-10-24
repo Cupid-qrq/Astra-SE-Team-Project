@@ -31,6 +31,8 @@ python tools/check_runtime.py
 
 所有应用服务不 commit。`Repository` 与 `Effects` 必须共享 caller-owned transaction；审计或事件失败须回滚业务、revision 和 epoch。锁顺序固定 policy_guard→课程→作业；验证适配器使用数据库 advisory lock 串行保护，它不构成正式高并发实现或性能证据。
 
+会话查询不续期，作业等自动查询携带 `X-Astra-Background: 1`；B 的预检/结果轮询也须将该信号映射到 `Identity.actor(activity=False)`。普通用户请求续期，空闲15分钟/绝对8小时仍由服务端时间强制执行；客户端标记只能减少续期，不能绕过失效。
+
 正式 B 适配器须替换 `astra_a.storage.SqlRepository`、密码/会话配置与 HTTP 装配，复用业务规则。正式服务应使用按条件分页/有限历史查询的 repository，不应照搬验证适配器“先读取全部可见记录再分页”的实现。代理/多实例的来源限流、审计/outbox、生产连接池与服务监控仍由 B 共同集成。
 
 ## 迁移交接
@@ -46,5 +48,7 @@ python tools/check_runtime.py
 验证 host 只注册已经实现的方法，且按 canonical A OpenAPI 校验请求及公开响应。它没有独立推导一份 Pydantic schema，因此这不等于 B FastAPI 导出与 canonical 契约的双向一致性证明。
 
 `GET /problems/{id}/versions`、`GET /problem-profiles` 是页面所需的新增只读方法。profile 由部署注入；无配置时503。这两项 DTO 仍须 B 审查。错误不会回显密码、源码、隐藏数据或驱动报错。固定帮助发布正文按标题+说明+清单总计2000码点/8 KiB 保守校验。
+
+教师保存的 profile 是请求配置，不能直接作为执行端信任来源。B 预检/评测必须在部署允许列表内解析 profile，核实实际安装语言、镜像摘要及资源限制；不得仅信教师 JSON 或按其任意拉取镜像。A 发布检查绑定该配置摘要与 B 预检证据，当前合成测试不证明实际镜像约束成立。
 
 当前只实现 P1-A1—A4。固定帮助编辑/发布页面、模型提示、错题和推荐属于 P2，练习开放策略及完整验收属于后续阶段。预检执行、提交受理、真实评测结果、成绩/重评、审计/outbox、正式生产启动均没有冒充完成。未进行付费模型、隔离攻击、性能、用户验收及 I0/I1 联验。

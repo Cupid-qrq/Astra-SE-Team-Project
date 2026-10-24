@@ -128,8 +128,13 @@ export function createApiClient({
     session,
     login,
     logout,
-    assignment: (id: string) =>
-      unwrap(client.GET('/assignments/{id}', { params: { path: { id } } })),
+    assignment: (id: string, background = false) =>
+      unwrap(
+        client.GET('/assignments/{id}', {
+          params: { path: { id } },
+          headers: background ? { 'X-Astra-Background': '1' } : undefined,
+        }),
+      ),
     assignmentProblem: (id: string, problem_id: string) =>
       unwrap(
         client.GET('/assignments/{id}/problems/{problem_id}', {

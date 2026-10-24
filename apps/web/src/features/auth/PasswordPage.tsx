@@ -5,7 +5,7 @@ import { api, clearSession } from '../../app/runtime'
 import { Field } from '../../components/ui/Field'
 import { Button } from '../../components/ui/Button'
 
-export function PasswordPage() {
+export function PasswordPage({ forced = false }: { forced?: boolean }) {
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const mutation = useMutation({
@@ -33,8 +33,11 @@ export function PasswordPage() {
   }
   return (
     <section className="management-panel">
-      <h1>修改初始密码</h1>
-      <p>首次登录或重置后，请设置个人密码。保存后需要重新登录。</p>
+      <h1>{forced ? '修改初始密码' : '修改密码'}</h1>
+      <p>
+        {forced ? '首次登录或重置后，请设置个人密码。' : '请输入当前密码和新密码。'}
+        保存后需要重新登录，其他设备上的旧会话也会失效。
+      </p>
       <form onSubmit={submit}>
         <Field
           label="当前密码"

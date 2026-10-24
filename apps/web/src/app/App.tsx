@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
-import { BookOpen, ChevronRight } from 'lucide-react'
+import { BookOpen, ChevronRight, KeyRound } from 'lucide-react'
 import { api, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
 import { PasswordPage } from '../features/auth/PasswordPage'
@@ -57,6 +57,10 @@ function Workspace() {
             <BookOpen size={19} aria-hidden="true" />
             我的课程
           </NavLink>
+          <NavLink to="/account/password" className="nav-item">
+            <KeyRound size={19} aria-hidden="true" />
+            修改密码
+          </NavLink>
         </nav>
         <div className="sidebar-note">
           <span className="small-rule" />
@@ -86,8 +90,8 @@ function Workspace() {
         </header>
         <main id="main" tabIndex={-1} className="main-content">
           {user.must_change_password ? (
-            <PasswordPage />
-          ) : user.role === 'ADMIN' ? (
+            <PasswordPage forced />
+          ) : user.role === 'ADMIN' && location.pathname !== '/account/password' ? (
             <StatePanel
               kind="forbidden"
               title="请使用管理员工作区"
@@ -106,6 +110,7 @@ export function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<Workspace />}>
+        <Route path="/account/password" element={<PasswordPage />} />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />

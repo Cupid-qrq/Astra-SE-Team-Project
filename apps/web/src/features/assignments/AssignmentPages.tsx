@@ -27,7 +27,7 @@ export function AssignmentPage() {
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
   const query = useQuery({
     queryKey: ['assignment', id],
-    queryFn: () => api.assignment(id),
+    queryFn: () => api.assignment(id, true),
     refetchInterval: 30_000,
   })
   if (query.isPending) return <StatePanel kind="loading" title="正在读取作业…" />
@@ -109,17 +109,37 @@ function AssignmentActions({
   const [reason, setReason] = useState('')
   const [due, setDue] = useState('')
   const [policy, setPolicy] = useState<'DISABLED' | 'GUIDED'>(value.ai_policy)
-  const [action, setAction] = useState<'publish' | 'deadline' | 'policy' | null>(null)
+  type Command = {
+    kind: 'publish' | 'deadline' | 'policy'
+    id: string
+    title: string
+    revision: number
+    reason: string
+    due: string
+    policy: 'DISABLED' | 'GUIDED'
+  }
+  const [action, setAction] = useState<Command | null>(null)
+  function confirm(kind: Command['kind']) {
+    setAction({
+      kind,
+      id: value.assignment_id,
+      title: value.title,
+      revision: value.revision,
+      reason,
+      due,
+      policy,
+    })
+  }
   const mutation = useMutation({
-    mutationFn: async (kind: 'publish' | 'deadline' | 'policy') => {
-      const common = { expected_revision: value.revision, reason }
-      if (kind === 'publish') return api.publishAssignment(value.assignment_id, common)
-      if (kind === 'deadline')
-        return api.extendAssignment(value.assignment_id, {
+    mutationFn: async (command: Command) => {
+      const common = { expected_revision: command.revision, reason: command.reason }
+      if (command.kind === 'publish') return api.publishAssignment(command.id, common)
+      if (command.kind === 'deadline')
+        return api.extendAssignment(command.id, {
           ...common,
-          new_due_at: fromBeijing(due),
+          new_due_at: fromBeijing(command.due),
         })
-      return api.assignmentPolicy(value.assignment_id, { ...common, ai_policy: policy })
+      return api.assignmentPolicy(command.id, { ...common, ai_policy: command.policy })
     },
     onSuccess: () => {
       setAction(null)
@@ -139,7 +159,7 @@ function AssignmentActions({
         hint="10—500 个字符，随操作记录保留。"
       />
       {value.state === 'DRAFT' ? (
-        <Button disabled={!reasonValid} onClick={() => setAction('publish')}>
+        <Button disabled={!reasonValid} onClick={() => confirm('publish')}>
           发布作业
         </Button>
       ) : (
@@ -153,7 +173,7 @@ function AssignmentActions({
           <Button
             variant="secondary"
             disabled={!reasonValid || !due}
-            onClick={() => setAction('deadline')}
+            onClick={() => confirm('deadline')}
           >
             统一延期
           </Button>
@@ -172,7 +192,7 @@ function AssignmentActions({
               </option>
             </select>
           </label>
-          <Button variant="secondary" disabled={!reasonValid} onClick={() => setAction('policy')}>
+          <Button variant="secondary" disabled={!reasonValid} onClick={() => confirm('policy')}>
             调整提示策略
           </Button>
         </>
@@ -184,14 +204,14 @@ function AssignmentActions({
       )}
       {mutation.isSuccess && (
         <p role="status">
-          {mutation.variables === 'publish' ? '作业已发布。' : '作业调整已保存。'}
+          {mutation.variables?.kind === 'publish' ? '作业已发布。' : '作业调整已保存。'}
         </p>
       )}
       <ConfirmDialog
         open={!!action}
-        title={action === 'publish' ? '确认发布作业' : '确认调整作业'}
-        description={`「${value.title}」修订 ${value.revision}，影响全班成员。${action === 'deadline' ? '延期不会追认过去的练习提交。' : '发布后题目和分值不可修改。'}${mutation.error?.message || ''}`}
-        confirmLabel={action === 'publish' ? '确认发布' : '确认调整'}
+        title={action?.kind === 'publish' ? '确认发布作业' : '确认调整作业'}
+        description={`「${action?.title}」修订 ${action?.revision}，影响全班成员。${action?.kind === 'deadline' ? '延期不会追认过去的练习提交。' : '发布后题目和分值不可修改。'}${mutation.error?.message || ''}`}
+        confirmLabel={action?.kind === 'publish' ? '确认发布' : '确认调整'}
         onCancel={() => setAction(null)}
         onConfirm={() => action && mutation.mutate(action)}
         busy={mutation.isPending}

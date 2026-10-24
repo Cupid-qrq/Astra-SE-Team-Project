@@ -72,3 +72,27 @@ test('真实会话失效时仍可复制当前代码', async ({ page }, info) => 
   await expect(page.getByRole('heading', { name: '会话已失效' })).toBeVisible()
   await expect(page.getByLabel('保留的代码')).toHaveValue('print("preserve")')
 })
+
+test('未知正式提交经确定拒绝后可主动切换练习且保留代码', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', '拒绝恢复逻辑只跑桌面。')
+  await openEditor(page)
+  await page.getByRole('textbox', { name: '代码编辑器' }).fill('print(30)')
+  await page.evaluate(async () => {
+    const { teaching } = await import('/src/features/integrations/teaching.ts')
+    const { ApiError } = await import('/src/lib/api/client.ts')
+    let count = 0
+    teaching.submissions.send = async () => {
+      count += 1
+      throw count === 1
+        ? new ApiError(0, 'NETWORK_ERROR', '测试断线')
+        : new ApiError(409, 'SUBMISSION_INTENT_MISMATCH', '正式提交已截止')
+    }
+  })
+  await page.getByRole('button', { name: '提交代码', exact: true }).click()
+  await expect(page.getByLabel('提交意图')).toBeDisabled()
+  await page.getByRole('button', { name: '核对上次提交', exact: true }).click()
+  await expect(page.getByLabel('提交意图')).toBeEnabled()
+  await page.getByLabel('提交意图').selectOption('PRACTICE')
+  await expect(page.getByRole('textbox', { name: '代码编辑器' })).toHaveText('print(30)')
+  await expect(page.getByRole('button', { name: '提交代码', exact: true })).toBeVisible()
+})

@@ -37,7 +37,7 @@ export function EditorPage() {
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
   const assignment = useQuery({
     queryKey: ['assignment', id],
-    queryFn: () => api.assignment(id),
+    queryFn: () => api.assignment(id, true),
     refetchInterval: 30_000,
   })
   const problem = useQuery({

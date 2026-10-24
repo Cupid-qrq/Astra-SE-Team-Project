@@ -68,8 +68,6 @@ class Identity:
         if row is None:
             new_token, row = self.issue(None)
             token = new_token
-        else:
-            self.repo.change("sessions", row["session_id"], last_seen_at=self.repo.now())
         user = self.repo.get("users", row["user_id"]) if row["user_id"] else None
         return dict(
             authenticated=user is not None,
@@ -78,7 +76,9 @@ class Identity:
             server_time=utc(self.repo.now()),
         ), new_token
 
-    def actor(self, token: str | None, *, allow_password: bool = False) -> Record:
+    def actor(
+        self, token: str | None, *, allow_password: bool = False, activity: bool = True
+    ) -> Record:
         row = self.session_row(token)
         require(bool(row and row["user_id"]), "UNAUTHENTICATED", "会话已失效，请重新登录。", 401)
         assert row
@@ -90,7 +90,8 @@ class Identity:
             "请先修改初始密码。",
             403,
         )
-        self.repo.change("sessions", row["session_id"], last_seen_at=self.repo.now())
+        if activity:
+            self.repo.change("sessions", row["session_id"], last_seen_at=self.repo.now())
         return user
 
     def check_csrf(

@@ -6,6 +6,8 @@
 
 认证采用服务端会话与 `HttpOnly; Secure; SameSite=Lax` Cookie，浏览器同源部署。写请求校验 CSRF token 与 Origin；登录也校验 Origin 和预会话 CSRF。GET `/auth/session` 可返回匿名预会话 CSRF，登录后轮换 token。用户、角色从会话取得，写入请求不能覆盖。生产禁止通配凭据 CORS。
 
+A P1 防止轮询续期的接线约定：`GET /auth/session` 只验证、不延长空闲窗口；其他自动 GET 轮询发送可选 `X-Astra-Background: 1`，服务端照常认证授权但不更新 `last_seen_at`。普通用户导航/操作仍可续期；该头不能延长会话或放宽权限。B 预检/结果等轮询接线时遵守同一约定。
+
 响应包含 `X-Request-Id`；客户端 request_id 不可信，格式不符由服务端重写。对源码、成绩、提示、隐藏内容使用 `Cache-Control: no-store`。响应模型按角色白名单投影，不能直接序列化 ORM。
 
 分页、UUID、字段长度违反协议返回 422；JSON/请求头语法错误 400；超 HTTP/源码字节上限 413；身份 401、权限 403、不可见资源 404、业务状态/版本/同键异内容 409、个人限流/额度 429、平台暂不可用 503。所有非 2xx（含 422）统一为：

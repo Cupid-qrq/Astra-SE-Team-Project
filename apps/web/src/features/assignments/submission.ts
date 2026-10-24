@@ -23,9 +23,18 @@ function attemptFrom(intent: SubmissionIntent, uncertain: boolean): SubmissionAt
         attempt.uncertain = false
         return result
       } catch (error) {
+        // Only this business refusal proves no accepted receipt exists: the
+        // server must replay an existing receipt BEFORE checking current cutoff.
         if (
+          error instanceof ApiError &&
+          error.status === 409 &&
+          error.code === 'SUBMISSION_INTENT_MISMATCH'
+        )
+          attempt.uncertain = false
+        else if (
           !(error instanceof ApiError) ||
-          (error.code !== 'INTEGRATION_UNAVAILABLE' && (error.status === 0 || error.status >= 500))
+          (error.code !== 'INTEGRATION_UNAVAILABLE' &&
+            (error.status === 0 || error.status === 429 || error.status >= 500))
         )
           attempt.uncertain = true
         throw error

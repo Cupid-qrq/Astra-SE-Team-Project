@@ -1,6 +1,33 @@
 from datetime import timedelta
 
 from sqlalchemy import select
+from test_assignments import make_assignment, publish
+
+
+def test_background_session_and_assignment_polls_do_not_extend_idle_session(env):
+    teacher, _, _, _, aid, _ = make_assignment(env)
+    publish(teacher, aid)
+    student = env.login("student_a")
+    for _ in range(14):
+        env.clock.advance(timedelta(minutes=1))
+        assert student.get("/api/v1/auth/session").json()["authenticated"]
+        assert (
+            student.get(
+                f"/api/v1/assignments/{aid}", headers={"X-Astra-Background": "1"}
+            ).status_code
+            == 200
+        )
+    env.clock.advance(timedelta(minutes=1))
+    assert not student.get("/api/v1/auth/session").json()["authenticated"]
+    assert student.get(f"/api/v1/assignments/{aid}").status_code == 401
+
+
+def test_user_navigation_still_renews_idle_window(env):
+    teacher = env.login("teacher_a")
+    env.clock.advance(timedelta(minutes=14))
+    assert teacher.get("/api/v1/courses").status_code == 200
+    env.clock.advance(timedelta(minutes=2))
+    assert teacher.get("/api/v1/auth/session").json()["authenticated"]
 
 
 def test_cooldown_lasts_ten_minutes_after_fifth_failure(env):

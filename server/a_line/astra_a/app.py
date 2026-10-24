@@ -174,7 +174,11 @@ def create_app(
                         None
                         if auth_path
                         else identity.actor(
-                            token, allow_password=path in ("/auth/password", "/auth/logout")
+                            token,
+                            allow_password=path in ("/auth/password", "/auth/logout"),
+                            activity=not (
+                                method == "GET" and request.headers.get("X-Astra-Background") == "1"
+                            ),
                         )
                     )
                     if method not in ("GET", "HEAD"):
