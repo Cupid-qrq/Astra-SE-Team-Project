@@ -46,6 +46,8 @@ jobs:
       - name: 开发工具回归
         run: python -m unittest discover -s tools/tests -v
       - name: 已引入的工程检查
+        env:
+          ASTRA_TEST_DATABASE_URL: ${{ env.ASTRA_A_DATABASE_URL }}
         run: python tools/check_runtime.py
       - name: 新提交规范
         if: github.event_name == 'pull_request'

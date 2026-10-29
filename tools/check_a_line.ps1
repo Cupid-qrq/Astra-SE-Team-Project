@@ -21,8 +21,14 @@ try {
     & $uvPath run --project server/a_line pytest -c server/a_line/pyproject.toml server/tests/a_line --cov=app.modules.identity.domain --cov=app.modules.problems.domain --cov=app.modules.assignments.domain --cov=app.modules.learning.domain --cov-branch --cov-report=term-missing --cov-fail-under=80
     if ($LASTEXITCODE -ne 0) { throw 'A线数据库与业务测试失败' }
     $env:ASTRA_A_PYTHON = (& $uvPath run --project server/a_line python -c 'import sys; print(sys.executable)').Trim()
-    & pnpm --dir apps/web exec playwright test -c playwright.integration.config.ts
-    if ($LASTEXITCODE -ne 0) { throw 'A线真实数据库浏览器集成失败' }
+    # Corepack chooses packageManager from cwd before pnpm handles --dir.
+    Push-Location -LiteralPath (Join-Path $repo 'apps/web')
+    try {
+        & pnpm exec playwright test -c playwright.integration.config.ts
+        if ($LASTEXITCODE -ne 0) { throw 'A线真实数据库浏览器集成失败' }
+    } finally {
+        Pop-Location
+    }
 } finally {
     Pop-Location
 }

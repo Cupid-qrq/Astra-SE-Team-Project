@@ -8,8 +8,10 @@
 
 ```powershell
 uv sync --frozen --project server/a_line
-pnpm --dir apps/web install --frozen-lockfile
-pnpm --dir apps/web exec playwright install chromium
+Push-Location apps/web
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+Pop-Location
 $env:ASTRA_A_DATABASE_URL='postgresql+psycopg://<测试用户>:<密码>@127.0.0.1:5432/astra_a_test?connect_timeout=5'
 python tools/check_runtime.py
 ```
