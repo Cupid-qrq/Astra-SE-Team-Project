@@ -36,3 +36,26 @@ python tools/check_runtime.py
 缺数据库配置会失败，不跳过或改用SQLite。共享层测试用随机 `b_shared_` schema，只清理自己创建的schema。A套件使用不同前缀，CI可复用一个专用测试数据库。生产库不参与测试。Windows通过WSL本机转发连接时，需保持WSL会话存活并确认数据库正在监听；退出WSL会话后应重新核验连接。
 
 S1验证共享库本身。正式单head迁移、A模块改用该UoW、生产HTTP与跨线完整验收属于后续阶段；不能用本阶段测试计数宣称已接通A业务。
+
+## B 正式迁移与存储 S2
+
+设置 `ASTRA_DATABASE_URL` 后，从根目录显式执行：
+
+```powershell
+uv sync --locked --project server
+uv run --project server alembic -c server/alembic.ini upgrade head
+```
+
+正式链为 `b001→b002→b003→b004→b005`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
+
+`app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
+
+在 `UnitOfWork` 返回的Connection内构造 `SqlRepository`。需要策略保护的用例首先调用 `guard()`，然后按规范锁课程、作业；它使用数据库单行锁，不复用A验证适配器的全局advisory lock。Repository不负责身份授权，也不自行提交。A应用服务仍承担权限/业务校验。
+
+`rows()` 保持A内部完整集合查询语义；公开列表不得直接用它全量读取后分页。HTTP接入使用 `page(table, limit=1..100, after=主键, **filters)` 等按授权条件构造的查询。当前page支持单主键稳定游标，其参数必须先经API校验；复合主键或更复杂排序需要明确扩展端口。
+
+`TransactionalEffects(repo, request_id)` 绑定同一个Repository，拒绝传入其他事务的Repository。A的课程/账号/题目/作业动作在同一事务写审计与Outbox；摘要只散列，事件不复制任意summary正文。成员变化经A受控端口更新作业revision/grade_epoch，失败随业务一起回滚。Outbox消费、通知收件人和正式成绩协调仍待后续实现。
+
+审计表由触发器禁止UPDATE/DELETE。本阶段没有部署角色或维护账号，正式部署仍需按运行规范限制业务账号为审计INSERT/SELECT；留存清理的维护通路后续单独实现，不以本机测试表owner权限冒充最小权限验收。
+
+本阶段已可在正式schema中直接用A应用服务、B Repository/Effects和共享UoW组合调用。A的独立HTTP host仍保留自己的验证装配；总HTTP装配在S3切换，不能将原A浏览器回归称为B生产HTTP验收。
