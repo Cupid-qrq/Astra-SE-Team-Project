@@ -8,11 +8,11 @@ Push-Location -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'server
 try {
     & uv sync --locked
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff check app/shared tests/shared migrations
+    & uv run --locked ruff check app/shared app/api app/main.py tests/shared migrations
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff format --check app/shared tests/shared migrations
+    & uv run --locked ruff format --check app/shared app/api app/main.py tests/shared migrations
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked mypy app/shared
+    & uv run --locked mypy app/shared app/api app/main.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & uv run --locked pytest tests/shared
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

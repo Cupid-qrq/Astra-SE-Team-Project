@@ -13,7 +13,7 @@ tests/unit/              领域与应用用例
 tests/integration/       真实PostgreSQL与适配器集成
 ```
 
-所有进程共用规则实现；Worker不能绕过授权和事务直接修改成绩。A 已在 `app/modules` 实现身份/课程、题目、作业和固定帮助基础；独立 API、PostgreSQL 迁移和检查方法见 [A线接入说明](a_line/README.md)。B已实现共享事务/时钟、A兼容存储适配及正式迁移链；正式HTTP总入口与Worker仍待接入；独立验证入口不作为生产入口。
+所有进程共用规则实现；Worker不能绕过授权和事务直接修改成绩。A 已在 `app/modules` 实现身份/课程、题目、作业和固定帮助基础；独立 API、PostgreSQL 迁移和检查方法见 [A线接入说明](a_line/README.md)。B已实现共享事务/时钟、A兼容存储适配及正式迁移链；正式HTTP总入口已装配A教学服务，Worker仍待接入；独立验证入口不作为生产入口。
 
 ## B 共享层 S1
 
@@ -59,3 +59,22 @@ uv run --project server alembic -c server/alembic.ini upgrade head
 审计表由触发器禁止UPDATE/DELETE。本阶段没有部署角色或维护账号，正式部署仍需按运行规范限制业务账号为审计INSERT/SELECT；留存清理的维护通路后续单独实现，不以本机测试表owner权限冒充最小权限验收。
 
 本阶段已可在正式schema中直接用A应用服务、B Repository/Effects和共享UoW组合调用。A的独立HTTP host仍保留自己的验证装配；总HTTP装配在S3切换，不能将原A浏览器回归称为B生产HTTP验收。
+
+## B 正式HTTP S3a
+
+正式入口是 `app.main:create_app`，生产不导入a_line验证应用。先显式执行正式迁移，再通过部署环境设置[配置样例](.env.example)中四个必需值；不会自动读取.env。数据库必须为postgresql+psycopg；会话密钥至少32字节、内部健康令牌至少32字节，Origin必须为完整HTTPS来源且不带路径。缺配置启动失败，错误及repr不回显凭据。
+
+从仓库根目录启动：
+
+```powershell
+uv sync --locked --project server
+uv run --project server uvicorn app.main:create_app --factory --app-dir server --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+应用位于HTTPS反向代理后，浏览器与API同源；Cookie使用Secure/HttpOnly/SameSite=Lax。API前缀/api/v1。`GET /health/live`公开；`GET /health/ready`要求X-Readiness-Token，检查正式迁移head后返回就绪状态，不提供数据库细节。应用启动不建表、不创建账号、不种题目、不合成执行证据。管理员初始化、部署最小权限及评测VM另行验收。
+
+每次请求先限制512KiB正文，严格校验JSON语法/重复键/UTF-8，再进入共享UoW；获得policy_guard后解析当前身份，写请求校验Origin/CSRF。响应在提交前按canonical schema验证；Cookie只在提交成功后发送。A的Fault(commit=True)仅用于保存登录失败账本，普通业务错误整体回滚。后台GET与session查询不延长空闲会话。
+
+公开大列表在授权SQL中使用limit+1和稳定主键，游标签名绑定用户、路由和过滤条件；内部rows不截断。测试点/参考程序/运行profile受业务或配置上限约束，允许有界内存分页。运行profile未配置、既有方法所需的预检/成绩协调未接通时返回503；提交前端端口保留显式503占位，未实现的B路由不注册。不以测试合成值响应生产请求。
+
+本阶段消费A契约片段，生产仅注册已实现的38个教学方法；总契约、生成类型来源切换及正式应用浏览器检查在S3b完成。A独立浏览器入口继续保留，不冒称其结果证明正式应用联通。

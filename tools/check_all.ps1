@@ -2,7 +2,7 @@
 param()
 $ErrorActionPreference = 'Stop'
 # Unified entry: preserve A/web checks and include B shared infrastructure.
-# Formal migrations, HTTP and isolation enter in later reviewed stages.
+# B formal migrations/storage and HTTP are checked below; execution isolation follows separately.
 & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check_web.ps1')
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check_a_line.ps1')

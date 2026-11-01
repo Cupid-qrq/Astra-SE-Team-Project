@@ -26,7 +26,7 @@ def identity(repo):
     return Identity(repo, UnusedPasswords(), TransactionalEffects(repo, str(uuid4())), SECRET)
 
 
-def seed(engine, config_path, *, due_seconds=3600):
+def seed(engine, config_path, *, due_seconds=3600, profile=None, browser=False):
     config = Config(str(config_path))
     with engine.begin() as conn:
         config.attributes["connection"] = conn
@@ -44,6 +44,12 @@ def seed(engine, config_path, *, due_seconds=3600):
             "assignment",
         )
     }
+    if browser:
+        ids.update(
+            teacher="10000000-0000-4000-8000-000000000001",
+            student="10000000-0000-4000-8000-000000000003",
+            admin="10000000-0000-4000-8000-000000000004",
+        )
     with UnitOfWork(engine) as conn:
         repo = SqlRepository(conn)
         now = repo.now()
@@ -52,8 +58,8 @@ def seed(engine, config_path, *, due_seconds=3600):
                 "users",
                 dict(
                     user_id=ids[key],
-                    login_name=key,
-                    display_name=key,
+                    login_name=key + "_a" if browser else key,
+                    display_name=key + "_a" if browser else key,
                     role=role,
                     status="ACTIVE",
                     password_hash="test-only",
@@ -68,7 +74,7 @@ def seed(engine, config_path, *, due_seconds=3600):
             dict(
                 course_id=ids["course"],
                 teacher_id=ids["teacher"],
-                title="course",
+                title="编辑器测试课程" if browser else "course",
                 status="ACTIVE",
                 archived_at=None,
                 revision=1,
@@ -103,11 +109,11 @@ def seed(engine, config_path, *, due_seconds=3600):
                 version_id=ids["version"],
                 problem_id=ids["problem"],
                 version_no=1,
-                title="test",
+                title="两数之和" if browser else "test",
                 statement="test",
                 samples=[{"input": "1", "output": "1"}],
                 tags=[],
-                profile={"languages": [{"language_key": "python3"}]},
+                profile=profile or {"languages": [{"language_key": "python3"}]},
                 source_ref="synthetic",
                 checksum="a" * 64,
                 published_at=now,
@@ -122,7 +128,7 @@ def seed(engine, config_path, *, due_seconds=3600):
             dict(
                 assignment_id=ids["assignment"],
                 course_id=ids["course"],
-                title="test",
+                title="编辑器固定作业" if browser else "test",
                 open_at=now - timedelta(hours=1),
                 due_at=now + timedelta(seconds=due_seconds),
                 ai_policy="DISABLED",
