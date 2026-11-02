@@ -46,7 +46,7 @@ A P1 防止轮询续期的接线约定：`GET /auth/session` 只验证、不延�
 | GET /courses/{id}/members | 本课 T | status? | 200：成员分页 |
 | PUT /courses/{id}/members/{user_id} | 本课 T | status、expected_revision | 200：成员状态及课程新 revision |
 | GET /courses/{id}/problems | 本课 T | status?、tag? | 200：题目分页 |
-| GET /problem-profiles | T | cursor、limit | 200：部署提供的运行环境列表；未配置503，实际隔离由B2核验 |
+| GET /problem-profiles | T | cursor、limit | 200：部署提供的运行环境列表；未配置503，基础容器限制由B2核验；独立VM诊断可选 |
 | GET /problems/{id}/versions | 本课 T | cursor、limit | 200：题目草稿与历史版本分页，含公开内容、不含隐藏测试或参考程序 |
 | POST /problems | 本课 T | course_id、canonical_problem_id? | 201：problem_id、家族 ID；未指定则新建家族 |
 | POST /problem-versions | 本课 T | problem_id、base_version_id?、题目草稿字段 | 201：version_id、revision |

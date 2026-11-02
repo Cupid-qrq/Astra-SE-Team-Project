@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Astra A 线接口片段（待 A/B 集成审查）",
-    "version": "0.3.0-p0",
+    "version": "0.4.0-course",
     "description": "设计契约，非已实现服务。公共 schema、AI 策略/运行 profile 细化字段为 A 提案，最终须与 B 总入口 specs/openapi.yaml 和 FastAPI 导出核对。"
   },
   "servers": [

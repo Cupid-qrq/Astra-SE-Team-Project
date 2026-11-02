@@ -2,7 +2,7 @@
 
 Astra 为课程教学提供作业管理、代码评测、成绩管理和学习反馈。支持学生、任课教师、管理员三类角色，以及 C++17、Python 3 单文件程序。
 
-正式仓库：[Cupid-qrq/Astra-SE-Team-Project](https://github.com/Cupid-qrq/Astra-SE-Team-Project)。开发以已审定规划v0.3为基线；各路线的工程、教学、隔离实现及验收边界统一记录在项目状态。
+正式仓库：[Cupid-qrq/Astra-SE-Team-Project](https://github.com/Cupid-qrq/Astra-SE-Team-Project)。开发以发起人于2026-11-02批准的课程交付规划v0.4为基线；各路线的工程、教学、容器执行及外部验收边界统一记录在项目状态。
 
 ## 开发文档
 

@@ -46,7 +46,7 @@ uv sync --locked --project server
 uv run --project server alembic -c server/alembic.ini upgrade head
 ```
 
-正式链为 `b001→b002→b003→b004→b005→b006→b007`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版添加提示模板草稿和不可变发布版本，第七版引入提示任务、个人额度和双预算账本；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
+正式链为 `b001→b002→b003→b004→b005→b006→b007→b008`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
 
 `app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
 
@@ -71,7 +71,7 @@ uv sync --locked --project server
 uv run --project server uvicorn app.main:create_app --factory --app-dir server --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-应用位于HTTPS反向代理后，浏览器与API同源；Cookie使用Secure/HttpOnly/SameSite=Lax。API前缀/api/v1。`GET /health/live`公开；`GET /health/ready`要求X-Readiness-Token，检查正式迁移head后返回就绪状态，不提供数据库细节。应用启动不建表、不创建账号、不种题目、不合成执行证据。管理员初始化、部署最小权限及评测VM另行验收。
+应用位于HTTPS反向代理后，浏览器与API同源；Cookie使用Secure/HttpOnly/SameSite=Lax。API前缀/api/v1。`GET /health/live`公开；`GET /health/ready`要求X-Readiness-Token，检查正式迁移head后返回就绪状态，不提供数据库细节。应用启动不建表、不创建账号、不种题目、不合成执行证据。管理员初始化、部署最小权限及基础评测容器运行另行验收；独立VM诊断可选。
 
 每次请求先限制512KiB正文，严格校验JSON语法/重复键/UTF-8，再进入共享UoW；获得policy_guard后解析当前身份，写请求校验Origin/CSRF。响应在提交前按canonical schema验证；Cookie只在提交成功后发送。A的Fault(commit=True)仅用于保存登录失败账本，普通业务错误整体回滚。后台GET与session查询不延长空闲会话。
 
@@ -85,7 +85,7 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 
 `tools/check_server.ps1`运行锁定依赖、格式/类型、契约映射、真实数据库全部共享层/HTTP测试及正式应用浏览器。后者复用A的教学流程，显式测试harness使用正式B迁移/UoW/Repository/Effects/create_app，初始化虚构账号和合成教学版本。当前外部执行端口继续不可用；前端端口fake专项单独标识。
 
-浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器、独立VM及业务闭环另行验收。
+浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器与业务闭环另行验收；独立VM诊断可选。
 
 正式HTTP将未知内部约束/持久化异常归为503，已知业务冲突由应用Fault返回409。PostgreSQL文本及JSONB的NUL按字段返回422；已明确的bytea源码/测试及散列密码通道保持其原字节语义。
 
@@ -103,9 +103,9 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 
 监督候选协议：管理入口前的受信接入层必须在创建前持久登记`X-Astra-*`完整lease、execution_key、request_hash、profile_hash和deployment_id，并按lease fence阻止迟到创建。POST监督端`/v1/executions/{execution_key}/cancel-and-cleanup`只发送identity与可空backend_token。仅接收协议astra-supervisor-v1、同deployment/完整身份、非零proof UUID、stopped/directory_cleaned/creation_resolved均为true、fenced_epoch为本租约整数的证明；否则隔离不复用。原生Judge0 DELETE不能终止排队/运行任务，不用于清理确认。
 
-以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；实际S5实测及A成员审查前保持未接生产Worker。替身85项仅证明库的边界和失败处理。
+以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；当前尚未接生产Worker，真实连接需通过课程容器运行和清理核验；S5独立VM诊断为可选后续工作。替身85项仅证明库的边界和失败处理。
 
-## 独立VM登记与S5准备
+## 可选独立VM登记与诊断
 
 [登记与验证说明](../infra/judge/README.md)提供默认UNVERIFIED模板和`tools/verify_judge.py`。本地检查不联网；--probe仅对登记端GET配置和能力，绝不创建submission。登记冻结不同业务/评测VM身份、资源、镜像、两语言profile/映射、源码commit及配置指纹；证据校验V-01—V-06身份/文件摘要与目录边界。成功仅表示记录齐全待成员复核，execution_enabled始终false。
 

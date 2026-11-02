@@ -51,7 +51,7 @@ python tools/check_runtime.py
 2. B 总装配复用 A 身份/课程/题目/作业服务；先确认 Cookie/CSRF/Origin/统一错误与响应字段，使用独立测试库和虚构账号。
 3. `dev` 模式启动前端，实际操作登录→课程→详情→退出；在 PostgreSQL 核查账号/课程读取来源及会话创建/撤销。保留当前 SHA 和真实输出。
 4. B 在应用组合入口调用 `configureTeachingIntegrations` 注入预检、提交与结果组件；默认接口返回明确不可用，不会生成成功提交。结果组件通过 `api.submissionFeedback` 获取本轮冻结版本后传给 `FixedHelp`，切换attempt时清空旧帮助。
-5. B检查已纳入tools/check_all.ps1，正式迁移使用B单head。运行注册/导出与契约检查；两人干净检出、成员审批和I0/I1另行验收。
+5. B检查已纳入tools/check_all.ps1，正式迁移使用B单head。运行注册/导出与契约检查；干净检出、用户授权范围和I0/I1业务联验另行记录；真实模型启用验收可后续执行。
 
 Playwright 在本阶段使用 Chromium，覆盖1366×768、1440×900、390×844。Browser插件未提供，因此按Frontend Testing Debugging流程使用项目Playwright；测试截图/trace位于忽略的test-results。跨浏览器最终验收仍属P3。
 

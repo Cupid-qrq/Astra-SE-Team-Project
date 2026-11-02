@@ -1,5 +1,7 @@
 # 开发工作流
 
+当前基线为v0.4。独立VM、攻击探针和高规格压测不作为课程交付或代码合并门槛；基础容器限制、业务授权与一致性、秘密保护、真实数据库回归及数据恢复保留。真实模型配置和收费外部验收单独记录。
+
 ## 1. 环境与任务入口
 
 两位开发者都必须在自己的Codex启用[Superpowers](https://github.com/obra/superpowers)和[Build Web Apps](https://chatgpt.com/plugins/build-web-apps?open_in_app)。首次开发记录插件版本、已加载能力和一个实际检查结果。仅安装在另一人的机器上不算完成；工具不可用时登记阻塞，可继续不依赖它的工作。
@@ -10,14 +12,14 @@
 
 | 环节 | 必须执行的流程 | 产物与退出条件 |
 | --- | --- | --- |
-| 设计 | Superpowers `brainstorming`：辨明目的、现状、边界和取舍；既有需求充分时不重复询问 | 新架构/接口变更形成设计说明，经另一成员确认；已有批准设计的修复定位到具体规则 |
+| 设计 | Superpowers `brainstorming`：辨明目的、现状、边界和取舍；既有需求充分时不重复询问 | 新架构/接口变更形成设计说明，经另一成员确认或项目发起人明确批准；已有批准设计的修复定位到具体规则 |
 | 计划 | `writing-plans`：任务拆到可独立验收，列实际文件、输入输出、测试和依赖 | 任务计划保存于 `docs/plans/`；一个任务一个负责人；引用总规范，不复制全文 |
 | 隔离 | `using-git-worktrees`：检查现有分支及工作区；已有适合检出可复用 | 每人独立检出；共享文件先协调，禁止覆盖对方改动 |
 | 实现 | `executing-plans`按任务推进；明确需要独立并行子任务时可选`subagent-driven-development` | 业务规则先失败测试→最小实现→通过→整理；使用`test-driven-development`，不是先写实现再补同形测试 |
 | 页面 | Build Web Apps的Frontend App Builder、React Best Practices及适用的组件能力 | A维护统一组件；A/B各自使用相关能力实现、调试和验证所属页面；遵循UI规范，不引入无关支付或托管依赖 |
 | 数据 | 两人核对接口、迁移、事务、索引；Build Web Apps的Postgres相关能力仅用于适用的设计检查 | PostgreSQL仍由本项目管理；不能因插件包含Supabase而改换架构 |
 | 调试 | Superpowers `systematic-debugging`先复现和定位原因；页面问题同时使用Build Web Apps的Frontend Testing Debugging | 保存最小失败用例，修复后回归；不能连续猜测式修改 |
-| 审查 | `requesting-code-review`提供精确任务/文件/变更范围；`receiving-code-review`核实反馈后修正 | 独立检查规范符合性、边界和代码质量；代理审查不替代另一位成员的合并审批 |
+| 审查 | `requesting-code-review`提供精确任务/文件/变更范围；`receiving-code-review`核实反馈后修正 | 独立检查规范符合性、边界和代码质量；代理审查如实标记；另一成员审批或项目发起人明确授权作为集成批准依据 |
 | 验证 | `verification-before-completion`运行当前修改对应的完整检查；页面必须真实浏览器操作 | 保存命令、结果、commit、环境与必要产物；未执行项不得写通过 |
 | 收尾 | `finishing-a-development-branch`核对检查、审查、未推送依赖和集成方式 | 按本文件的推送/合并步骤完成；清理仅限已结束且无依赖的分支/工作树 |
 
@@ -85,20 +87,20 @@ pwsh -File tools/pre_push.ps1
 
 ## 7. PR与双方进度核对
 
-作者按[PR模板](.github/pull_request_template.md)填写行为变化、任务/需求、接口/迁移影响及真实验证。另一成员审查；有新提交、冲突解决或main更新时，重新验证和审批。
+作者按[PR模板](.github/pull_request_template.md)填写行为变化、任务/需求、接口/迁移影响及真实验证。执行独立审查；有新提交、冲突解决或main更新时，重新验证。项目发起人明确授权覆盖的集成可继续实施，并如实记录授权范围及审查结果。
 
 合并者必须核对：
 
 1. A、B分别确认任务状态及相关本地未推送工作；远端没有提交不能证明本地没有依赖。
 2. PR记录最新main、PR HEAD、相关A/B分支的远端SHA；无依赖写“无”，必需依赖未推送则禁止合并。
 3. fetch后确认接口、迁移单head、共享组件和任务顺序一致；在最新main上的候选结果执行检查。
-4. 检查结果属于当前候选SHA、另一人批准、讨论全部解决，再Squash merge；最终标题包含实际主提交者署名和中文说明。
+4. 检查结果属于当前候选SHA、另一成员批准或项目发起人明确授权、讨论全部解决，再Squash merge；最终标题包含实际主提交者署名和中文说明。
 5. 合并后两人拉取main，确认集成环境回归，再删除无后续依赖的已完成分支。
 
-GitHub主线保护在P0配置：至少1名非作者审批、新提交撤销旧审批、分支最新、必要检查通过、讨论解决、禁止强推。CODEOWNERS只填写真实成员账号。CI最小读取权限，不用`pull_request_target`执行外来代码，不向普通PR提供生产或收费模型凭据。
+GitHub主线保护按实际配置核对，保留分支最新、必要检查通过、讨论解决及禁止强推。若远端要求非作者审批，项目发起人的聊天授权不得伪装成GitHub审批，也不得擅自修改保护绕过；按平台实际状态完成允许的集成步骤。CODEOWNERS只填写真实成员账号。CI最小读取权限，不用`pull_request_target`执行外来代码，不向普通PR提供生产或收费模型凭据。
 
 ## 8. 完成和发布
 
 任务状态：Todo→In Progress→Review→Integrated→Done；受阻写明负责人和下一步。Done要求代码/契约/迁移/文档一致、验证通过、另一人审查、主线合入和集成回归。
 
-发布按[质量验收](docs/07-quality-and-acceptance.md)与[运行手册](docs/08-deployment-and-operations.md)，标签、镜像、迁移、报告对应同一commit。范围、规则、栈或质量目标变更须双方评审并同步规范。推送、合并和发布分别执行，不把其中一步视为其他步骤的授权。
+发布按[质量验收](docs/07-quality-and-acceptance.md)与[运行手册](docs/08-deployment-and-operations.md)，标签、镜像、迁移、报告对应同一commit。范围、规则、栈或质量目标变更由项目发起人批准或双方评审，并同步规范。推送、合并和发布分别执行，按用户实际授权范围行动。本次发起人明确授权最终推送和合并，无需重复申请；收费模型启用仍等用户配置。
