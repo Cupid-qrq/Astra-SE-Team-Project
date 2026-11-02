@@ -147,6 +147,17 @@ class HintService:
     def read(self, actor: Record, hid: str) -> Record:
         self.repo.guard()
         hint = self._hint(hid)
+        if hint["status"] == "PENDING":
+            # Authorize before persisting timeout recovery from an ordinary GET/replay.
+            self.policy.can_read_sections(
+                actor["user_id"],
+                hint["user_id"],
+                hint["submission_id"],
+                course_id=hint["course_id"],
+                consent=hint["consented_at"] is not None,
+            )
+            self.expire(hid)
+            hint = self._hint(hid)
         model = self.repo.get("model_configs", hint["model_config_id"])
         fixed = self.repo.get("feedback_versions", hint["feedback_version_id"])
         assert model and fixed
@@ -185,10 +196,13 @@ class HintService:
         )
         self.repo.change("hint_jobs", hid, state="DONE")
 
-    def expire(self) -> None:
+    def expire(self, hid: str | None = None) -> None:
         self.repo.guard()
         now = self.repo.now()
-        for job in self.repo.rows("hint_jobs", state=["WAITING", "RUNNING"]):
+        filters: Record = dict(state=["WAITING", "RUNNING"])
+        if hid is not None:
+            filters["hint_id"] = hid
+        for job in self.repo.rows("hint_jobs", **filters):
             if job["deadline_at"] <= now:
                 running = job["state"] == "RUNNING"
                 self._close(

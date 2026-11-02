@@ -16,7 +16,7 @@ export default function LearningPage() {
     return <StatePanel kind="forbidden" title="仅学生可查看个人学习记录" />
   return (
     <StudentLearning
-      key={user.user_id + ':' + (courseId ?? '')}
+      key={user.user_id + ':' + (courseId ?? '') + ':' + (params.get('submission_id') ?? '')}
       courseId={courseId}
       ownerId={user.user_id}
       submissionId={params.get('submission_id') || undefined}

@@ -256,6 +256,9 @@ function FrozenHelp({ value }: { value: Version }) {
   )
 }
 function HintDetail({ id }: { id: string }) {
+  const [rating, setRating] = useState<Rating>('USEFUL')
+  const [comment, setComment] = useState('')
+
   const hint = useQuery({
     queryKey: ['studentHint', id],
     queryFn: () => api.hint(id),
@@ -294,7 +297,13 @@ function HintDetail({ id }: { id: string }) {
           <p className="template-text">
             模型版本 {value.model_version} · 模板版本 {value.template_version_id}
           </p>
-          <HintRating id={id} />
+          <HintRating
+            id={id}
+            rating={rating}
+            setRating={setRating}
+            comment={comment}
+            setComment={setComment}
+          />
         </>
       ) : (
         <p role="status">
@@ -310,9 +319,19 @@ function HintDetail({ id }: { id: string }) {
     </section>
   )
 }
-function HintRating({ id }: { id: string }) {
-  const [rating, setRating] = useState<Rating>('USEFUL')
-  const [comment, setComment] = useState('')
+function HintRating({
+  id,
+  rating,
+  setRating,
+  comment,
+  setComment,
+}: {
+  id: string
+  rating: Rating
+  setRating: (rating: Rating) => void
+  comment: string
+  setComment: (comment: string) => void
+}) {
   const save = useMutation({
     mutationFn: () =>
       api.rateHint(id, { rating, ...(comment.trim() ? { comment: comment.trim() } : {}) }),

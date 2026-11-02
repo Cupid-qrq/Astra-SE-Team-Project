@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { api } from '../../app/runtime'
@@ -98,4 +98,37 @@ it('分页历史只显示服务器授权的编号，打开时重新获取正文'
   expect(api.hintHistory).toHaveBeenLastCalledWith('next')
   await userEvent.click(await screen.findByRole('button', { name: hint }))
   expect(read).toHaveBeenCalledWith(hint)
+})
+
+it('后台权限复核隐藏旧内容，但保留尚未提交的评价', async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  let resolveRead: (value: typeof view) => void = () => {}
+  const read = vi
+    .spyOn(api, 'hint')
+    .mockResolvedValueOnce(view)
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRead = resolve
+        }),
+    )
+  render(
+    <QueryClientProvider client={client}>
+      <HintWorkspace ownerId="student-a" />
+    </QueryClientProvider>,
+  )
+  fireEvent.change(screen.getByLabelText('提示编号'), { target: { value: hint } })
+  await userEvent.click(screen.getByRole('button', { name: '查阅提示' }))
+  fireEvent.change(await screen.findByLabelText('评价说明（可选）'), {
+    target: { value: '希望补充边界说明' },
+  })
+  await act(async () => {
+    void client.invalidateQueries({ queryKey: ['studentHint', hint] })
+  })
+  expect(read).toHaveBeenCalledTimes(2)
+  await waitFor(() => expect(screen.queryByRole('region', { name: '提示详情' })).toBeNull())
+  await act(async () => {
+    resolveRead(view)
+  })
+  expect(await screen.findByLabelText('评价说明（可选）')).toHaveValue('希望补充边界说明')
 })

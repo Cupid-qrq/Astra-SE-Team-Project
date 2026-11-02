@@ -126,3 +126,25 @@ def test_formal_hint_http_accept_replay_ready_rating_and_disabled_model(http_env
         repo = SqlRepository(connection)
         assert len(repo.rows("ai_hints")) == 1
         assert len(repo.rows("hint_feedback")) == 1
+
+    # Polling must finish an orphaned wait even when the model is now disabled.
+    from datetime import timedelta
+
+    retry_body = body | dict(request_key=str(uuid4()))
+    queued = client.post("/api/v1/ai-hints", json=retry_body)
+    assert queued.status_code == 202, queued.text
+    orphan = queued.json()["hint_id"]
+    with engine.begin() as connection:
+        repo = SqlRepository(connection)
+        repo.change("hint_jobs", orphan, deadline_at=repo.now() - timedelta(seconds=1))
+    recovered = disabled.get("/api/v1/ai-hints/" + orphan)
+    assert recovered.status_code == 200, recovered.text
+    assert recovered.json()["status"] == "FAILED"
+    assert recovered.json()["reason_code"] == "QUEUE_TIMEOUT"
+    assert recovered.json()["fallback_feedback"]["feedback_version_id"] == feedback
+    replay = disabled.post("/api/v1/ai-hints", json=retry_body)
+    assert replay.status_code == 200 and replay.json() == recovered.json()
+    with engine.begin() as connection:
+        repo = SqlRepository(connection)
+        assert repo.get("hint_jobs", orphan)["state"] == "DONE"
+        assert repo.get("budget_reservations", orphan)["state"] == "RELEASED"

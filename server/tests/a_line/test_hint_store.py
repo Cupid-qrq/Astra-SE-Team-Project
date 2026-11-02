@@ -360,3 +360,34 @@ def test_late_authoritative_receipt_settles_once_without_reopening_hint(env):
         assert quota["ready"] == quota["reserved"] == 0
         assert not service.finish(hid, permit.lease_epoch, candidate)
         assert not service.reconcile(hid, Decimal("0.001"))
+
+
+@pytest.mark.parametrize("dispatched", [False, True])
+def test_polling_expired_hint_returns_fixed_help_without_worker(env, dispatched):
+    from datetime import timedelta
+
+    source, model, actor, body = setup_hint(env)
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        service = HintService(repo, source, model)
+        hid = service.create(actor, body)[1]["hint_id"]
+        if dispatched:
+            assert service.dispatch(hid) is not None
+    env.clock.advance(timedelta(seconds=20 if dispatched else 10))
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        service = HintService(repo, source)  # model configuration now disabled
+        with pytest.raises(Fault) as denied:
+            service.read(dict(user_id=env.users["student_b"], role="STUDENT"), hid)
+        assert denied.value.status == 404
+        assert repo.get("ai_hints", hid)["status"] == "PENDING"
+        first = service.read(actor, hid)
+        assert first["status"] == "FAILED" and first["sections"] is None
+        assert first["reason_code"] == ("MODEL_TIMEOUT" if dispatched else "QUEUE_TIMEOUT")
+        assert first["fallback_feedback"]["title"] == "答案错误"
+        assert service.read(actor, hid) == first
+        assert repo.rows("quota_ledger")[0]["reserved"] == 0
+        assert repo.get("budget_reservations", hid)["state"] == (
+            "UNCERTAIN" if dispatched else "RELEASED"
+        )
+        assert service.create(actor, body) == (200, first)
