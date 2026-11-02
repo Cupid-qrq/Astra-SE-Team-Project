@@ -104,3 +104,9 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 监督候选协议：管理入口前的受信接入层必须在创建前持久登记`X-Astra-*`完整lease、execution_key、request_hash、profile_hash和deployment_id，并按lease fence阻止迟到创建。POST监督端`/v1/executions/{execution_key}/cancel-and-cleanup`只发送identity与可空backend_token。仅接收协议astra-supervisor-v1、同deployment/完整身份、非零proof UUID、stopped/directory_cleaned/creation_resolved均为true、fenced_epoch为本租约整数的证明；否则隔离不复用。原生Judge0 DELETE不能终止排队/运行任务，不用于清理确认。
 
 以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；实际S5实测及A成员审查前保持未接生产Worker。替身85项仅证明库的边界和失败处理。
+
+## 独立VM登记与S5准备
+
+[登记与验证说明](../infra/judge/README.md)提供默认UNVERIFIED模板和`tools/verify_judge.py`。本地检查不联网；--probe仅对登记端GET配置和能力，绝不创建submission。登记冻结不同业务/评测VM身份、资源、镜像、两语言profile/映射、源码commit及配置指纹；证据校验V-01—V-06身份/文件摘要与目录边界。成功仅表示记录齐全待成员复核，execution_enabled始终false。
+
+本批114项评测相关纯配置/HTTP替身/文件结构测试，不是真实执行验收。登记文件/证据进入忽略的.local/judge或部署受控存储；隐藏材料和秘密不得放入证据。当前未登记实际VM，未联网探测真实执行端，未执行隔离样例、未部署监督端、未开启正式Worker。

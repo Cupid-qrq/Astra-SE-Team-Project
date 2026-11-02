@@ -1,3 +1,6 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
 import pytest
 
 
@@ -36,3 +39,15 @@ def snapshot():
 def language_ids():
     # Deliberately not public demo language IDs.
     return {"cpp17": 912, "python3": 733}
+
+
+@pytest.fixture
+def tmp_path():
+    workspace = Path(__file__).resolve().parents[3]
+    local = workspace / ".local" / "judge-test-tmp"
+    local.mkdir(parents=True, exist_ok=True)
+    assert local.resolve().is_relative_to(workspace)
+    with TemporaryDirectory(prefix="judge-", dir=local) as raw:
+        path = Path(raw).resolve()
+        assert path.is_relative_to(local.resolve())
+        yield path

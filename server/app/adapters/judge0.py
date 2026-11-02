@@ -4,6 +4,8 @@ import base64
 import ipaddress
 import json
 import logging
+import math
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
@@ -60,7 +62,7 @@ def sensitive_transport() -> Iterator[None]:
 def https_origin(value: str) -> str:
     try:
         url = urlsplit(value)
-        host = url.hostname
+        host = url.hostname.rstrip(".").lower() if url.hostname else None
         if (
             url.scheme != "https"
             or not host
@@ -84,6 +86,8 @@ def https_origin(value: str) -> str:
         try:
             address = ipaddress.ip_address(host)
         except ValueError:
+            if re.fullmatch(r"(?:0[xX][0-9a-fA-F]+|[0-9.]+)", host):
+                raise ValueError
             address = None
         if address is not None and (
             address.is_loopback
@@ -132,7 +136,16 @@ def strict_json(raw: bytes) -> Any:
         raise ValueError
 
     try:
-        return json.loads(raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=reject)
+
+        def finite(value: str) -> float:
+            number = float(value)
+            if not math.isfinite(number):
+                raise ValueError
+            return number
+
+        return json.loads(
+            raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=reject, parse_float=finite
+        )
     except (ValueError, UnicodeError, RecursionError):
         raise ExecutionError("INVALID_BACKEND_RESPONSE") from None
 

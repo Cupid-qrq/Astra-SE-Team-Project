@@ -1,0 +1,28 @@
+{
+  "schema": "astra-judge-registration-v1",
+  "status": "UNVERIFIED",
+  "business_vm_id": "00000000-0000-0000-0000-000000000000",
+  "judge_vm_id": "00000000-0000-0000-0000-000000000000",
+  "deployment_id": "00000000-0000-0000-0000-000000000000",
+  "management_origin": "https://judge.example.invalid",
+  "supervisor_origin": "https://supervisor.example.invalid",
+  "auth_env": "ASTRA_JUDGE_TOKEN",
+  "supervisor_auth_env": "ASTRA_SUPERVISOR_TOKEN",
+  "resources": {
+    "vcpu": 4,
+    "memory_bytes": 8589934592,
+    "disk_bytes": 64424509440,
+    "slots": 4
+  },
+  "vm_image": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "engine_image": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+  "os_version": "REPLACE",
+  "kernel_version": "REPLACE",
+  "hypervisor": "REPLACE",
+  "source_sha": "0000000000000000000000000000000000000000",
+  "mapping_version": "astra-judge0-ce-v1",
+  "profiles": [],
+  "about_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "languages_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "config_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+}
