@@ -20,7 +20,8 @@
     "e2e": "playwright test",
     "e2e:production": "playwright test -c playwright.production.config.ts",
     "contracts:generate": "node scripts/generate-api.mjs",
-    "contracts:check": "node scripts/generate-api.mjs --check && vitest run src/lib/api/contract.test.ts"
+    "contracts:check": "node scripts/generate-api.mjs --check && vitest run src/lib/api/contract.test.ts",
+    "e2e:server": "playwright test -c playwright.server.config.ts"
   },
   "dependencies": {
     "@codemirror/commands": "^6.11.1",

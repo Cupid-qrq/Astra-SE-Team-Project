@@ -25,15 +25,15 @@ pnpm --dir apps/web dev:mock
 
 访问终端输出的本机地址。演示账号 `demo_student`，密码 `ExamplePass123`；均为公开虚构数据。`demo_teacher` 展示教师身份；`demo_empty`、`demo_expired`、`demo_unavailable` 分别用于空列表、进入详情后会话失效、一次503后主动重试。所有演示账号使用同一虚构密码，不得用于真实部署。刷新保留的仅为该标签页的演示账号名，退出后清除。
 
-`pnpm --dir apps/web dev` 默认走真实 API，代理目标默认 `http://127.0.0.1:8000`，可通过启动进程的 `VITE_API_PROXY_TARGET` 环境变量覆盖。生产由反向代理将 `/api/v1` 转发到同源后端；不得向浏览器提供数据库或模型凭据。生产构建即使指定 mock mode 也不会包含 Mock；`production:check` 检查 worker/演示凭据未打包。
+在apps/web目录执行 `pnpm dev` 默认走真实 API，代理目标默认 `http://127.0.0.1:8000`，可通过启动进程的 `VITE_API_PROXY_TARGET` 环境变量覆盖。生产由反向代理将 `/api/v1` 转发到同源后端；不得向浏览器提供数据库或模型凭据。生产构建即使指定 mock mode 也不会包含 Mock；`production:check` 检查 worker/演示凭据未打包。
 
 ```powershell
 python tools/check_runtime.py
 ```
 
-唯一入口调用 `tools/check_all.ps1` → 独立进程 `tools/check_web.ps1` 和 `tools/check_a_line.ps1`，执行前端检查、A 的真实 PostgreSQL/迁移/浏览器，再执行模型离线 schema 核验。任一步失败返回非零。数据库/uv配置见[服务接入说明](../../server/a_line/README.md)；CI执行同一入口。
+唯一入口调用tools/check_all.ps1，在独立进程保留前端、A真实PostgreSQL/迁移/浏览器和模型离线检查，并运行B正式迁移/HTTP/契约及正式应用浏览器。任一步失败返回非零。正式数据库/uv配置见[服务端说明](../../server/README.md)；A独立验证配置仍见[A接入说明](../../server/a_line/README.md)，CI执行同一入口。
 
-修改 A 契约后运行 `pnpm --dir apps/web contracts:generate`，将生成类型与契约一起评审；手工编辑生成类型会被 `contracts:check` 拒绝。公共组件使用系统字体回退，不向第三方字体服务发送请求。
+修改[总契约](../../specs/openapi.yaml)或A片段后，在apps/web目录运行 `pnpm contracts:generate`，将生成类型与契约一起评审；手工编辑生成类型会被 `contracts:check` 拒绝。公共组件使用系统字体回退，不向第三方字体服务发送请求。
 
 ## 可复用组件
 
@@ -45,10 +45,13 @@ python tools/check_runtime.py
 
 ## 与 B 线接线
 
-1. 合并前核对 [A 契约交接](../../specs/openapi/README.md) 中的公共字段提案；B 维护总契约/服务层，A 重生成客户端。
+1. 合并前核对 [A 契约交接](../../specs/openapi/README.md) 中的公共字段提案；B维护总契约/服务层；本轮B装配已切换生成源，后续共同核对生成差异。
 2. B 总装配复用 A 身份/课程/题目/作业服务；先确认 Cookie/CSRF/Origin/统一错误与响应字段，使用独立测试库和虚构账号。
 3. `dev` 模式启动前端，实际操作登录→课程→详情→退出；在 PostgreSQL 核查账号/课程读取来源及会话创建/撤销。保留当前 SHA 和真实输出。
 4. B 在应用组合入口调用 `configureTeachingIntegrations` 注入预检、提交与结果组件；默认接口返回明确不可用，不会生成成功提交。结果组件通过 `api.submissionFeedback` 获取本轮冻结版本后传给 `FixedHelp`，切换attempt时清空旧帮助。
-5. 将B检查合入 `tools/check_all.ps1`，协调总迁移。全路由及FastAPI语义差异、两人干净检出和I0/I1另行验收。
+5. B检查已纳入tools/check_all.ps1，正式迁移使用B单head。运行注册/导出与契约检查；两人干净检出、成员审批和I0/I1另行验收。
 
 Playwright 在本阶段使用 Chromium，覆盖1366×768、1440×900、390×844。Browser插件未提供，因此按Frontend Testing Debugging流程使用项目Playwright；测试截图/trace位于忽略的test-results。跨浏览器最终验收仍属P3。
+
+
+正式B应用浏览器命令为apps/web目录的pnpm e2e:server，需ASTRA_SERVER_PYTHON指向server锁定环境及ASTRA_TEST_DATABASE_URL专用_test库；通常从根目录运行tools/check_server.ps1会自动设置解释器。A独立浏览器与B正式应用浏览器使用独立schema，原前端端口fake恢复专项保留明确标识。

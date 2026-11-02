@@ -1,0 +1,37 @@
+[project]
+name = "astra-server"
+version = "0.1.0"
+requires-python = ">=3.12,<3.14"
+dependencies = ["sqlalchemy>=2.0,<2.1", "psycopg[binary]>=3.2,<4", "alembic>=1.15,<2", "fastapi>=0.115,<1", "uvicorn>=0.34,<1", "argon2-cffi>=25.1,<26", "jsonschema>=4.25,<5", "httpx>=0.28,<1"]
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "ruff>=0.11,<1", "mypy>=1.15,<2", "types-jsonschema>=4.25", "cryptography>=44,<50"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/shared", "tests/judge"]
+pythonpath = ["."]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+# A modules retain their existing mypy policy and are checked by check_a_line.ps1.
+# Strict checking remains enabled for B shared infrastructure.
+[[tool.mypy.overrides]]
+module = ["app.modules.*"]
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+disallow_any_generics = false
+warn_return_any = false
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
