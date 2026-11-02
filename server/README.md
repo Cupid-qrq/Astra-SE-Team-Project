@@ -120,3 +120,5 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 b006延续正式迁移单head，私有快照支持合法NUL；冻结字段与终态受数据库保护，新FK均有索引。就绪检查要求b006，部署须先迁移。新增表以RESTRICT保留版本引用；公开预检HTTP接线前须与A统一“有预检引用的草稿删除”冲突语义，当前不改A删除接口或历史SQL。
 
 read/evidence只返回标识、状态与点判定；不加载/回显隐藏材料到普通查询，evidence仅完整PASSED/全点AC且冻结绑定一致时有效。没有生产终态写入器、Worker、租约/槽位或HTTP接线；jobs只有READY/DONE事实，后续随实际execution_slots添加租约和FK，不用空实现放行。当前仍无可执行的真实评测环境，正式执行保持关闭；数据库夹具的合成终态不进入正常启动。
+
+预检case_manifest仅保存语言/点类别/序号，随私有快照一并冻结。子表INSERT先锁父任务，须为QUEUED且点键属于冻结清单；初始事务已创建的键由主键阻止重复，终态任务不能追加，避免历史PASSED证据被增行破坏。此约束不代表真实执行或完成写入器已实现。

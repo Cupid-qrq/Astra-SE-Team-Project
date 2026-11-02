@@ -26,3 +26,11 @@ oldali只读检查：Linux5.10/AlibabaCloudLinux3、KVM、2vCPU、内存约1.8Gi
 复跑实际发现建课缓存竞态：POST201(约136ms)，旧GET200(约177ms)，页面提示已创建却只有旧2条课程。初始列表仍进行时invalidateQueries沿用其promise，不发新请求。确定性InfiniteQueryObserver单元先失败；浏览器首版释放过早未复现，改为等创建成功提示后再释放旧响应，原实现稳定失败。CourseForms只增加取消旧查询并等待刷新，单元2/2和真实PG三视口3/3通过；迟到旧结果不能覆盖新数据。该修复独立中文fix提交，实际贡献人B，后续A成员审查，未改API或样式。
 
 复现trace存放忽略.local/preflight-race-evidence，根日志首轮preflight-full.log、复跑preflight-full-final.log；最终候选完整入口日志preflight-full-complete.log。本轮根入口检查将新增浏览器用例分别跑在A与正式B host，覆盖三个视口；不把功能回归当性能验收。取消语义参考[TanStack官方说明](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation)。
+
+## 独立审查与集合冻结修复
+
+一次fresh gpt-6-astra/high只读审查两提交，0 Critical/1 Important/0 Minor。Important为子表只防UPDATE/DELETE，仍可在QUEUED/PASSED后INSERT新点，改变历史证据。六项真实PG回归先失败，覆盖单语言任务追加另一允许语言、额外样例和隐藏点；清单重绑定也先失败。修复在本批待审b006加入仅含点键的不可变case_manifest、父行锁下的INSERT成员/状态检查，不修改已合入b1—b5、不改写Git历史。现有完整初始化路径保留；相关领域/存储/metadata56项通过，最终全入口退出0：B239/A数据库114/前端58/契约6/浏览器59通过，12项既有跳过（.local/preflight-review-full.log）；按流程以TDD和完整回归核验，不重复派发复审。
+
+旧3175b06候选正式预检也已退出0，但发现Important后没有推送；只会推修复后重新验证的候选。最终提交/远端回读由本批收尾回执给出。Worker/租约/槽位/真实完成写入器、公开删除冲突映射与发布回指FK、物理隔离和吞吐仍按边界后续实施，不能因本批通过而标FR-07或S5验收。
+
+Vite测试HTML产物日志曾被疑为重载：1.5秒控制探针中确有日志，但主frame没有导航、输入保持不变，因此没有修改Vite配置；临时探针已移除。证据在忽略.local/vite-watcher-probe.log，不能将该通知当作已确认页面问题。

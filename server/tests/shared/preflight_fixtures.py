@@ -32,13 +32,25 @@ def sample_snapshot():
 
 
 def catalog(snapshot):
+    ids = {"cpp17": 912, "python3": 733}
     return ProfileCatalog(
-        [RuntimeProfile.from_public(snapshot["profile"], {"cpp17": 912, "python3": 733})]
+        [
+            RuntimeProfile.from_public(
+                snapshot["profile"],
+                {
+                    row["language_key"]: ids[row["language_key"]]
+                    for row in snapshot["profile"]["languages"]
+                },
+            )
+        ]
     )
 
 
-def draft(engine):
+def draft(engine, *, one_language=False):
     snapshot = sample_snapshot()
+    if one_language:
+        snapshot["profile"]["languages"] = snapshot["profile"]["languages"][:1]
+        snapshot["references"] = snapshot["references"][:1]
     ids = seed(engine, Path(__file__).parents[2] / "alembic.ini", profile=snapshot["profile"])
     with UnitOfWork(engine) as conn:
         repo = SqlRepository(conn)

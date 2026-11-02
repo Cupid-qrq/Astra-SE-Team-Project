@@ -27,6 +27,7 @@ runs = Table(
     Column("content_digest", String(64), nullable=False),
     Column("profile_hash", String(64), nullable=False),
     Column("frozen_blob", LargeBinary, nullable=False),
+    Column("case_manifest", JSONB, nullable=False),
     Column("state", String(10), nullable=False),
     Column("created_by", UUID(as_uuid=False), ForeignKey("users.user_id"), nullable=False),
     Column("created_at", TIMESTAMP(timezone=True, precision=3), nullable=False),
@@ -36,6 +37,10 @@ runs = Table(
     CheckConstraint("content_digest ~ '^[0-9a-f]{64}$'", name="content_digest"),
     CheckConstraint("profile_hash ~ '^[0-9a-f]{64}$'", name="profile_hash"),
     CheckConstraint("octet_length(frozen_blob) BETWEEN 1 AND 16777216", name="snapshot_size"),
+    CheckConstraint(
+        "jsonb_typeof(case_manifest)='array' AND jsonb_array_length(case_manifest) BETWEEN 2 AND 26",
+        name="case_manifest",
+    ),
     CheckConstraint("state IN ('QUEUED','RUNNING','PASSED','FAILED')", name="state"),
     CheckConstraint("(state IN ('PASSED','FAILED')) = (finished_at IS NOT NULL)", name="finished"),
     CheckConstraint(

@@ -97,6 +97,10 @@ class TransactionalPreflight:
                     content_digest=plan.content_digest,
                     profile_hash=plan.profile_hash,
                     frozen_blob=plan.blob,
+                    case_manifest=[
+                        dict(language_key=language, case_kind=kind, case_order=order)
+                        for language, kind, order in plan.cases
+                    ],
                     state="QUEUED",
                     created_by=teacher["user_id"],
                     created_at=now,

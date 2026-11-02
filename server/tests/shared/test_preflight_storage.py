@@ -269,3 +269,47 @@ def test_policy_lock_failure_is_sanitized(method, lesson, monkeypatch):
                 service.evidence(repo, str(uuid4()))
     assert error.value.status == 503
     assert error.value.__context__ is None and "SECRET" not in str(error.value)
+
+
+@pytest.mark.parametrize("state", ["QUEUED", "PASSED"])
+@pytest.mark.parametrize("extra", ["language", "sample", "hidden"])
+def test_frozen_case_set_rejects_late_insert_without_changing_history(database, state, extra):
+    ids, snapshot = draft(database, one_language=extra == "language")
+    pid = enqueue(database, ids, snapshot)["preflight_id"]
+    if state == "PASSED":
+        with database.begin() as conn:
+            finish_for_fixture(conn, pid)
+    with UnitOfWork(database) as conn:
+        repo = SqlRepository(conn)
+        service = port(repo, snapshot)
+        before = service.read(repo, {"user_id": ids["teacher"]}, pid)
+        evidence_before = service.evidence(repo, pid)
+    language = "python3" if extra == "language" else "cpp17"
+    kind = "SAMPLE" if extra == "sample" else "HIDDEN"
+    order = 1 if extra == "language" else 2
+    with pytest.raises(IntegrityError):
+        with database.begin() as conn:
+            conn.execute(
+                text(
+                    "INSERT INTO preflight_cases(preflight_id,language_key,case_kind,case_order,state,verdict,engine_meta) VALUES(:id,:lang,:kind,:ord,'QUEUED',NULL,'{}')"
+                ),
+                {"id": pid, "lang": language, "kind": kind, "ord": order},
+            )
+    with UnitOfWork(database) as conn:
+        repo = SqlRepository(conn)
+        service = port(repo, snapshot)
+        assert service.read(repo, {"user_id": ids["teacher"]}, pid) == before
+        assert service.evidence(repo, pid) == evidence_before
+
+
+def test_frozen_manifest_cannot_be_rebound(lesson):
+    engine, ids, snapshot = lesson
+    pid = enqueue(engine, ids, snapshot)["preflight_id"]
+    with pytest.raises(IntegrityError):
+        with engine.begin() as conn:
+            conn.execute(
+                text(
+                    "UPDATE preflight_runs SET case_manifest=jsonb_set(case_manifest,'{0,case_order}','2') WHERE preflight_id=:id"
+                ),
+                {"id": pid},
+            )
