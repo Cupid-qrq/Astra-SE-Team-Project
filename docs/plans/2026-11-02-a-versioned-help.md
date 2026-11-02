@@ -25,31 +25,31 @@
 
 ## Task 1：服务、契约及真实数据库回归
 
-文件：`server/app/modules/learning/{application,domain,api}.py`、`server/app/api/lists.py`、`specs/openapi/a.openapi.json`、`specs/openapi.yaml`、`apps/web/src/lib/api/schema.d.ts`；测试 `server/tests/a_line/test_feedback_management.py`、`server/tests/shared/test_feedback_management.py`。
+文件：`server/app/modules/learning/{application,feedback,api}.py`、`server/app/api/lists.py`、`server/app/shared/effects.py`、`specs/openapi/a.openapi.json`、`specs/openapi.yaml`、`apps/web/src/lib/api/schema.d.ts`；测试 `server/tests/a_line/test_feedback_management.py`、`server/tests/shared/test_feedback_management.py`。正文校验复用既有 domain。
 
-接口：消费现有 Repository/Effects；提供 list/create/draft/save/publish 及 `GET /feedback-catalogs/{id}/versions`。草稿增加可选的 scope/course_id/verdict/language_key/active_version_id/active_version_no；历史只供管理者返回 version_id/version_no/title/checksum/published_at。现有固定版本查询与 resolve 保持签名。
+接口：消费现有 Repository/Effects；提供 list/create/draft/save/publish 及 `GET /feedback-catalogs/{id}/versions`。草稿增加可选的 scope/course_id/verdict/language_key/active_version_id/active_version_no/course_status；历史只供管理者返回 version_id/version_no/title/checksum/published_at。现有固定版本查询与 resolve 保持签名。
 
-- [ ] RED：HTTP 创建→保存→发布→第二版→第一版仍不变；学生/他课/管理员越界、归档、重复键、超长正文、过期 revision、夹带发布正文失败。
-- [ ] GREEN：最小实现；审计失败不留下目录/版本/有效指针；双连接同 revision 只有一次发布生效。
-- [ ] 正式 HTTP/UoW 验证同一流程和授权分页；检查新旧契约映射、前端生成类型一致。
-- [ ] 验证：两组 pytest、ruff/mypy、`tools/check_api_contract.py`、`pnpm contracts:check`。通过后中文提交。
+- [x] RED：HTTP 创建→保存→发布→第二版→第一版仍不变；学生/他课/管理员越界、归档、重复键、超长正文、过期 revision、夹带发布正文失败。
+- [x] GREEN：最小实现；审计失败不留下目录/版本/有效指针；双连接同 revision 只有一次发布生效。
+- [x] 正式 HTTP/UoW 验证同一流程和授权分页；检查新旧契约映射、前端生成类型一致。
+- [x] 验证：两组 pytest、ruff/mypy、`tools/check_api_contract.py`、`pnpm contracts:check`。通过后中文提交。
 
 ## Task 2：课程与全局维护页面
 
-文件：`apps/web/src/features/learning/Feedback{Pages,Editor}.tsx`、`client.ts`、`App.tsx`、`CoursePage.tsx`、必要样式；测试 `FeedbackEditor.test.tsx`、`e2e-integration/feedback.spec.ts`。
+文件：`apps/web/src/features/learning/Feedback{Pages,Editor}.tsx`、`feedbackDrafts.ts`、`client.ts`、`App.tsx`、`CoursePage.tsx`、必要样式；测试 `Feedback{Editor,Pages}.test.tsx`、`e2e-integration/feedback.spec.ts`。
 
 接口：使用 Task 1 生成类型和现有 CSRF 客户端；教师 `/teacher/feedback`，管理员 `/admin/feedback`；详情子路由按 catalog_id 隔离表单与查询缓存。
 
-- [ ] RED：教师课程入口、创建、编辑草稿、预览、安全渲染、带理由确认发布、历史版本选择；学生和管理员边界。
-- [ ] GREEN：列表/加载更多、明确草稿与生效版、保存后才可发布、确认冻结 revision/理由、错误不丢内容、归档只读。
-- [ ] 真实 PostgreSQL 下运行 A 验证 host 和 B 正式应用的三视口浏览器；核对移动溢出、键盘、控制台及截图。
-- [ ] 验证：前端 lint/typecheck/unit/build/contracts，浏览器目标流程。通过后中文提交。
+- [x] RED：教师课程入口、创建、编辑草稿、预览、安全渲染、带理由确认发布、历史版本选择；学生和管理员边界。
+- [x] GREEN：列表/加载更多、明确草稿与生效版、保存后才可发布、确认冻结 revision/理由、错误不丢内容、归档只读。
+- [x] 真实 PostgreSQL 下运行 A 验证 host 和 B 正式应用的三视口浏览器；核对移动溢出、键盘与截图，页面运行错误有断言；浏览器控制台未逐项单独采集，不冒称完整控制台审计。
+- [x] 验证：前端 lint/typecheck/unit/build/contracts，浏览器目标流程。通过后中文提交。
 
 ## Task 3：整分支验证、审查与交接
 
-- [ ] `python tools/check_runtime.py`、仓库检查、工具回归及差异检查；明确跳过和未验收项目。
-- [ ] 使用 requesting-code-review 派发一次整分支独立审查；重要问题 RED→GREEN 修复并回归，不代填 B 合并审批。
-- [ ] 更新 `docs/project-status.md`、服务/契约说明和本批报告，记录当前 SHA、命令、数量、增量契约及 B 待审事项。
-- [ ] 核对最新远端和未推送依赖；提交可评审产物，推送/PR/合并按现有授权分别处理。
+- [x] `python tools/check_runtime.py` 在修复提交 `8a2516e` 退出0；收尾文档更新后仓库1057项无错误、工具19项通过及差异检查通过。浏览器71项通过，另12项既有跳过；未验收边界见报告。
+- [x] 使用 requesting-code-review 派发一次整分支独立审查；重要问题 RED→GREEN 修复并回归，不代填 B 合并审批。
+- [x] 更新 `docs/project-status.md`、服务/契约说明和[本批报告](../reports/2026-11-02-a-versioned-help.md)，记录代码 SHA、命令、数量、增量契约及 B 待审事项。
+- [x] 已 fetch 核对最新主线 `822687c` 被当前分支包含，双方未推送依赖仍待成员明确确认；本地提交可评审产物，保留分支和工作区，未执行推送/PR/合并。
 
 **回退：**撤销本功能提交即可；没有新增/重写迁移。已发布版本继续受数据库不可变约束保护，回退后原固定版本读取照常；停止新增维护操作不会改历史评测引用。

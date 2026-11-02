@@ -112,3 +112,9 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 本批114项评测相关纯配置/HTTP替身/文件结构测试，不是真实执行验收。登记文件/证据进入忽略的.local/judge或部署受控存储；隐藏材料和秘密不得放入证据。当前未登记实际VM，未联网探测真实执行端，未执行隔离样例、未部署监督端、未开启正式Worker。
 
 评测适配的安全错误在离开异常捕获块后抛出，避免from None仅隐藏回溯而仍持有原始__context__；异常链回归使用合成隐藏输入/HTTP认证材料验证，不保存真实材料。当前本批评测套件124项，物理隔离验收仍未执行。
+
+## A 固定帮助维护增量
+
+FR-19 维护已直接装配正式应用：本课教师与全局管理员分别管理各自目录，归档课程只读；列表、草稿、发布与管理用版本历史均经过服务端授权。`app.modules.learning.feedback` 复用既有表和不可变版本触发器，不新增迁移。发布只冻结保存过的草稿；目录、版本、revision、FEEDBACK 审计和 Outbox 同事务生效。当前正式应用注册44项教学方法加2项健康方法；后续模型/提示等13项设计方法保持未注册。
+
+固定帮助发布不调用模型或执行器。B 后续终结 attempt 仍须调用 `Learning.resolve()` 并持久冻结 feedback_version_id，不能在读取旧结果时改查 active。适用边界及成员待审事项见[本批交接](../docs/reports/2026-11-02-a-versioned-help.md)。
