@@ -162,7 +162,8 @@ def test_internal_readiness_and_public_liveness(http_env):
     )
 
 
-def test_input_limits_queries_and_transaction_rollback(http_env):
+@pytest.mark.parametrize("target", ["audit_events", "outbox_events"])
+def test_input_limits_queries_and_transaction_rollback(http_env, target):
     engine, _, _, app = http_env
     client = login(app)
     assert client.post("/api/v1/courses", content=b"x" * (512 * 1024 + 1)).status_code == 413
@@ -170,11 +171,12 @@ def test_input_limits_queries_and_transaction_rollback(http_env):
     assert client.get("/api/v1/courses?unknown=x").status_code == 422
     assert client.get("/api/v1/courses?limit=1&limit=2").status_code == 422
     with engine.begin() as conn:
-        conn.exec_driver_sql(
-            "ALTER TABLE outbox_events ADD CONSTRAINT inject_failure CHECK (false)"
-        )
+        conn.exec_driver_sql(f"ALTER TABLE {target} ADD CONSTRAINT inject_failure CHECK (false)")
     result = client.post("/api/v1/courses", json={"title": "must rollback"})
-    assert result.status_code == 409, result.text
+    assert result.status_code == 503, result.text
+    assert result.json()["code"] == "PERSISTENCE_UNAVAILABLE"
+    assert result.json()["retryable"] is True
+    assert result.headers["Retry-After"] == "2"
     with engine.connect() as conn:
         assert conn.scalar(text("SELECT count(*) FROM courses WHERE title='must rollback'")) == 0
         assert conn.scalar(text("SELECT count(*) FROM audit_events")) == 0
@@ -338,11 +340,18 @@ def test_readiness_detects_wrong_migration(http_env):
     with engine.begin() as conn:
         conn.exec_driver_sql("UPDATE alembic_version SET version_num='b004'")
     result = TestClient(app, base_url="https://testserver").get(
-        "/health/ready", headers={"X-Readiness-Token": settings.readiness_token}
+        "/health/ready",
+        headers={
+            "X-Readiness-Token": settings.readiness_token,
+            "X-Request-Id": "0000b004-0000-4000-8000-000000000000",
+        },
     )
     assert result.status_code == 503, result.text
     assert result.json()["retryable"] is True
-    assert "b004" not in result.text
+    assert result.json()["request_id"] == "0000b004-0000-4000-8000-000000000000"
+    public_error = {key: value for key, value in result.json().items() if key != "request_id"}
+    assert "b004" not in str(public_error)
+    assert public_error["message"] == "服务尚未就绪。"
 
 
 def test_student_public_problem_uses_full_schema_without_hidden_material(http_env):
@@ -361,3 +370,113 @@ def test_student_public_problem_uses_full_schema_without_hidden_material(http_en
 def test_unparseable_database_url_is_configuration_error():
     with pytest.raises(ValueError, match="configuration"):
         Settings("not a database URL", SECRET, "https://testserver", "x" * 32)
+
+
+def test_known_business_revision_conflict_stays_409(http_env):
+    _, ids, _, app = http_env
+    response = login(app).patch(
+        "/api/v1/courses/" + ids["course"], json={"title": "unchanged", "expected_revision": 999}
+    )
+    assert response.status_code == 409, response.text
+    assert response.json()["code"] == "REVISION_CONFLICT"
+    assert response.json()["retryable"] is False
+
+
+@pytest.mark.parametrize(
+    "kind,field",
+    [
+        ("course", "title"),
+        ("display", "display_name"),
+        ("reason", "reason"),
+        ("sample", "samples.0.input"),
+        ("tag", "tag"),
+        ("login_query", "login_name"),
+    ],
+)
+def test_postgres_text_nul_returns_safe_field_error(http_env, kind, field):
+    engine, ids, _, app = http_env
+    client = login(app, "admin" if kind in ("display", "login_query") else "teacher")
+    private = "DO_NOT_ECHO\x00VALUE"
+    if kind == "course":
+        response = client.post("/api/v1/courses", json={"title": private})
+    elif kind == "display":
+        response = client.patch(
+            "/api/v1/admin/users/" + ids["student"],
+            json={"display_name": private, "expected_revision": 1, "reason": "Valid test reason"},
+        )
+    elif kind == "reason":
+        response = client.patch(
+            "/api/v1/assignments/" + ids["assignment"] + "/deadline",
+            json={
+                "expected_revision": 1,
+                "new_due_at": "2031-01-01T00:00:00.000Z",
+                "reason": private,
+            },
+        )
+    elif kind == "sample":
+        response = client.post(
+            "/api/v1/problem-versions",
+            json={
+                "problem_id": ids["problem"],
+                "title": "draft",
+                "statement": "synthetic",
+                "samples": [{"input": private, "output": "1"}],
+                "tags": [],
+                "profile": profile(),
+                "source_ref": "synthetic",
+            },
+        )
+    elif kind == "tag":
+        response = client.get(
+            "/api/v1/courses/" + ids["course"] + "/problems", params={"tag": private}
+        )
+    else:
+        response = client.get("/api/v1/admin/users", params={"login_name": private})
+    assert response.status_code == 422, response.text
+    assert response.json()["code"] == "VALIDATION_ERROR"
+    assert response.json()["field_errors"][0]["field"] == field
+    assert "DO_NOT_ECHO" not in response.text
+    with engine.connect() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM audit_events")) == 0
+        assert conn.scalar(text("SELECT count(*) FROM outbox_events")) == 0
+
+
+def test_nul_bytea_material_and_hashed_password_keep_their_semantics(http_env):
+    engine, ids, _, app = http_env
+    teacher = login(app)
+    response = teacher.post(
+        "/api/v1/problem-versions",
+        json={
+            "problem_id": ids["problem"],
+            "title": "draft",
+            "statement": "synthetic",
+            "samples": [{"input": "1", "output": "1"}],
+            "tags": [],
+            "profile": profile(),
+            "source_ref": "synthetic",
+        },
+    )
+    assert response.status_code == 201, response.text
+    version = response.json()["version_id"]
+    response = teacher.put(
+        "/api/v1/problem-versions/" + version + "/testcases/1",
+        json={"input_text": "A\x00B", "answer_text": "C\x00D", "expected_revision": 1},
+    )
+    assert response.status_code == 200, response.text
+    response = teacher.put(
+        "/api/v1/problem-versions/" + version + "/references/python3",
+        json={"code": "synthetic\x00reference", "expected_revision": 2},
+    )
+    assert response.status_code == 200, response.text
+    cases = teacher.get("/api/v1/problem-versions/" + version + "/testcases").json()["items"]
+    references = teacher.get("/api/v1/problem-versions/" + version + "/references").json()["items"]
+    assert cases[0]["input_text"] == "A\x00B" and cases[0]["answer_text"] == "C\x00D"
+    assert references[0]["code"] == "synthetic\x00reference"
+    csrf = teacher.get("/api/v1/auth/session").json()["csrf_token"]
+    response = teacher.post(
+        "/api/v1/auth/login",
+        json={"login_name": "teacher", "password": "ValidLength\x00WrongPassword"},
+        headers={"X-CSRF-Token": csrf},
+    )
+    assert response.status_code == 401, response.text
+    assert response.json()["code"] == "INVALID_CREDENTIALS"

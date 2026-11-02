@@ -13,7 +13,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.exc import TimeoutError as PoolTimeout
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
@@ -235,10 +235,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                 return response
             except Fault as error:
                 return error_response(error, request_id)
-            except IntegrityError:
-                return error_response(
-                    Fault(409, "CONSTRAINT_CONFLICT", "数据冲突，请刷新后重试。"), request_id
-                )
+
             except (SQLAlchemyError, PoolTimeout):
                 return error_response(
                     Fault(503, "PERSISTENCE_UNAVAILABLE", "数据库暂不可用，请稍后重试。", retry=2),

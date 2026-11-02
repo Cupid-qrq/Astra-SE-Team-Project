@@ -13,6 +13,41 @@ from jsonschema import Draft202012Validator, FormatChecker
 from app.modules.identity.domain import Fault, require
 from app.modules.identity.ports import Record
 
+# Explicitly non-text storage: hashed passwords and UTF-8 bytes persisted as bytea.
+# New operations must classify their bytea/hashed fields here, not exempt by field name alone.
+NON_TEXT_FIELDS: dict[str, frozenset[str]] = {
+    "login": frozenset({"password"}),
+    "changePassword": frozenset({"current_password", "new_password"}),
+    "createUser": frozenset({"initial_password"}),
+    "resetPassword": frozenset({"one_time_password"}),
+    "putTestcase": frozenset({"input_text", "answer_text"}),
+    "putReference": frozenset({"code"}),
+}
+
+
+def text_storage(value: Any, field: str = "", excluded: frozenset[str] = frozenset()) -> None:
+    def invalid() -> None:
+        raise Fault(
+            422,
+            "VALIDATION_ERROR",
+            "请检查填写内容。",
+            fields=[{"field": field[:100] or "request", "message": "字段包含不可存储的文本字符。"}],
+        )
+
+    if isinstance(value, str):
+        if "\x00" in value:
+            invalid()
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if key in excluded:
+                continue
+            if "\x00" in key:
+                invalid()
+            text_storage(item, f"{field}.{key}" if field else key)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            text_storage(item, f"{field}.{index}" if field else str(index))
+
 
 class Contract:
     def __init__(self, document: Record) -> None:
@@ -51,6 +86,7 @@ class Contract:
     def request(self, operation: Record, request: Request, body: Any) -> None:
         if "requestBody" in operation:
             self.validate(operation["requestBody"]["content"]["application/json"]["schema"], body)
+            text_storage(body, excluded=NON_TEXT_FIELDS.get(operation["operationId"], frozenset()))
         parameters = operation.get("parameters", [])
         allowed = {p["name"] for p in parameters if p["in"] == "query"}
         require(
@@ -84,6 +120,8 @@ class Contract:
                 )
                 value = int(value)
             self.validate(schema, value)
+            if p["in"] in ("query", "path"):
+                text_storage(value, p["name"])
 
     def response(self, operation: Record, status: int, result: Any) -> None:
         schema = (

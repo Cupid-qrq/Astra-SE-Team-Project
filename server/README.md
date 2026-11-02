@@ -86,3 +86,5 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 `tools/check_server.ps1`运行锁定依赖、格式/类型、契约映射、真实数据库全部共享层/HTTP测试及正式应用浏览器。后者复用A的教学流程，显式测试harness使用正式B迁移/UoW/Repository/Effects/create_app，初始化虚构账号和合成教学版本。当前外部执行端口继续不可用；前端端口fake专项单独标识。
 
 浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器、独立VM及业务闭环另行验收。
+
+正式HTTP将未知内部约束/持久化异常归为503，已知业务冲突由应用Fault返回409。PostgreSQL文本及JSONB的NUL按字段返回422；已明确的bytea源码/测试及散列密码通道保持其原字节语义。
