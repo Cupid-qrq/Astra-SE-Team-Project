@@ -94,3 +94,13 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 `app.shared.judge.JudgePort`提供单测试点创建、轮询和监督清理端口。租约身份包含attempt/generation/lease_epoch/testcase_order；执行键与请求摘要分离，后续Worker必须持久记录创建状态，不能只靠进程内幂等。当前无生产Worker接入，也不在业务机执行代码。
 
 `RuntimeProfile.from_public`复用A的profile_digest冻结公开snapshot；`ProfileCatalog`按完全一致的摘要允许执行。部署单独登记语言ID，不使用公开演示服务的默认ID。资源与两语言时间按BR-07校验，部署映射不进入普通API。源码、输入、原始输出和后端ticket在repr中隐藏；缺指标保留None。本阶段23项纯端口/配置测试不代表真实隔离验收。
+
+## B Judge0候选适配 S4b
+
+`Judge0Adapter`只访问部署登记的HTTPS管理和监督来源，TLS校验开启，代理/证书环境继承、重定向和HTTP重试均关闭；连接/读取/池等待分别5秒，响应另有10秒截止检查和大小上限，连接池4。一次create_case最多发一个POST。超时、5xx、坏JSON或不可靠token返回CREATE_UNKNOWN，不能直接重提；跨调用/崩溃的创建账本、整轮截止和槽位调度仍由后续Worker实现。
+
+按[官方API](https://ce.judge0.com/)发送base64源码/输入，不发送expected_output或自定义命令。`astra-judge0-ce-v1`候选映射将秒上取整到ms、KiB乘1024到bytes；缺指标保留None。3/4状态还需本方正常退出与ASCII比较，不产生产品AC/WA；6为编译证据，11等为运行错误，未知/平台错误为SE，不解析stderr猜原因。各流限制1MiB，响应6MiB，拒绝压缩/重复JSON键/非有限数；原字节保留在内部，普通网络日志在本请求上下文中抑制。
+
+监督候选协议：管理入口前的受信接入层必须在创建前持久登记`X-Astra-*`完整lease、execution_key、request_hash、profile_hash和deployment_id，并按lease fence阻止迟到创建。POST监督端`/v1/executions/{execution_key}/cancel-and-cleanup`只发送identity与可空backend_token。仅接收协议astra-supervisor-v1、同deployment/完整身份、非零proof UUID、stopped/directory_cleaned/creation_resolved均为true、fenced_epoch为本租约整数的证明；否则隔离不复用。原生Judge0 DELETE不能终止排队/运行任务，不用于清理确认。
+
+以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；实际S5实测及A成员审查前保持未接生产Worker。替身85项仅证明库的边界和失败处理。

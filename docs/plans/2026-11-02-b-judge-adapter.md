@@ -48,10 +48,10 @@
 
 **Interfaces:** Judge0Target(HTTPS管理/监督地址、deployment_id、凭据repr隐藏)；Judge0Adapter(target,catalog,transport=None)实现JudgePort，context manager关闭自有HTTPX client。每点生成固定execution key与request/profile digest；监督接口按此关联未知创建及lease fence。
 
-- [ ] 先失败测试：MockTransport断言URL/auth、base64原字节、资源单位/参数、无expected_output、只一次POST；超时/5xx/坏JSON/token不确定；拒绝redirect；固定目标及TLS；敏感日志/repr/异常无材料。
-- [ ] 实现有界6MiB响应与各流1MiB、严格base64、状态/退出码/明确资源证据映射；原生3/4正常退出只表示待本方比较，未知/基础设施SE。Python按实际阶段证据，缺指标None。
-- [ ] cleanup POST到独立监督协议，校验完整身份/摘要/UUID证明/fence及创建收敛；失败隔离，不用Judge0 DELETE假取消。跨重启持久状态留后续Worker。
-- [ ] 完整根入口退出0并报告仅替身验证，提交“（B祝祎帆）feat: 接入Judge0执行适配与监督清理协议”。
+- [x] 先失败测试：MockTransport断言URL/auth、base64原字节、资源单位/参数、无expected_output、只一次POST；超时/5xx/坏JSON/token不确定；拒绝redirect；固定目标及TLS；敏感日志/repr/异常无材料。
+- [x] 实现有界6MiB响应与各流1MiB、严格base64、状态/退出码/明确资源证据映射；原生3/4正常退出只表示待本方比较，未知/基础设施SE。Python按实际阶段证据，缺指标None。
+- [x] cleanup POST到独立监督协议，校验完整身份/摘要/UUID证明/fence及创建收敛；失败隔离，不用Judge0 DELETE假取消。跨重启持久状态留后续Worker。
+- [x] 完整根入口退出0并报告仅替身验证，提交“（B祝祎帆）feat: 接入Judge0执行适配与监督清理协议”。
 
 ### Task 3: S5-prep独立VM登记与只读验证入口
 
