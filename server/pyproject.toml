@@ -35,3 +35,12 @@ warn_return_any = false
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
+
+# B judging code keeps strict checks; A policy above remains unchanged.
+[[tool.mypy.overrides]]
+module = ["app.modules.judging.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_any_generics = true
+warn_return_any = true

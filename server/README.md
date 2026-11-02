@@ -128,3 +128,13 @@ FR-19 维护已直接装配正式应用：本课教师与全局管理员分别�
 Worker 的 transport 只在外发许可事务提交后执行。使用 `DeepSeekTransport` 时由部署层加载 Key、核对模型标识和配置引用、人民币价格、条款、分词计数实现和模板版本，并显式注入经过验证的内容安全检查 `content_check`。该检查必须覆盖完整答案、核心求解函数、隐藏信息、工具/改分请求和不确定性要求。JSON schema 与代码围栏过滤只承担结构校验。当前默认 HTTP 应用未注入这些资源，访问新模型请求明确返回 503，仓库没有启用收费服务的启动脚本。
 
 账本锁顺序为个人日额度、项目总预算、接纳日预算，均在 policy_guard 内。运行中超时或 Worker 丢失将费用设为 UNCERTAIN，次数释放，费用继续占用原接纳日及项目预算。人工取得供应商权威账单后，在受控事务中调用 `HintService.reconcile(hint_id, Decimal(actual_cny))`，重复处理无重复扣费。计费 usage 与供应商请求 ID 仅保存在服务端账本关联记录，不出现在 HintView。
+
+## P1-B1a 预检持久化与事务查询
+
+`app.modules.judging.preflight.TransactionalPreflight(repo,catalog,effects)`实现A PreflightPort，绑定同一个正式SqlRepository/UoW，拒绝跨事务使用。先取得policy_guard，再从数据库复核教师状态、课程归属及版本，冻结A快照摘要/profile摘要与私有bytea。全部语言全部样例/隐藏点一次写入preflight_runs/cases/jobs；同内容活跃任务去重，不重复审计或队列事实；审计/Outbox/后段失败随同事务回滚。
+
+b006延续正式迁移单head，私有快照支持合法NUL；冻结字段与终态受数据库保护，新FK均有索引。就绪检查要求b006，部署须先迁移。新增表以RESTRICT保留版本引用；公开预检HTTP接线前须与A统一“有预检引用的草稿删除”冲突语义，当前不改A删除接口或历史SQL。
+
+read/evidence只返回标识、状态与点判定；不加载/回显隐藏材料到普通查询，evidence仅完整PASSED/全点AC且冻结绑定一致时有效。没有生产终态写入器、Worker、租约/槽位或HTTP接线；jobs只有READY/DONE事实，后续随实际execution_slots添加租约和FK，不用空实现放行。当前仍无可执行的真实评测环境，正式执行保持关闭；数据库夹具的合成终态不进入正常启动。
+
+预检case_manifest仅保存语言/点类别/序号，随私有快照一并冻结。子表INSERT先锁父任务，须为QUEUED且点键属于冻结清单；初始事务已创建的键由主键阻止重复，终态任务不能追加，避免历史PASSED证据被增行破坏。此约束不代表真实执行或完成写入器已实现。

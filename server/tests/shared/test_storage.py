@@ -203,7 +203,11 @@ def test_guard_serializes_connections(migrated):
 def test_migration_snapshots_match_a_history():
     base = Path(__file__).parents[2]
     for source in (base / "a_line/migrations/sql").glob("*.sql"):
-        assert source.read_bytes() == (base / "migrations/sql" / source.name).read_bytes()
+        target = {
+            "006_templates.sql": "007_templates.sql",
+            "007_hint_jobs.sql": "008_hint_jobs.sql",
+        }.get(source.name, source.name)
+        assert source.read_bytes() == (base / "migrations/sql" / target).read_bytes()
 
 
 def test_effects_refuse_another_transaction(migrated):
