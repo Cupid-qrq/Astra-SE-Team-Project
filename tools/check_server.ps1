@@ -8,14 +8,25 @@ Push-Location -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'server
 try {
     & uv sync --locked
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff check app/shared app/api app/main.py tests/shared migrations
+    & uv run --locked ruff check app/shared app/api app/main.py tests/shared migrations ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff format --check app/shared app/api app/main.py tests/shared migrations
+    & uv run --locked ruff format --check app/shared app/api app/main.py tests/shared migrations ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & uv run --locked mypy app/shared app/api app/main.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    & uv run --locked python ../tools/check_api_contract.py
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & uv run --locked pytest tests/shared
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $env:ASTRA_SERVER_PYTHON = (& uv run --locked python -c 'import sys; print(sys.executable)').Trim()
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    Push-Location -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'apps/web')
+    try {
+        & pnpm run e2e:server
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    } finally {
+        Pop-Location
+    }
 } finally {
     Pop-Location
 }

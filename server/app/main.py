@@ -10,6 +10,7 @@ from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse, Response
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -54,8 +55,8 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                 database.dispose()
 
     app = FastAPI(
-        title="Astra",
-        version="0.1.0",
+        title=contract.document["info"]["title"],
+        version=contract.document["info"]["version"],
         docs_url=None,
         redoc_url=None,
         openapi_url=None,
@@ -98,11 +99,21 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
             Fault(422, "VALIDATION_ERROR", "请求参数无效。"), request.state.request_id
         )
 
-    @app.get("/health/live")
+    @app.get(
+        "/health/live",
+        response_model=None,
+        operation_id="health_live",
+        openapi_extra=deepcopy(contract.document["paths"]["/health/live"]["get"]),
+    )
     def liveness() -> Record:
         return {"status": "live"}
 
-    @app.get("/health/ready")
+    @app.get(
+        "/health/ready",
+        response_model=None,
+        operation_id="health_ready",
+        openapi_extra=deepcopy(contract.document["paths"]["/health/ready"]["get"]),
+    )
     def readiness(request: Request) -> Response:
         supplied = request.headers.get("X-Readiness-Token", "")
         if not hmac.compare_digest(supplied.encode(), configuration.readiness_token.encode()):
@@ -266,7 +277,28 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         )
 
     register(add, settings.profiles)
-    # FastAPI exports actual registered methods and attached canonical schemas.
-    # This is contract-first metadata, not independently inferred Pydantic validation.
+
+    def export_openapi() -> Record:
+        document = get_openapi(
+            title=app.title,
+            version=app.version,
+            routes=app.routes,
+            openapi_version=contract.document["openapi"],
+        )
+        # Route registration determines what is exported. Schemas are contract-first metadata.
+        # Canonical paths are relative to /api/v1; health explicitly uses the service root.
+        paths: Record = {}
+        for url, item in document["paths"].items():
+            relative = url.removeprefix("/api/v1") if url.startswith("/api/v1/") else url
+            paths[relative] = item
+            canonical_item = contract.document["paths"].get(relative, {})
+            if "servers" in canonical_item:
+                item["servers"] = deepcopy(canonical_item["servers"])
+        document["paths"] = paths
+        document["components"] = deepcopy(contract.document["components"])
+        document["servers"] = deepcopy(contract.document["servers"])
+        return document
+
+    app.openapi = export_openapi  # type: ignore[method-assign]
     app.state.contract = contract
     return app

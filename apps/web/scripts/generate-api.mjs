@@ -2,7 +2,7 @@ import { readFile, writeFile } from 'node:fs/promises'
 import openapiTS, { astToString } from 'openapi-typescript'
 
 const source = JSON.parse(
-  await readFile(new URL('../../../specs/openapi/a.openapi.json', import.meta.url), 'utf8'),
+  await readFile(new URL('../../../specs/openapi.yaml', import.meta.url), 'utf8'),
 )
 const destination = new URL('../src/lib/api/schema.d.ts', import.meta.url)
 const output = astToString(await openapiTS(source))

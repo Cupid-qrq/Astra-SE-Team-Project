@@ -33,7 +33,7 @@ export default defineConfig({
       reuseExistingServer: false,
     },
     {
-      command: 'pnpm dev --port 4175 --strictPort',
+      command: 'node node_modules/vite/bin/vite.js --host 127.0.0.1 --port 4175 --strictPort',
       url: 'https://localhost:4175',
       ignoreHTTPSErrors: true,
       reuseExistingServer: false,

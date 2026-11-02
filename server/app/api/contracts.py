@@ -20,7 +20,7 @@ class Contract:
 
     @classmethod
     def load(cls) -> "Contract":
-        relative = Path("specs/openapi/a.openapi.json")
+        relative = Path("specs/openapi.yaml")
         source = next(
             (p / relative for p in Path(__file__).resolve().parents if (p / relative).is_file()),
             None,

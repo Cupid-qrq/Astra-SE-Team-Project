@@ -16,7 +16,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm dev:mock --port 4173 --strictPort',
+    command:
+      'node node_modules/vite/bin/vite.js --mode mock --host 127.0.0.1 --port 4173 --strictPort',
     url: 'http://127.0.0.1:4173',
     reuseExistingServer: false,
   },

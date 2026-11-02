@@ -78,3 +78,11 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 公开大列表在授权SQL中使用limit+1和稳定主键，游标签名绑定用户、路由和过滤条件；内部rows不截断。测试点/参考程序/运行profile受业务或配置上限约束，允许有界内存分页。运行profile未配置、既有方法所需的预检/成绩协调未接通时返回503；提交前端端口保留显式503占位，未实现的B路由不注册。不以测试合成值响应生产请求。
 
 本阶段消费A契约片段，生产仅注册已实现的38个教学方法；总契约、生成类型来源切换及正式应用浏览器检查在S3b完成。A独立浏览器入口继续保留，不冒称其结果证明正式应用联通。
+
+## B 总契约与正式应用浏览器 S3b
+
+总入口[specs/openapi.yaml](../specs/openapi.yaml)当前包含40个已实现方法（38教学+2健康）和18个未来设计方法；A片段仍独立验证。正式FastAPI导出实际注册路由及契约元数据，检查器对照完整URL/前缀、方法、状态、参数、schema和安全定义。生成客户端从总入口读取。
+
+`tools/check_server.ps1`运行锁定依赖、格式/类型、契约映射、真实数据库全部共享层/HTTP测试及正式应用浏览器。后者复用A的教学流程，显式测试harness使用正式B迁移/UoW/Repository/Effects/create_app，初始化虚构账号和合成教学版本。当前外部执行端口继续不可用；前端端口fake专项单独标识。
+
+浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器、独立VM及业务闭环另行验收。

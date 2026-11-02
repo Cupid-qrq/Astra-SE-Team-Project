@@ -5,7 +5,7 @@ requires-python = ">=3.12,<3.14"
 dependencies = ["sqlalchemy>=2.0,<2.1", "psycopg[binary]>=3.2,<4", "alembic>=1.15,<2", "fastapi>=0.115,<1", "uvicorn>=0.34,<1", "argon2-cffi>=25.1,<26", "jsonschema>=4.25,<5"]
 
 [dependency-groups]
-dev = ["pytest>=8.3,<10", "ruff>=0.11,<1", "mypy>=1.15,<2", "httpx>=0.28,<1", "types-jsonschema>=4.25"]
+dev = ["pytest>=8.3,<10", "ruff>=0.11,<1", "mypy>=1.15,<2", "httpx>=0.28,<1", "types-jsonschema>=4.25", "cryptography>=44,<50"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/shared"]

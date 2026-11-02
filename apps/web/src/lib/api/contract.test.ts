@@ -79,3 +79,29 @@ describe('A 模块 OpenAPI 3.1 交接契约', () => {
     )
   })
 })
+
+describe('正式总契约', () => {
+  it('可解析，保留A片段并区分健康路径与未来方法', async () => {
+    const total = JSON.parse(readFileSync(resolve('../../specs/openapi.yaml'), 'utf8'))
+    await SwaggerParser.validate(structuredClone(total))
+    const fragment = load()
+    for (const [url, item] of Object.entries(fragment.paths))
+      for (const [method, operation] of Object.entries(
+        item as Record<string, Record<string, unknown>>,
+      ))
+        expect(total.paths[url][method]).toMatchObject(operation)
+    expect(total.components.schemas).toMatchObject(fragment.components.schemas)
+    expect(total.paths['/health/live'].servers).toEqual([{ url: '/' }])
+    const operations = Object.values(total.paths).flatMap((item) =>
+      Object.entries(item as Record<string, Record<string, unknown>>)
+        .filter(([method]) => ['get', 'post', 'put', 'patch', 'delete'].includes(method))
+        .map(([, operation]) => operation),
+    )
+    expect(
+      operations.filter((operation) => operation['x-implementation'] === 'implemented'),
+    ).toHaveLength(40)
+    expect(
+      operations.filter((operation) => operation['x-implementation'] === 'planned'),
+    ).toHaveLength(18)
+  })
+})
