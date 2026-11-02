@@ -106,7 +106,9 @@ A P1 防止轮询续期的接线约定：`GET /auth/session` 只验证、不延�
 | POST /hint-templates | 本课 T/全局 M | scope、course_id?、draft | 201：template_id、revision |
 | PUT /hint-templates/{id}/draft | 所属 T/全局 M | body、allowed_placeholders、schema_version、expected_revision | 200：新 revision |
 | POST /hint-templates/{id}/publish | 所属 T/全局 M | expected_revision、reason | 200：version_id、checksum；启用前质量回归 |
+| GET /hint-templates/{id}/versions | 所属 T/全局 M | 游标分页 | 200：冻结版本编号、摘要与发布时间 |
 | GET /hint-templates/{id}/versions/{version} | 所属 T/全局 M | — | 200：模板固定版本；不向学生暴露安全框架 |
+| GET /ai-hints | S | 游标分页 | 200：本人提示编号与创建时间，内容另行重验权限 |
 | POST /ai-hints | 本人 S | submission_id、question?、data_sharing_consent、request_key | 202：hint_id、PENDING；终态重放 200 |
 | GET /ai-hints/{hint_id} | 本人 S/本课 T | — | 200：状态、来源提交、版本、四段提示或降级帮助 |
 | POST /ai-hints/{id}/feedback | 本人 S | rating、comment? | 200：USEFUL/NOT_USEFUL/ERROR；每提示本人一条可更新，仅 READY |

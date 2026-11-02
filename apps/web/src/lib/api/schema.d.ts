@@ -726,7 +726,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * listHintHistory
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listHintHistory"];
         put?: never;
         /**
          * createHint
@@ -987,6 +991,26 @@ export interface paths {
          * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
          */
         get: operations["listFeedbackVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/hint-templates/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listTemplateVersions
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listTemplateVersions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1303,6 +1327,7 @@ export interface components {
             checksum: string;
         };
         TemplateDraft: {
+            /** @description UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。 */
             body: string;
             allowed_placeholders: ("public_problem" | "public_samples" | "student_code" | "sanitized_diagnostic" | "verdict" | "question")[];
             schema_version: string;
@@ -1528,6 +1553,7 @@ export interface components {
             revision: number;
         };
         UpdateTemplate: {
+            /** @description UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。 */
             body: string;
             allowed_placeholders: ("public_problem" | "public_samples" | "student_code" | "sanitized_diagnostic" | "verdict" | "question")[];
             schema_version: string;
@@ -1536,18 +1562,29 @@ export interface components {
         TemplateDraftView: {
             /** Format: uuid */
             template_id: string;
+            /** @description UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。 */
             body: string;
             allowed_placeholders: ("public_problem" | "public_samples" | "student_code" | "sanitized_diagnostic" | "verdict" | "question")[];
             schema_version: string;
             revision: number;
+            /** @enum {string} */
+            scope: "GLOBAL" | "COURSE";
+            course_id: string | null;
+            course_status: ("ACTIVE" | "ARCHIVED") | null;
+            published_version_id: string | null;
+            published_version_no: number | null;
         };
         TemplateVersion: {
             /** Format: uuid */
             version_id: string;
+            /** @description UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。 */
             body: string;
             allowed_placeholders: ("public_problem" | "public_samples" | "student_code" | "sanitized_diagnostic" | "verdict" | "question")[];
             schema_version: string;
             checksum: string;
+            version_no: number;
+            /** Format: date-time */
+            published_at: string;
         };
         TemplateSummary: {
             /** Format: uuid */
@@ -1643,6 +1680,28 @@ export interface components {
         };
         FeedbackVersionSummaryPage: {
             items: components["schemas"]["FeedbackVersionSummary"][];
+            next_cursor: string | null;
+        };
+        TemplateVersionSummary: {
+            /** Format: uuid */
+            version_id: string;
+            version_no: number;
+            checksum: string;
+            /** Format: date-time */
+            published_at: string;
+        };
+        TemplateVersionSummaryPage: {
+            items: components["schemas"]["TemplateVersionSummary"][];
+            next_cursor: string | null;
+        };
+        HintHistoryItem: {
+            /** Format: uuid */
+            hint_id: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        HintHistoryPage: {
+            items: components["schemas"]["HintHistoryItem"][];
             next_cursor: string | null;
         };
     };
@@ -3551,6 +3610,43 @@ export interface operations {
             503: components["responses"]["Error503"];
         };
     };
+    listHintHistory: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HintHistoryPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
     createHint: {
         parameters: {
             query?: never;
@@ -4135,6 +4231,45 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FeedbackVersionSummaryPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listTemplateVersions: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemplateVersionSummaryPage"];
                 };
             };
             400: components["responses"]["Error400"];

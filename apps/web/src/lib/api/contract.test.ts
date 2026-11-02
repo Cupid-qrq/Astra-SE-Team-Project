@@ -99,9 +99,9 @@ describe('正式总契约', () => {
     )
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'implemented'),
-    ).toHaveLength(46)
+    ).toHaveLength(61)
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'planned'),
-    ).toHaveLength(13)
+    ).toHaveLength(0)
   })
 })

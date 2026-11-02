@@ -6,6 +6,16 @@ from app.modules.identity.domain import Fault
 def register(add):
     add(
         "GET",
+        "/practice-problems/{id}",
+        lambda c: c["student_learning"].public_practice(c["actor"], c["path"]["id"]),
+    )
+    add(
+        "PATCH",
+        "/problems/{id}/practice-policy",
+        lambda c: c["problems"].set_practice_policy(c["actor"], c["path"]["id"], c["body"]),
+    )
+    add(
+        "GET",
         "/courses/{id}/problems",
         lambda c: c["page"](
             c["problems"].visible(c["actor"], c["path"]["id"], c["query"].get("tag")), "problem_id"

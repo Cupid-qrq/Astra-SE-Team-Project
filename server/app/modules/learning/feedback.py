@@ -27,16 +27,16 @@ def version_summary(row: Record) -> Record:
     }
 
 
-class FeedbackManagement:
+class ScopedManagement:
     def __init__(self, repo: Repository, effects: Effects):
         self.repo, self.effects, self.courses = repo, effects, Courses(repo, effects)
 
-    def managed_catalog(self, actor: Record, catalog_id: str, *, write: bool = False) -> Record:
+    def managed(self, table: str, actor: Record, catalog_id: str, *, write: bool = False) -> Record:
         role(actor, ("TEACHER", "ADMIN"))
         if write:
             self.repo.guard()
-        row = self.repo.get("feedback_catalogs", catalog_id)
-        require(row is not None, "NOT_FOUND", "帮助不存在或无权管理。", 404)
+        row = self.repo.get(table, catalog_id)
+        require(row is not None, "NOT_FOUND", "对象不存在或无权管理。", 404)
         assert row
         if row["scope_key"] == "GLOBAL":
             role(actor, ("ADMIN",))
@@ -45,16 +45,16 @@ class FeedbackManagement:
                 actor, row["scope_key"].removeprefix("COURSE:"), teacher=True, write=write
             )
         if write:
-            row = self.repo.get("feedback_catalogs", catalog_id, lock=True)
+            row = self.repo.get(table, catalog_id, lock=True)
             assert row
         return row
 
-    def catalogs(self, actor: Record, course_id: str | None = None) -> list[Record]:
+    def scoped_rows(self, table: str, actor: Record, course_id: str | None) -> list[Record]:
         """Standalone host only; formal HTTP uses authorized SQL pagination."""
         role(actor, ("TEACHER", "ADMIN"))
         if actor["role"] == "ADMIN":
-            require(course_id is None, "FORBIDDEN", "管理员只能维护全局帮助。", 403)
-            rows = self.repo.rows("feedback_catalogs", scope_key="GLOBAL")
+            require(course_id is None, "FORBIDDEN", "管理员只能维护全局内容。", 403)
+            rows = self.repo.rows(table, scope_key="GLOBAL")
         else:
             if course_id:
                 self.courses.access(actor, course_id, teacher=True)
@@ -62,8 +62,18 @@ class FeedbackManagement:
             else:
                 courses = [c["course_id"] for c in self.courses.visible(actor)]
             scopes = ["COURSE:" + cid for cid in courses]
-            rows = self.repo.rows("feedback_catalogs", scope_key=scopes) if scopes else []
-        return [catalog_summary(row) for row in rows]
+            rows = self.repo.rows(table, scope_key=scopes) if scopes else []
+        return rows
+
+
+class FeedbackManagement(ScopedManagement):
+    def managed_catalog(self, actor: Record, catalog_id: str, *, write: bool = False) -> Record:
+        return self.managed("feedback_catalogs", actor, catalog_id, write=write)
+
+    def catalogs(self, actor: Record, course_id: str | None = None) -> list[Record]:
+        return [
+            catalog_summary(row) for row in self.scoped_rows("feedback_catalogs", actor, course_id)
+        ]
 
     def create_catalog(self, actor: Record, body: Record) -> Record:
         role(actor, ("TEACHER", "ADMIN"))

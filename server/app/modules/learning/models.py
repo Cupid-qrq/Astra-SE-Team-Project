@@ -6,10 +6,12 @@ from sqlalchemy import (
     Integer,
     String,
     Table,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
+import app.modules.learning.hint_tables  # noqa: F401
 from app.modules.identity.models import metadata, timestamp, uid
 
 catalogs = Table(
@@ -48,4 +50,40 @@ versions = Table(
     UniqueConstraint("catalog_id", "version_no", name="uq_feedback_version_no"),
     UniqueConstraint("catalog_id", "version_id", name="uq_feedback_version_owner"),
     CheckConstraint("version_no > 0", name="feedback_version_positive"),
+)
+
+template_catalogs = Table(
+    "template_catalogs",
+    metadata,
+    uid("template_id", primary_key=True),
+    Column("scope_key", String(43), nullable=False),
+    Column("draft_payload", JSONB, nullable=False),
+    Column("draft_revision", Integer, nullable=False),
+    uid("published_version_id"),
+    uid("active_version_id"),
+    UniqueConstraint("scope_key", name="uq_template_scope"),
+    *[
+        ForeignKeyConstraint(
+            ["template_id", pointer + "_version_id"],
+            ["template_versions.template_id", "template_versions.version_id"],
+            name="fk_template_" + pointer,
+            use_alter=True,
+        )
+        for pointer in ("published", "active")
+    ],
+)
+template_versions = Table(
+    "template_versions",
+    metadata,
+    uid("version_id", primary_key=True),
+    uid("template_id", ForeignKey("template_catalogs.template_id"), nullable=False),
+    Column("version_no", Integer, nullable=False),
+    Column("body", Text, nullable=False),
+    Column("allowed_placeholders", JSONB, nullable=False),
+    Column("schema_version", String(40), nullable=False),
+    uid("author_id", ForeignKey("users.user_id"), nullable=False),
+    timestamp("published_at", nullable=False),
+    Column("checksum", String(64), nullable=False),
+    UniqueConstraint("template_id", "version_no", name="uq_template_version_no"),
+    UniqueConstraint("template_id", "version_id", name="uq_template_version_owner"),
 )

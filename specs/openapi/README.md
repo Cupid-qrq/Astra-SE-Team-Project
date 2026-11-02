@@ -1,6 +1,6 @@
 # 接口契约与交接
 
-[总契约](../openapi.yaml)是B协调维护的当前OpenAPI 3.1入口，保留[A片段](a.openapi.json)的57个方法，另含B的两个健康方法。46个当前方法标记implemented，13个A后续设计方法标记planned并保持未注册；B其余业务路由随对应阶段接入。
+[总契约](../openapi.yaml)是B协调维护的当前OpenAPI 3.1入口，保留[A片段](a.openapi.json)的59个方法，另含B的两个健康方法。61个当前方法标记implemented，A契约内的方法均已注册；B其余业务路由随对应阶段接入。
 
 客户端生成来源为总契约；A片段继续独立运行其原契约/验证应用检查。前端门禁验证总契约可解析、保留A DTO和生成类型一致。实际公共字段仍待A成员对本轮B候选确认，不能将工程测试代填双方冻结记录。
 
@@ -14,7 +14,7 @@
 
 ## 一致性与审查
 
-`tools/check_api_contract.py`检查完整实际URL、方法、成功状态、operationId、参数、请求/响应schema、安全、components及服务器前缀。生产FastAPI从实际注册路由导出canonical元数据，生产44个教学方法同时校验请求和响应；行为另由真实PostgreSQL和正式应用浏览器验证。schema为契约驱动，未宣称Pydantic独立推导证明。
+`tools/check_api_contract.py`检查完整实际URL、方法、成功状态、operationId、参数、请求/响应schema、安全、components及服务器前缀。生产FastAPI从实际注册路由导出canonical元数据，生产59个教学方法同时校验请求和响应；行为另由真实PostgreSQL和正式应用浏览器验证。schema为契约驱动，未宣称Pydantic独立推导证明。
 
 修改片段/总契约时核对同名paths/components，冲突人工评审；保留A字段的测试会拒绝漂移。运行生成命令并与API/页面一起审查，不手工改生成文件。UTF-8字节、总分100、唯一题目/语言、时间、归属和revision仍由服务端规则与事务保障。
 

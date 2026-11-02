@@ -33,7 +33,7 @@ def app_and_contract():
 
 def test_registered_route_and_schema_drift_are_rejected():
     app, spec = app_and_contract()
-    assert checker.compare(app, spec) == 46
+    assert checker.compare(app, spec) == 61
     altered = deepcopy(spec)
     altered["paths"]["/courses"]["post"]["responses"]["201"]["content"]["application/json"][
         "schema"

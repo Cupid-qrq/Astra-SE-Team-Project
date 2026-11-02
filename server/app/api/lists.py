@@ -15,6 +15,7 @@ from app.modules.identity.application import public_user
 from app.modules.identity.domain import Fault, require, role
 from app.modules.identity.ports import Record
 from app.modules.learning.feedback import catalog_summary, version_summary
+from app.modules.learning.templates import template_summary, template_version_summary
 from app.shared.metadata import metadata
 
 
@@ -126,12 +127,13 @@ def sql_list(c: Record, path: str, pager: Cursor) -> Record | None:
             return c["assignments"].summary(row, course)  # type: ignore[no-any-return]
 
         projection = summary
-    elif path == "/feedback-catalogs":
+    elif path in ("/feedback-catalogs", "/hint-templates"):
         role(actor, ("TEACHER", "ADMIN"))
-        catalogs = tables["feedback_catalogs"]
+        is_template = path == "/hint-templates"
+        catalogs = tables["template_catalogs" if is_template else "feedback_catalogs"]
         statement = select(catalogs)
         if actor["role"] == "ADMIN":
-            require("course_id" not in query, "FORBIDDEN", "管理员只能维护全局帮助。", 403)
+            require("course_id" not in query, "FORBIDDEN", "管理员只能维护全局内容。", 403)
             statement = statement.where(catalogs.c.scope_key == "GLOBAL")
         else:
             if "course_id" in query:
@@ -142,12 +144,20 @@ def sql_list(c: Record, path: str, pager: Cursor) -> Record | None:
             ).where(courses.c.teacher_id == actor["user_id"])
             if "course_id" in query:
                 statement = statement.where(courses.c.course_id == query["course_id"])
-        key, projection = catalogs.c.catalog_id, catalog_summary
+        if is_template:
+            key, projection = catalogs.c.template_id, template_summary
+        else:
+            key, projection = catalogs.c.catalog_id, catalog_summary
     elif path == "/feedback-catalogs/{id}/versions":
         c["learning"].managed_catalog(actor, cid)
         feedback_versions = tables["feedback_versions"]
         statement = select(feedback_versions).where(feedback_versions.c.catalog_id == cid)
         key, projection = feedback_versions.c.version_id, version_summary
+    elif path == "/hint-templates/{id}/versions":
+        c["learning"].templates.managed("template_catalogs", actor, cid)
+        versions = tables["template_versions"]
+        statement = select(versions).where(versions.c.template_id == cid)
+        key, projection = versions.c.version_id, template_version_summary
     elif path == "/admin/users":
         role(actor, ("ADMIN",))
         statement = select(users)

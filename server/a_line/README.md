@@ -1,6 +1,6 @@
 # A线 P1 独立验证与 B 线接入
 
-本目录承载 A 的依赖锁、验证入口及顺序迁移 a001— a004。业务模块在 `server/app/modules`，不导入本目录。它不替代 B 维护的正式应用、shared 层和唯一迁移 head。
+本目录承载 A 的依赖锁、验证入口及顺序迁移 a001—a006。业务模块在 `server/app/modules`，不导入本目录。它不替代 B 维护的正式应用、shared 层和唯一迁移 head。
 
 ## 重现
 
@@ -39,7 +39,7 @@ python tools/check_runtime.py
 
 ## 迁移交接
 
-- SQL 快照固定保存在 `migrations/sql/001`—`004` 对应文件中；升级不导入当前 metadata。验证空库→head、a001→a002→a003→a004 带数据升级和重复升级。发布后的题目、材料、作业内容及帮助版本有数据库不可变触发器。
+- SQL 快照固定保存在 `migrations/sql/001`—`004` 、`006_templates.sql` 和 `007_hint_jobs.sql` 对应文件中；升级不导入当前 metadata。验证空库→head、a001→a002→a003→a004→a005→a006 带数据升级和重复升级。发布后的题目、材料、作业内容、帮助及模板版本有数据库不可变触发器。
 - 正式合入时由 B 将 A DDL 纳入总迁移序列，检查单 head；不能直接再运行一个平行迁移树。A 的版本表名为 `alembic_version_a`，只用于独立验证。
 - B 实体尚不可用，`problem_versions.published_preflight_id`、`assignments.active_grade_version/active_rejudge_batch_id` 及 B attempt→feedback_version 的跨线外键须在集成迁移补齐，不能据当前测试宣称跨线引用完整。
 - 全局帮助需要已有 ACTIVE ADMIN。显式在管理员初始化事务调用 `seed_global_feedback(repo, admin_id)`；UUID5 固定种子可重复运行，不改写历史或覆盖新 active version。正常应用启动不会建表、建账号或种植合成证据。

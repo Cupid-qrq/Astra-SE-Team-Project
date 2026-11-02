@@ -4769,6 +4769,104 @@
             }
           }
         }
+      },
+      "get": {
+        "operationId": "listHintHistory",
+        "summary": "listHintHistory",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "A覃锐谦",
+        "x-roles": [
+          "STUDENT"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HintHistoryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
       }
     },
     "/ai-hints/{hint_id}": {
@@ -6026,6 +6124,116 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FeedbackVersionSummaryPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ]
+      }
+    },
+    "/hint-templates/{id}/versions": {
+      "get": {
+        "operationId": "listTemplateVersions",
+        "summary": "listTemplateVersions",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "A覃锐谦",
+        "x-roles": [
+          "TEACHER",
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TemplateVersionSummaryPage"
                 }
               }
             }
@@ -7374,7 +7582,8 @@
           "body": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 8192
+            "maxLength": 8192,
+            "description": "UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。"
           },
           "allowed_placeholders": {
             "type": "array",
@@ -7390,7 +7599,8 @@
               ]
             },
             "maxItems": 6,
-            "minItems": 0
+            "minItems": 0,
+            "uniqueItems": true
           },
           "schema_version": {
             "type": "string",
@@ -8436,7 +8646,8 @@
           "body": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 8192
+            "maxLength": 8192,
+            "description": "UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。"
           },
           "allowed_placeholders": {
             "type": "array",
@@ -8452,7 +8663,8 @@
               ]
             },
             "maxItems": 6,
-            "minItems": 0
+            "minItems": 0,
+            "uniqueItems": true
           },
           "schema_version": {
             "type": "string",
@@ -8482,7 +8694,8 @@
           "body": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 8192
+            "maxLength": 8192,
+            "description": "UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。"
           },
           "allowed_placeholders": {
             "type": "array",
@@ -8498,7 +8711,8 @@
               ]
             },
             "maxItems": 6,
-            "minItems": 0
+            "minItems": 0,
+            "uniqueItems": true
           },
           "schema_version": {
             "type": "string",
@@ -8508,6 +8722,60 @@
           "revision": {
             "type": "integer",
             "minimum": 1
+          },
+          "scope": {
+            "type": "string",
+            "enum": [
+              "GLOBAL",
+              "COURSE"
+            ]
+          },
+          "course_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "course_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "ACTIVE",
+                  "ARCHIVED"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published_version_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "published_version_no": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -8515,7 +8783,12 @@
           "body",
           "allowed_placeholders",
           "schema_version",
-          "revision"
+          "revision",
+          "scope",
+          "course_id",
+          "course_status",
+          "published_version_id",
+          "published_version_no"
         ]
       },
       "TemplateVersion": {
@@ -8529,7 +8802,8 @@
           "body": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 8192
+            "maxLength": 8192,
+            "description": "UTF-8 编码最多 8192 字节。占位符写作 {name}，名称必须出现在 allowed_placeholders。"
           },
           "allowed_placeholders": {
             "type": "array",
@@ -8545,7 +8819,8 @@
               ]
             },
             "maxItems": 6,
-            "minItems": 0
+            "minItems": 0,
+            "uniqueItems": true
           },
           "schema_version": {
             "type": "string",
@@ -8556,6 +8831,14 @@
             "type": "string",
             "minLength": 64,
             "maxLength": 64
+          },
+          "version_no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
@@ -8563,7 +8846,9 @@
           "body",
           "allowed_placeholders",
           "schema_version",
-          "checksum"
+          "checksum",
+          "version_no",
+          "published_at"
         ]
       },
       "TemplateSummary": {
@@ -9110,6 +9395,113 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/FeedbackVersionSummary"
+            },
+            "maxItems": 100,
+            "minItems": 0
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "TemplateVersionSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version_no": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "version_id",
+          "version_no",
+          "checksum",
+          "published_at"
+        ]
+      },
+      "TemplateVersionSummaryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TemplateVersionSummary"
+            },
+            "maxItems": 100,
+            "minItems": 0
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ]
+      },
+      "HintHistoryItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "hint_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d\\.\\d{3}Z$"
+          }
+        },
+        "required": [
+          "hint_id",
+          "created_at"
+        ]
+      },
+      "HintHistoryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HintHistoryItem"
             },
             "maxItems": 100,
             "minItems": 0

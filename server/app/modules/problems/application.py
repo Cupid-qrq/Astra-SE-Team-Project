@@ -3,6 +3,7 @@ from __future__ import annotations
 from hashlib import sha256
 from uuid import uuid4
 
+from app.modules.assignments.domain import assignment_state
 from app.modules.courses.application import Courses
 from app.modules.identity.domain import Fault, require, revision, role, utc
 from app.modules.identity.ports import Effects, Record, Repository
@@ -30,6 +31,68 @@ class Problems:
         assert problem
         self.courses.access(actor, problem["owner_course_id"], teacher=True, write=write)
         return problem
+
+    def set_practice_policy(self, actor: Record, pid: str, body: Record) -> Record:
+        role(actor, ("TEACHER",))
+        self.repo.guard()
+        problem = self.problem(actor, pid, write=True)
+        revision(problem, body["expected_revision"])
+        family_id = body["canonical_problem_id"]
+        previous_family = problem["canonical_problem_id"]
+        reason = body["reason"].strip()
+        require(10 <= len(reason) <= 500, "VALIDATION_ERROR", "请填写10—500字调整理由。", 422)
+        if family_id != previous_family:
+            family = self.repo.get("problem_families", family_id)
+            require(
+                bool(family and family["owner_teacher_id"] == actor["user_id"]),
+                "NOT_FOUND",
+                "题目家族不存在或无权使用。",
+                404,
+            )
+            members = self.repo.rows("problems", canonical_problem_id=[family_id, previous_family])
+            item_ids = [p["problem_id"] for p in members]
+            assignment_ids = {
+                i["assignment_id"] for i in self.repo.rows("assignment_items", problem_id=item_ids)
+            }
+            now = self.repo.now()
+            for assignment in self.repo.rows("assignments", assignment_id=list(assignment_ids)):
+                course = self.repo.get("courses", assignment["course_id"])
+                require(
+                    course is not None
+                    and assignment_state(assignment, now, archived=course["status"] == "ARCHIVED")
+                    not in ("SCHEDULED", "OPEN"),
+                    "FAMILY_IN_USE",
+                    "活动作业涉及该家族，暂不可调整。",
+                )
+        vid = body.get("practice_version_id")
+        if body["practice_released"]:
+            require(bool(vid), "VALIDATION_ERROR", "开启练习须指定固定版本。", 422)
+            version = self.repo.get("problem_versions", vid)
+            require(
+                bool(version and version["problem_id"] == pid and version["published_at"]),
+                "VERSION_UNAVAILABLE",
+                "请选择本题的已发布版本。",
+            )
+        else:
+            require(vid is None, "VALIDATION_ERROR", "关闭练习时不应指定版本。", 422)
+        changes = dict(
+            canonical_problem_id=family_id,
+            practice_released=body["practice_released"],
+            practice_version_id=vid,
+        )
+        next_revision = problem["revision"] + 1
+        self.repo.change(
+            "problems", pid, **changes, revision=next_revision, updated_at=self.repo.now()
+        )
+        self.effects.record(
+            self.repo,
+            actor["user_id"],
+            "PROBLEM_PRACTICE_POLICY_CHANGED",
+            pid,
+            reason=reason,
+            summary={"before": {k: problem[k] for k in changes}, "after": changes},
+        )
+        return dict(revision=next_revision)
 
     def version(self, actor: Record, vid: str, *, write=False) -> Record:
         role(actor, ("TEACHER",))

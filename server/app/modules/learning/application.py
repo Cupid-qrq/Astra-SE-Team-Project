@@ -6,6 +6,7 @@ from app.modules.identity.ports import Effects, Record, Repository
 from .domain import VERDICTS, checksum, public_version
 from .feedback import FeedbackManagement
 from .ports import FeedbackSubmissions
+from .templates import TemplateManagement
 
 SEEDS = {
     "CE": dict(
@@ -106,6 +107,7 @@ class Learning(FeedbackManagement):
     ):
         super().__init__(repo, effects)
         self.submissions = submissions
+        self.templates = TemplateManagement(repo, effects)
 
     def resolve(self, course_id: str, language: str, verdict: str) -> str | None:
         """Internal terminalization query; caller already authorized and owns locks/UoW."""

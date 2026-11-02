@@ -54,6 +54,7 @@ class TransactionalEffects:
                     "DEADLINE": "assignment",
                     "POLICY": "assignment",
                     "FEEDBACK": "feedback_catalog",
+                    "TEMPLATE": "template_catalog",
                 }[action.split("_", 1)[0]],
                 object_id=object_id,
                 before_after_digest=digest,
