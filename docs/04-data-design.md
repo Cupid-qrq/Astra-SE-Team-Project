@@ -1,5 +1,7 @@
 # 数据设计
 
+适用基线为v0.4。课程交付与可选环境诊断、真实模型启用验收的边界见[开发总纲](00-development-plan.md)；本文件的数据约束和界面授权规则继续执行。
+
 ## 1. 存储约定
 
 PostgreSQL 为业务唯一事实库。ID 使用 UUID；时刻 `timestamptz(3)`，连接时区 UTC；计数和资源统计用非负 bigint；金额 `numeric(18,8)`、币种 CNY；正文 text，源码/测试原字节 bytea。所有可编辑聚合有正整数 revision 和 created_at/updated_at。

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { BookOpen, ChevronRight, KeyRound } from 'lucide-react'
 import { api, sessionKey, identityKey } from './runtime'
@@ -18,6 +19,30 @@ import { EditorPage } from '../features/assignments/EditorPage'
 import { ExpiredDraftPage } from '../features/assignments/ExpiredDraftPage'
 import { currentDraft } from '../features/assignments/drafts'
 import { StatePanel } from '../components/ui/StatePanel'
+const PublicPracticePage = lazy(() =>
+  import('../features/problems/PracticePolicy').then((m) => ({ default: m.PublicPracticePage })),
+)
+const FeedbackCatalogsPage = lazy(() =>
+  import('../features/learning/FeedbackPages').then((module) => ({
+    default: module.FeedbackCatalogsPage,
+  })),
+)
+const FeedbackDetailPage = lazy(() =>
+  import('../features/learning/FeedbackPages').then((module) => ({
+    default: module.FeedbackDetailPage,
+  })),
+)
+
+const LearningPage = lazy(() => import('../features/learning/LearningPage'))
+
+const TemplatesPage = lazy(() =>
+  import('../features/learning/TemplatePages').then((module) => ({
+    default: module.TemplatesPage,
+  })),
+)
+const TemplatePage = lazy(() =>
+  import('../features/learning/TemplatePages').then((module) => ({ default: module.TemplatePage })),
+)
 
 function Workspace() {
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session, refetchInterval: 60_000 })
@@ -57,6 +82,30 @@ function Workspace() {
             <BookOpen size={19} aria-hidden="true" />
             我的课程
           </NavLink>
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
+            <NavLink
+              to={user.role === 'ADMIN' ? '/admin/feedback' : '/teacher/feedback'}
+              className="nav-item"
+            >
+              <BookOpen size={19} aria-hidden="true" />
+              {user.role === 'ADMIN' ? '全局固定帮助' : '固定帮助维护'}
+            </NavLink>
+          )}
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
+            <NavLink
+              to={user.role === 'ADMIN' ? '/admin/hint-templates' : '/teacher/hint-templates'}
+              className="nav-item"
+            >
+              <BookOpen size={19} aria-hidden="true" />
+              {user.role === 'ADMIN' ? '全局提示模板' : '提示模板维护'}
+            </NavLink>
+          )}
+          {user.role === 'STUDENT' && (
+            <NavLink to="/learning" className="nav-item">
+              <BookOpen size={19} aria-hidden="true" />
+              我的学习
+            </NavLink>
+          )}
           <NavLink to="/account/password" className="nav-item">
             <KeyRound size={19} aria-hidden="true" />
             修改密码
@@ -91,14 +140,22 @@ function Workspace() {
         <main id="main" tabIndex={-1} className="main-content">
           {user.must_change_password ? (
             <PasswordPage forced />
-          ) : user.role === 'ADMIN' && location.pathname !== '/account/password' ? (
+          ) : user.role === 'ADMIN' &&
+            location.pathname !== '/account/password' &&
+            !location.pathname.startsWith('/admin/feedback') &&
+            !location.pathname.startsWith('/admin/hint-templates') ? (
             <StatePanel
               kind="forbidden"
               title="请使用管理员工作区"
               description="课程列表仅面向学生和教师。"
             />
           ) : (
-            <Outlet key={identityKey(session.data)} />
+            <Suspense
+              key={identityKey(session.data)}
+              fallback={<StatePanel kind="loading" title="正在加载页面…" />}
+            >
+              <Outlet />
+            </Suspense>
           )}
         </main>
       </div>
@@ -111,6 +168,16 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<Workspace />}>
         <Route path="/account/password" element={<PasswordPage />} />
+        <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
+        <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
+        <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
+        <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
+        <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
+        <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
+        <Route path="/admin/hint-templates" element={<TemplatesPage />} />
+        <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
+        <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
+        <Route path="/learning" element={<LearningPage />} />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />

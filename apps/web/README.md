@@ -39,7 +39,9 @@ python tools/check_runtime.py
 
 `Button` 支持 primary/secondary/quiet/danger 与 busy；`Field` 关联 label/帮助/错误；`DataTable<T>` 使用列 render、稳定 rowKey、表头与空态；`StatePanel` 覆盖加载/空/错误/无权限；`ConfirmDialog` 提供取消初始焦点、Tab边界、Escape和焦点恢复。样式仅消费 `src/styles/tokens.css`。
 
-当前路由：登录/强制改密、课程/成员、教师题目版本/材料、作业管理、学生题面/编辑器和404。`SafeMarkdown` 只允许安全文本标记，不加载外链图片；`FixedHelp` 是供 B 结果页嵌入的版本化帮助组件。
+当前路由：登录/强制改密、课程/成员、教师题目版本/材料、作业管理、学生题面/编辑器、固定帮助维护和404。`SafeMarkdown` 只允许安全文本标记，不加载外链图片；`FixedHelp` 是供 B 结果页嵌入的版本化帮助组件。
+
+教师从课程的“管理固定帮助”进入 `/teacher/feedback?course_id=...`，管理员从导航进入 `/admin/feedback`；页面按需加载。支持草稿/安全预览、带理由确认发布、冻结版本历史和归档只读。未保存的编辑按账号与目录保存到本标签页的 sessionStorage；会话失效或刷新后，原账号可主动恢复，仍使用原修订号，冲突不自动覆盖服务器内容。新建前的正文与判定/语言选项按账号及课程/全局范围单独保留；401重新登录后可恢复，创建成功后清除该恢复副本。关闭标签页会失去恢复副本；不是跨设备同步。浏览器存储不可用时明确提示复制内容。保存/发布成功后同步草稿缓存，立即返回重进也能看到正确的正文、修订与生效版本。
 
 编辑器延迟加载 CodeMirror，按用户/作业/题目/语言分离 IndexedDB 草稿，500ms 保存；小于600px只读，低于1024px页签布局。会话过期保留当前内存代码，明确退出前可导出本账户草稿，随后清理。提交前先持久化原始代码/摘要/幂等键；未知受理重试使用同一快照，不把后来编辑的代码混入旧请求。
 
@@ -49,7 +51,7 @@ python tools/check_runtime.py
 2. B 总装配复用 A 身份/课程/题目/作业服务；先确认 Cookie/CSRF/Origin/统一错误与响应字段，使用独立测试库和虚构账号。
 3. `dev` 模式启动前端，实际操作登录→课程→详情→退出；在 PostgreSQL 核查账号/课程读取来源及会话创建/撤销。保留当前 SHA 和真实输出。
 4. B 在应用组合入口调用 `configureTeachingIntegrations` 注入预检、提交与结果组件；默认接口返回明确不可用，不会生成成功提交。结果组件通过 `api.submissionFeedback` 获取本轮冻结版本后传给 `FixedHelp`，切换attempt时清空旧帮助。
-5. B检查已纳入tools/check_all.ps1，正式迁移使用B单head。运行注册/导出与契约检查；两人干净检出、成员审批和I0/I1另行验收。
+5. B检查已纳入tools/check_all.ps1，正式迁移使用B单head。运行注册/导出与契约检查；干净检出、用户授权范围和I0/I1业务联验另行记录；真实模型启用验收可后续执行。
 
 Playwright 在本阶段使用 Chromium，覆盖1366×768、1440×900、390×844。Browser插件未提供，因此按Frontend Testing Debugging流程使用项目Playwright；测试截图/trace位于忽略的test-results。跨浏览器最终验收仍属P3。
 

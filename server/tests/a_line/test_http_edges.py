@@ -35,7 +35,7 @@ def test_runtime_openapi_serves_implemented_canonical_schemas(env):
         for method in route.methods
     }
     assert expected == actual
-    assert "/ai-hints" not in document["paths"]
+    assert document["paths"]["/ai-hints"] == SPEC["paths"]["/ai-hints"]
 
 
 def test_utc_serialization_normalizes_offset():

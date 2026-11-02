@@ -28,6 +28,8 @@ from app.modules.identity.application import Identity
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
 from app.modules.learning.application import Learning
+from app.modules.learning.hint_service import HintService, Sources
+from app.modules.learning.student import LearningResults, StudentLearning
 from app.modules.problems.application import Problems
 from app.shared.config import Settings
 from app.shared.database import create_database_engine
@@ -37,7 +39,14 @@ from app.shared.repository import SqlRepository
 from app.shared.uow import UnitOfWork
 
 
-def create_app(settings: Settings | None = None, *, engine: Engine | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    engine: Engine | None = None,
+    learning_results: LearningResults | None = None,
+    hint_sources: Sources | None = None,
+    hint_configuration: str | None = None,
+) -> FastAPI:
     settings = settings or Settings.from_env()
     owned = engine is None
     database = engine if engine is not None else create_database_engine(settings.database_url)
@@ -126,7 +135,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b005":
+                if head != "b008":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -138,9 +147,10 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     def endpoint(
         method: str, path: str, handler: Handler, operation: Record
     ) -> Callable[[Request], Awaitable[Response]]:
-        success = next(int(k) for k in operation["responses"] if k.startswith("2"))
+        default_success = next(int(k) for k in operation["responses"] if k.startswith("2"))
 
         def perform(request: Request, body: object) -> Response:
+            success = default_success
             request_id = request.state.request_id
             new_cookie: str | None = None
             failure = None
@@ -189,6 +199,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                         courses=Courses(repo, effects),
                         problems=Problems(repo, effects),
                         assignments=Assignments(repo, effects),
+                        hints=HintService(repo, hint_sources, hint_configuration),
                         learning=Learning(repo, effects),
                         actor=actor,
                         token=token,
@@ -196,6 +207,10 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                         path=request.path_params,
                         query=query,
                         page=pager.bounded,
+                        learning_pager=pager,
+                        student_learning=StudentLearning(
+                            connection, repo, effects, learning_results
+                        ),
                         source=request.client.host if request.client else "unknown",
                     )
                     try:
@@ -204,6 +219,8 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                             result = handler(context)
                         if path in ("/auth/session", "/auth/login"):
                             result, new_cookie = result
+                        elif path == "/ai-hints" and method == "POST":
+                            success, result = result
                         contract.response(operation, success, result)
                     except Fault as error:
                         # A's failed-login ledger must commit; all other faults escape and roll back.

@@ -1,11 +1,12 @@
 from uuid import NAMESPACE_URL, uuid5
 
-from app.modules.courses.application import Courses
 from app.modules.identity.domain import Fault, require, role
 from app.modules.identity.ports import Effects, Record, Repository
 
 from .domain import VERDICTS, checksum, public_version
+from .feedback import FeedbackManagement
 from .ports import FeedbackSubmissions
+from .templates import TemplateManagement
 
 SEEDS = {
     "CE": dict(
@@ -100,11 +101,13 @@ def seed_global_feedback(repo: Repository, author_id: str) -> dict[str, str]:
     return result
 
 
-class Learning:
+class Learning(FeedbackManagement):
     def __init__(
         self, repo: Repository, effects: Effects, submissions: FeedbackSubmissions | None = None
     ):
-        self.repo, self.courses, self.submissions = repo, Courses(repo, effects), submissions
+        super().__init__(repo, effects)
+        self.submissions = submissions
+        self.templates = TemplateManagement(repo, effects)
 
     def resolve(self, course_id: str, language: str, verdict: str) -> str | None:
         """Internal terminalization query; caller already authorized and owns locks/UoW."""

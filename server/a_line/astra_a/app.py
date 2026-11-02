@@ -8,6 +8,7 @@ from collections.abc import Callable
 from typing import Any
 from uuid import UUID, uuid4
 
+from app.api.contracts import Cursor
 from app.modules.assignments.api import register as assignment_routes
 from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses, public_course
@@ -15,6 +16,8 @@ from app.modules.identity.application import Identity, public_user
 from app.modules.identity.domain import Fault, require, role
 from app.modules.learning.api import register as learning_routes
 from app.modules.learning.application import Learning
+from app.modules.learning.hint_service import HintService, Sources
+from app.modules.learning.student import StudentLearning
 from app.modules.problems.api import register as problem_routes
 from app.modules.problems.application import Problems
 from fastapi import FastAPI, Request
@@ -49,6 +52,9 @@ def create_app(
     assignment_guard=None,
     submission_query=None,
     feedback_submissions=None,
+    learning_results=None,
+    hint_sources: Sources | None = None,
+    hint_configuration: str | None = None,
 ) -> FastAPI:
     require(len(secret) >= 32, "CONFIGURATION_ERROR", "会话密钥至少32字节。", 500)
     require(origin.startswith("https://"), "CONFIGURATION_ERROR", "验证应用要求HTTPS来源。", 500)
@@ -157,9 +163,10 @@ def create_app(
         operation = SPEC["paths"].get(path, {}).get(method.lower())
         if operation is None:
             raise ValueError(f"Missing contract: {method} {path}")
-        success = next(int(k) for k in operation["responses"] if k.startswith("2"))
+        default_success = next(int(k) for k in operation["responses"] if k.startswith("2"))
 
         def perform(request: Request, raw: bytes, request_id: str):
+            success = default_success
             with engine.connect() as connection:
                 tx = connection.begin()
                 try:
@@ -241,6 +248,7 @@ def create_app(
                                 raise Fault(422, "VALIDATION_ERROR", "对象编号格式无效。") from None
                     context: dict[str, Any] = dict(
                         repo=repo,
+                        hints=HintService(repo, hint_sources, hint_configuration),
                         learning=Learning(repo, effects, feedback_submissions),
                         assignments=Assignments(repo, effects, assignment_guard),
                         problems=Problems(repo, effects, preflight),
@@ -282,11 +290,29 @@ def create_app(
                             secret,
                         )
 
+                    if method == "GET" and path in ("/review-items", "/ai-hints"):
+                        assert actor is not None
+                        filters = {
+                            k: v
+                            for k, v in request.query_params.items()
+                            if k not in ("cursor", "limit")
+                        }
+                        scope = json.dumps(
+                            [actor["user_id"], str(request.url.path), filters], sort_keys=True
+                        )
+                        context["learning_pager"] = Cursor(
+                            dict(request.query_params), scope, secret
+                        )
+                    context["student_learning"] = StudentLearning(
+                        connection, repo, effects, learning_results
+                    )
                     context["page"] = paginated
                     result = handler(context)
                     new_cookie = None
                     if path in ("/auth/session", "/auth/login"):
                         result, new_cookie = result
+                    elif path == "/ai-hints" and method == "POST":
+                        success, result = result
                     response_schema = (
                         operation["responses"][str(success)]
                         .get("content", {})

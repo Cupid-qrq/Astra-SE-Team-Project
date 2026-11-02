@@ -1,6 +1,6 @@
 # A线 P1 独立验证与 B 线接入
 
-本目录承载 A 的依赖锁、验证入口及顺序迁移 a001— a004。业务模块在 `server/app/modules`，不导入本目录。它不替代 B 维护的正式应用、shared 层和唯一迁移 head。
+本目录承载 A 的依赖锁、验证入口及顺序迁移 a001—a006。业务模块在 `server/app/modules`，不导入本目录。它不替代 B 维护的正式应用、shared 层和唯一迁移 head。
 
 ## 重现
 
@@ -39,7 +39,7 @@ python tools/check_runtime.py
 
 ## 迁移交接
 
-- SQL 快照固定保存在 `migrations/sql/001`—`004` 对应文件中；升级不导入当前 metadata。验证空库→head、a001→a002→a003→a004 带数据升级和重复升级。发布后的题目、材料、作业内容及帮助版本有数据库不可变触发器。
+- SQL 快照固定保存在 `migrations/sql/001`—`004` 、`006_templates.sql` 和 `007_hint_jobs.sql` 对应文件中；升级不导入当前 metadata。验证空库→head、a001→a002→a003→a004→a005→a006 带数据升级和重复升级。发布后的题目、材料、作业内容、帮助及模板版本有数据库不可变触发器。
 - 正式合入时由 B 将 A DDL 纳入总迁移序列，检查单 head；不能直接再运行一个平行迁移树。A 的版本表名为 `alembic_version_a`，只用于独立验证。
 - B 实体尚不可用，`problem_versions.published_preflight_id`、`assignments.active_grade_version/active_rejudge_batch_id` 及 B attempt→feedback_version 的跨线外键须在集成迁移补齐，不能据当前测试宣称跨线引用完整。
 - 全局帮助需要已有 ACTIVE ADMIN。显式在管理员初始化事务调用 `seed_global_feedback(repo, admin_id)`；UUID5 固定种子可重复运行，不改写历史或覆盖新 active version。正常应用启动不会建表、建账号或种植合成证据。
@@ -53,4 +53,4 @@ python tools/check_runtime.py
 
 教师保存的 profile 是请求配置，不能直接作为执行端信任来源。B 预检/评测必须在部署允许列表内解析 profile，核实实际安装语言、镜像摘要及资源限制；不得仅信教师 JSON 或按其任意拉取镜像。A 发布检查绑定该配置摘要与 B 预检证据，当前合成测试不证明实际镜像约束成立。
 
-当前只实现 P1-A1—A4。固定帮助编辑/发布页面、模型提示、错题和推荐属于 P2，练习开放策略及完整验收属于后续阶段。预检执行、提交受理、真实评测结果、成绩/重评、审计/outbox、正式生产启动均没有冒充完成。未进行付费模型、隔离攻击、性能、用户验收及 I0/I1 联验。
+P1-A1—A4 已接入 B 的正式 HTTP/Repository/UoW/审计与 Outbox，独立 host 仍只作验证用途。2026-11-02 新增 FR-19 固定帮助维护服务和页面，复用现有表；锁序 guard→课程→帮助目录，保存/发布均检查并递增 draft_revision，版本/有效指针/审计原子提交。正式列表和历史在授权 SQL 中分页。模板维护、提示任务与双预算、错题和推荐代码已实现。真实提交/成绩数据源及执行 Worker 仍待 B 接线，模型配置由用户后续提供，外部启用验收另行记录。v0.4 保留基本容器隔离与资源限制，独立 VM、攻击探针和高规格压测为可选诊断。

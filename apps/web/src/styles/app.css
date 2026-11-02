@@ -896,3 +896,69 @@ tbody tr:hover {
   margin: 0;
   min-width: 0;
 }
+.feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  margin: 24px 0;
+}
+.feedback-layout > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.feedback-layout .panel {
+  margin: 0;
+}
+.feedback-layout textarea {
+  width: 100%;
+  resize: vertical;
+}
+@media (max-width: 1023px) {
+  .feedback-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.template-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.template-layout .stack,
+.learning-page.stack,
+.learning-page .stack {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.template-layout .button,
+.learning-page .button {
+  justify-self: start;
+}
+.template-placeholders {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+  gap: 6px;
+}
+.template-placeholders legend {
+  margin-bottom: 8px;
+}
+.template-placeholders label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+}
+.learning-page .panel {
+  border-top: 1px solid #dcd9d1;
+  padding-top: 16px;
+}
+.learning-page p,
+.learning-page h2,
+.learning-page h3,
+.learning-page h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

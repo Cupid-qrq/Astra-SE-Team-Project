@@ -1,6 +1,8 @@
 # P0-A4 离线接入准备
 
-发起人于2026-10-24确认：账号和API Key暂未准备，本次仅完成schema、配置和离线测试。当前实现没有网络调用路径，不读取密钥。
+当前适用v0.4。真实账号、Key及运行配置由用户后续提供；代码回归、合并与外部模型启用验收分别记录。以下早期离线说明保留其日期语境，当前已存在DeepSeek传输适配代码，具体验证证据见[项目状态](../../docs/project-status.md)。默认不启用收费调用。
+
+发起人于2026-10-24确认：账号和API Key暂未准备，本次仅完成schema、配置和离线测试。该次离线准备没有网络调用，不读取密钥。
 
 `input.schema.json`只允许公开题目/样例、本人代码、语言、脱敏诊断、粗粒度判定和附加问题。`output.schema.json`限定错误类别、定位线索、检查方向、学习建议四段。脚本额外检查输入24KiB、样例每份4KiB、输出2000码点/8KiB；拒绝额外字段、错误类型和重复JSON键。
 
@@ -19,3 +21,9 @@ python -m unittest discover -s tools/tests -p test_model_probe.py -v
 - [使用条款](https://cdn.deepseek.com/policies/en-US/deepseek-terms-of-use.html)页面更新日为2026-03-27，涉及输入/输出使用及产品改进用途；专门条款可能优先。隐私政策页面本次读取超时，账号地区、实际适用条款、API数据留存和训练退出机制尚未核实，不能声称已满足数据条款门槛。
 
 启用前由账号持有人确认实际区域、人民币价格/计费币种及转换依据、数据条款和预算。配置保留每日20元/项目500元的规划上限，模型、token上限、价格和核验引用为空且enabled=false。后续需另行实现经审查的真实ModelPort与一次自编样例连通，不通过修改该离线模板的开关启用收费服务。
+
+## A 线提示运行组件
+
+应用中的 hint_service、hint_store、policy_rules 和 hint_runner 提供持久接纳、权限重验、预算结算和独立 Worker 单轮执行。DeepSeekTransport 显式接收冻结模型、价格与模板、token 计数器和传输层。启动配置默认关闭，部署接线见 server/README.md。
+
+质量核算入口为 python tools/model_quality.py manifest.json review-a.json review-b.json。manifest 由 tools.model_quality.freeze 冻结30例输入摘要、预期原因、允许范围、模型与模板版本。两位成员分别记录相同首次请求的 D/A/S 布尔评分和终态，分歧按0计。工具校验分布、唯一案例/请求及摘要，输出方向、可执行性、安全数量和通过状态。人工评分的真实性与额外20例注入/20例页面安全证据另行审阅。

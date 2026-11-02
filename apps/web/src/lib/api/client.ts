@@ -178,6 +178,15 @@ export function createApiClient({
           params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
         }),
       ),
+    practiceProblem: (id: string) =>
+      unwrap(client.GET('/practice-problems/{id}', { params: { path: { id } } })),
+    practicePolicy: (id: string, body: components['schemas']['PracticePolicy']) =>
+      unwrap(
+        client.PATCH('/problems/{id}/practice-policy', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
     createProblem: (body: components['schemas']['CreateProblem']) =>
       unwrap(client.POST('/problems', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
     versions: (id: string, cursor?: string) =>
@@ -266,9 +275,110 @@ export function createApiClient({
     course: (id: string) => unwrap(client.GET('/courses/{id}', { params: { path: { id } } })),
     submissionFeedback: (id: string) =>
       unwrap(client.GET('/submissions/{id}/feedback', { params: { path: { id } } })),
+    feedbackCatalogs: (course_id?: string, cursor?: string) =>
+      unwrap(
+        client.GET('/feedback-catalogs', {
+          params: {
+            query: {
+              ...(course_id ? { course_id } : {}),
+              ...(cursor ? { cursor } : {}),
+            },
+          },
+        }),
+      ),
+    createFeedback: (body: components['schemas']['CreateFeedback']) =>
+      unwrap(
+        client.POST('/feedback-catalogs', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),
+      ),
+    feedbackDraft: (id: string) =>
+      unwrap(client.GET('/feedback-catalogs/{id}/draft', { params: { path: { id } } })),
+    saveFeedbackDraft: (id: string, body: components['schemas']['UpdateFeedback']) =>
+      unwrap(
+        client.PUT('/feedback-catalogs/{id}/draft', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    publishFeedback: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(
+        client.POST('/feedback-catalogs/{id}/publish', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    feedbackHistory: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/feedback-catalogs/{id}/versions', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
     feedbackVersion: (id: string, version: number) =>
       unwrap(
         client.GET('/feedback-catalogs/{id}/versions/{version}', {
+          params: { path: { id, version } },
+        }),
+      ),
+    reviewItems: (context: 'FORMAL' | 'PRACTICE', course_id?: string, cursor?: string) =>
+      unwrap(client.GET('/review-items', { params: { query: { context, course_id, cursor } } })),
+    recommendations: (course_id?: string) =>
+      unwrap(client.GET('/recommendations', { params: { query: { course_id } } })),
+    hintHistory: (cursor?: string) =>
+      unwrap(client.GET('/ai-hints', { params: { query: { cursor } } })),
+    createHint: (body: components['schemas']['CreateHint']) =>
+      unwrap(client.POST('/ai-hints', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
+    hint: (hint_id: string) =>
+      unwrap(
+        client.GET('/ai-hints/{hint_id}', {
+          params: { path: { hint_id }, header: { 'X-Astra-Background': '1' } },
+        }),
+      ),
+    rateHint: (id: string, body: components['schemas']['HintRating']) =>
+      unwrap(
+        client.POST('/ai-hints/{id}/feedback', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    templates: (course_id?: string, cursor?: string) =>
+      unwrap(
+        client.GET('/hint-templates', {
+          params: {
+            query: {
+              ...(course_id ? { course_id } : {}),
+              ...(cursor ? { cursor } : {}),
+            },
+          },
+        }),
+      ),
+    createTemplate: (body: components['schemas']['CreateTemplate']) =>
+      unwrap(
+        client.POST('/hint-templates', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),
+      ),
+    templateDraft: (id: string) =>
+      unwrap(client.GET('/hint-templates/{id}/draft', { params: { path: { id } } })),
+    saveTemplate: (id: string, body: components['schemas']['UpdateTemplate']) =>
+      unwrap(
+        client.PUT('/hint-templates/{id}/draft', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    publishTemplate: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(
+        client.POST('/hint-templates/{id}/publish', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    templateHistory: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/hint-templates/{id}/versions', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
+    templateVersion: (id: string, version: number) =>
+      unwrap(
+        client.GET('/hint-templates/{id}/versions/{version}', {
           params: { path: { id, version } },
         }),
       ),

@@ -46,7 +46,7 @@ uv sync --locked --project server
 uv run --project server alembic -c server/alembic.ini upgrade head
 ```
 
-正式链为 `b001→b002→b003→b004→b005`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
+正式链为 `b001→b002→b003→b004→b005→b006→b007→b008`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
 
 `app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
 
@@ -71,7 +71,7 @@ uv sync --locked --project server
 uv run --project server uvicorn app.main:create_app --factory --app-dir server --host 127.0.0.1 --port 8000 --no-access-log
 ```
 
-应用位于HTTPS反向代理后，浏览器与API同源；Cookie使用Secure/HttpOnly/SameSite=Lax。API前缀/api/v1。`GET /health/live`公开；`GET /health/ready`要求X-Readiness-Token，检查正式迁移head后返回就绪状态，不提供数据库细节。应用启动不建表、不创建账号、不种题目、不合成执行证据。管理员初始化、部署最小权限及评测VM另行验收。
+应用位于HTTPS反向代理后，浏览器与API同源；Cookie使用Secure/HttpOnly/SameSite=Lax。API前缀/api/v1。`GET /health/live`公开；`GET /health/ready`要求X-Readiness-Token，检查正式迁移head后返回就绪状态，不提供数据库细节。应用启动不建表、不创建账号、不种题目、不合成执行证据。管理员初始化、部署最小权限及基础评测容器运行另行验收；独立VM诊断可选。
 
 每次请求先限制512KiB正文，严格校验JSON语法/重复键/UTF-8，再进入共享UoW；获得policy_guard后解析当前身份，写请求校验Origin/CSRF。响应在提交前按canonical schema验证；Cookie只在提交成功后发送。A的Fault(commit=True)仅用于保存登录失败账本，普通业务错误整体回滚。后台GET与session查询不延长空闲会话。
 
@@ -85,7 +85,7 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 
 `tools/check_server.ps1`运行锁定依赖、格式/类型、契约映射、真实数据库全部共享层/HTTP测试及正式应用浏览器。后者复用A的教学流程，显式测试harness使用正式B迁移/UoW/Repository/Effects/create_app，初始化虚构账号和合成教学版本。当前外部执行端口继续不可用；前端端口fake专项单独标识。
 
-浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器、独立VM及业务闭环另行验收。
+浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器与业务闭环另行验收；独立VM诊断可选。
 
 正式HTTP将未知内部约束/持久化异常归为503，已知业务冲突由应用Fault返回409。PostgreSQL文本及JSONB的NUL按字段返回422；已明确的bytea源码/测试及散列密码通道保持其原字节语义。
 
@@ -103,12 +103,38 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 
 监督候选协议：管理入口前的受信接入层必须在创建前持久登记`X-Astra-*`完整lease、execution_key、request_hash、profile_hash和deployment_id，并按lease fence阻止迟到创建。POST监督端`/v1/executions/{execution_key}/cancel-and-cleanup`只发送identity与可空backend_token。仅接收协议astra-supervisor-v1、同deployment/完整身份、非零proof UUID、stopped/directory_cleaned/creation_resolved均为true、fenced_epoch为本租约整数的证明；否则隔离不复用。原生Judge0 DELETE不能终止排队/运行任务，不用于清理确认。
 
-以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；实际S5实测及A成员审查前保持未接生产Worker。替身85项仅证明库的边界和失败处理。
+以上为候选内部接口，尚无真实VM监督端实现/验证。原生运行参数不能证明编译期资源、目录总额、编译/运行禁网或物理清理；当前尚未接生产Worker，真实连接需通过课程容器运行和清理核验；S5独立VM诊断为可选后续工作。替身85项仅证明库的边界和失败处理。
 
-## 独立VM登记与S5准备
+## 可选独立VM登记与诊断
 
 [登记与验证说明](../infra/judge/README.md)提供默认UNVERIFIED模板和`tools/verify_judge.py`。本地检查不联网；--probe仅对登记端GET配置和能力，绝不创建submission。登记冻结不同业务/评测VM身份、资源、镜像、两语言profile/映射、源码commit及配置指纹；证据校验V-01—V-06身份/文件摘要与目录边界。成功仅表示记录齐全待成员复核，execution_enabled始终false。
 
 本批114项评测相关纯配置/HTTP替身/文件结构测试，不是真实执行验收。登记文件/证据进入忽略的.local/judge或部署受控存储；隐藏材料和秘密不得放入证据。当前未登记实际VM，未联网探测真实执行端，未执行隔离样例、未部署监督端、未开启正式Worker。
 
 评测适配的安全错误在离开异常捕获块后抛出，避免from None仅隐藏回溯而仍持有原始__context__；异常链回归使用合成隐藏输入/HTTP认证材料验证，不保存真实材料。当前本批评测套件124项，物理隔离验收仍未执行。
+
+## A 固定帮助维护增量
+
+FR-19 维护已直接装配正式应用：本课教师与全局管理员分别管理各自目录，归档课程只读；列表、草稿、发布与管理用版本历史均经过服务端授权。`app.modules.learning.feedback` 复用既有表和不可变版本触发器，不新增迁移。发布只冻结保存过的草稿；目录、版本、revision、FEEDBACK 审计和 Outbox 同事务生效。当前正式应用注册44项教学方法加2项健康方法；后续模型/提示等13项设计方法保持未注册。
+
+固定帮助发布不调用模型或执行器。B 后续终结 attempt 仍须调用 `Learning.resolve()` 并持久冻结 feedback_version_id，不能在读取旧结果时改查 active。适用边界及成员待审事项见[本批交接](../docs/reports/2026-11-02-a-versioned-help.md)。
+
+### 提示 Worker 接线
+
+`app.modules.learning.hint_runner.run_one(transaction, transport, content_check)` 是独立提示进程的一轮入口。`transaction` 返回 context manager，在新数据库事务内创建 `HintService(SqlRepository(connection), sources, configuration_id)`，退出 context 时提交或回滚。Worker 外发之前先提交派发许可，返回后开启另一事务重验策略并结算。进程循环调用该入口即可领取最早等待任务，返回 false 表示本轮没有可派发任务，调度器应短暂等待后再轮询。停机时等待当前调用完成，进程丢失的 RUNNING 任务由下一轮到期扫描转为失败并保留未知费用。
+
+生产组装须显式提供 B 的 `Sources`，它在同一事务核实当前提交终态、本人归属、来源可见性和冻结固定帮助版本，并返回公开题面/样例、本人代码、脱敏诊断。`HintSource.feedback_version_id` 必须来自该轮结果，不能临时解析成最新帮助。`hint_context` 的原始执行输出和隐藏测试均不得返回。HTTP 服务和 Worker 使用同一已核验 `configuration_id`，模板目录的 `active_version_id` 通过受审部署流程设置。配置行不可变，价格以人民币每百万 token 计，`input_price` 必须覆盖供应商所有输入缓存价格，输出价格及 token 上限也一起冻结。
+
+Worker 的 transport 只在外发许可事务提交后执行。使用 `DeepSeekTransport` 时由部署层加载 Key、核对模型标识和配置引用、人民币价格、条款、分词计数实现和模板版本，并显式注入经过验证的内容安全检查 `content_check`。该检查必须覆盖完整答案、核心求解函数、隐藏信息、工具/改分请求和不确定性要求。JSON schema 与代码围栏过滤只承担结构校验。当前默认 HTTP 应用未注入这些资源，访问新模型请求明确返回 503，仓库没有启用收费服务的启动脚本。
+
+账本锁顺序为个人日额度、项目总预算、接纳日预算，均在 policy_guard 内。运行中超时或 Worker 丢失将费用设为 UNCERTAIN，次数释放，费用继续占用原接纳日及项目预算。人工取得供应商权威账单后，在受控事务中调用 `HintService.reconcile(hint_id, Decimal(actual_cny))`，重复处理无重复扣费。计费 usage 与供应商请求 ID 仅保存在服务端账本关联记录，不出现在 HintView。
+
+## P1-B1a 预检持久化与事务查询
+
+`app.modules.judging.preflight.TransactionalPreflight(repo,catalog,effects)`实现A PreflightPort，绑定同一个正式SqlRepository/UoW，拒绝跨事务使用。先取得policy_guard，再从数据库复核教师状态、课程归属及版本，冻结A快照摘要/profile摘要与私有bytea。全部语言全部样例/隐藏点一次写入preflight_runs/cases/jobs；同内容活跃任务去重，不重复审计或队列事实；审计/Outbox/后段失败随同事务回滚。
+
+b006延续正式迁移单head，私有快照支持合法NUL；冻结字段与终态受数据库保护，新FK均有索引。就绪检查要求b006，部署须先迁移。新增表以RESTRICT保留版本引用；公开预检HTTP接线前须与A统一“有预检引用的草稿删除”冲突语义，当前不改A删除接口或历史SQL。
+
+read/evidence只返回标识、状态与点判定；不加载/回显隐藏材料到普通查询，evidence仅完整PASSED/全点AC且冻结绑定一致时有效。没有生产终态写入器、Worker、租约/槽位或HTTP接线；jobs只有READY/DONE事实，后续随实际execution_slots添加租约和FK，不用空实现放行。当前仍无可执行的真实评测环境，正式执行保持关闭；数据库夹具的合成终态不进入正常启动。
+
+预检case_manifest仅保存语言/点类别/序号，随私有快照一并冻结。子表INSERT先锁父任务，须为QUEUED且点键属于冻结清单；初始事务已创建的键由主键阻止重复，终态任务不能追加，避免历史PASSED证据被增行破坏。此约束不代表真实执行或完成写入器已实现。

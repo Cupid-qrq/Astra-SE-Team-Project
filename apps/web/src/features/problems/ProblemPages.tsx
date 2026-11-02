@@ -8,6 +8,7 @@ import { TextArea } from '../../components/ui/TextArea'
 import { StatePanel } from '../../components/ui/StatePanel'
 import { SafeMarkdown } from '../../components/ui/SafeMarkdown'
 import type { components } from '../../lib/api/schema'
+import { PracticePolicy } from './PracticePolicy'
 import { VersionMaterials } from './VersionMaterials'
 
 type Schema = components['schemas']
@@ -64,6 +65,7 @@ export function ProblemsPage() {
               <li key={p.problem_id}>
                 <Link to={`/teacher/problems/${p.problem_id}`}>{p.title}</Link>
                 <span>{p.status === 'PUBLISHED' ? '已有发布版本' : '草稿'}</span>
+                <PracticePolicy problem={p} saved={() => void list.refetch()} />
               </li>
             ))}
           {!list.data.pages.some((p) => p.items.length) && <li>还没有题目。</li>}

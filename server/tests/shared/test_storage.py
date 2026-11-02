@@ -44,7 +44,7 @@ def user(repo, name="teacher"):
 
 def test_single_head_upgrade_preserves_data(database):
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
-    assert ScriptDirectory.from_config(config).get_heads() == ["b005"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["b008"]
     with database.begin() as conn:
         config.attributes["connection"] = conn
         command.upgrade(config, "b001")
@@ -53,7 +53,7 @@ def test_single_head_upgrade_preserves_data(database):
         for revision in ["b002", "b003", "b004", "head", "head"]:
             command.upgrade(config, revision)
             assert repo.get("users", key)["display_name"] == "teacher"
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b005"
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b008"
         assert conn.scalar(text("SELECT to_regclass('alembic_version_a')")) is None
 
 
@@ -203,7 +203,11 @@ def test_guard_serializes_connections(migrated):
 def test_migration_snapshots_match_a_history():
     base = Path(__file__).parents[2]
     for source in (base / "a_line/migrations/sql").glob("*.sql"):
-        assert source.read_bytes() == (base / "migrations/sql" / source.name).read_bytes()
+        target = {
+            "006_templates.sql": "007_templates.sql",
+            "007_hint_jobs.sql": "008_hint_jobs.sql",
+        }.get(source.name, source.name)
+        assert source.read_bytes() == (base / "migrations/sql" / target).read_bytes()
 
 
 def test_effects_refuse_another_transaction(migrated):

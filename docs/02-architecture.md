@@ -2,7 +2,7 @@
 
 ## 1. 总体结构
 
-采用模块化单体业务服务，API 与 Worker 共享领域规则和数据库，通过不同进程运行。评测执行部署在独立 Linux 虚拟机；模型访问通过受控网关。业务数据库、执行器和模型端口均不直接暴露给浏览器。
+采用模块化单体业务服务，API 与 Worker 共享领域规则和数据库，通过不同进程运行。评测执行部署在独立于业务进程的受限 Linux 容器，可与业务服务共用宿主；模型访问通过受控网关。业务数据库、执行器和模型端口均不直接暴露给浏览器。
 
 ```mermaid
 flowchart LR
@@ -12,7 +12,7 @@ flowchart LR
   API --> PG[(PostgreSQL)]
   Worker[业务 Worker] --> PG
   Worker --> Adapter[评测适配器]
-  Adapter --> Runner[独立评测 VM]
+  Adapter --> Runner[受限评测容器]
   HintWorker[提示 Worker] --> PG
   HintWorker --> Gateway[模型网关]
   Gateway --> Model[官方模型 API]
@@ -22,7 +22,7 @@ flowchart LR
   HintWorker --> Monitor
 ```
 
-业务区只向评测管理入口发送单任务必要输入；评测 VM 不持有业务库凭据。评测 VM 的管理入口与学生程序网络命名空间隔离。禁止将宿主 Docker socket、源代码仓库或业务数据盘挂载给学生程序。
+业务区只向评测管理入口发送单任务必要输入；评测容器 不持有业务库凭据。评测容器 的管理入口与学生程序网络命名空间隔离。禁止将宿主 Docker socket、源代码仓库或业务数据盘挂载给学生程序。
 
 ## 2. 层次与模块
 
