@@ -6,7 +6,7 @@ import { Button } from '../../components/ui/Button'
 import { DataTable } from '../../components/ui/DataTable'
 import { StatePanel } from '../../components/ui/StatePanel'
 import { FeedbackEditor, FeedbackFields } from './FeedbackEditor'
-import type { HelpFields } from './feedbackDrafts'
+import { readHelpDraft, writeHelpDraft, type HelpFields } from './feedbackDrafts'
 import type { components } from '../../lib/api/schema'
 
 export function FeedbackCatalogsPage() {
@@ -69,7 +69,12 @@ export function FeedbackCatalogsPage() {
       )}
       {course.data?.status === 'ARCHIVED' && <p className="notice">课程已归档，固定帮助只读。</p>}
       {creating && (global || course.data?.status === 'ACTIVE') && (
-        <CreateFeedbackForm courseId={courseId} global={global} />
+        <CreateFeedbackForm
+          key={`${global}:${courseId ?? ''}`}
+          courseId={courseId}
+          global={global}
+          ownerId={session.data!.user!.user_id}
+        />
       )}
       {catalogs.isPending ? (
         <StatePanel kind="loading" title="正在读取帮助目录…" />
@@ -114,7 +119,18 @@ export function FeedbackCatalogsPage() {
   )
 }
 
-function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: boolean }) {
+function CreateFeedbackForm({
+  courseId,
+  global,
+  ownerId,
+}: {
+  courseId?: string
+  global: boolean
+  ownerId: string
+}) {
+  const recoveryId = global ? 'new:GLOBAL' : `new:COURSE:${courseId}`
+  const [recovery, setRecovery] = useState(() => readHelpDraft(ownerId, recoveryId))
+  const [storageFailed, setStorageFailed] = useState(false)
   const [fields, setFields] = useState<HelpFields>({
     title: '',
     explanation: '',
@@ -126,9 +142,21 @@ function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: b
   const navigate = useNavigate()
   const create = useMutation({
     mutationFn: api.createFeedback,
-    onSuccess: (value) =>
-      navigate(`${global ? '/admin/feedback' : '/teacher/feedback'}/${value.catalog_id}`),
+    onSuccess: (value) => {
+      writeHelpDraft(ownerId, recoveryId, null)
+      navigate(`${global ? '/admin/feedback' : '/teacher/feedback'}/${value.catalog_id}`)
+    },
   })
+  function preserve(nextFields = fields, nextVerdict = verdict, nextLanguage = language) {
+    setRecovery(null)
+    setStorageFailed(
+      !writeHelpDraft(ownerId, recoveryId, {
+        revision: 1,
+        fields: nextFields,
+        creation: { verdict: nextVerdict, language: nextLanguage },
+      }),
+    )
+  }
   return (
     <form
       className="panel stack"
@@ -148,6 +176,31 @@ function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: b
       }}
     >
       <h2>新建固定帮助</h2>
+      {recovery && (
+        <div className="notice">
+          <p>本账号在此范围有未完成的新建草稿，可恢复后核对。</p>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setFields(recovery.fields)
+              setVerdict(recovery.creation?.verdict ?? 'WA')
+              setLanguage(global ? 'ALL' : (recovery.creation?.language ?? 'ALL'))
+              setRecovery(null)
+            }}
+          >
+            恢复新建草稿
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              writeHelpDraft(ownerId, recoveryId, null)
+              setRecovery(null)
+            }}
+          >
+            放弃新建恢复
+          </Button>
+        </div>
+      )}
       <div className="button-row">
         <label className="field">
           判定类别
@@ -155,7 +208,11 @@ function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: b
             aria-label="判定类别"
             value={verdict}
             disabled={create.isPending}
-            onChange={(e) => setVerdict(e.target.value as typeof verdict)}
+            onChange={(e) => {
+              const next = e.target.value as typeof verdict
+              setVerdict(next)
+              preserve(fields, next)
+            }}
           >
             {['CE', 'WA', 'TLE', 'RE', 'SE'].map((v) => (
               <option key={v}>{v}</option>
@@ -168,7 +225,11 @@ function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: b
             aria-label="适用语言"
             value={language}
             disabled={global || create.isPending}
-            onChange={(e) => setLanguage(e.target.value as typeof language)}
+            onChange={(e) => {
+              const next = e.target.value as typeof language
+              setLanguage(next)
+              preserve(fields, verdict, next)
+            }}
           >
             <option value="ALL">全部语言</option>
             <option value="cpp17">C++17</option>
@@ -176,7 +237,15 @@ function CreateFeedbackForm({ courseId, global }: { courseId?: string; global: b
           </select>
         </label>
       </div>
-      <FeedbackFields value={fields} onChange={setFields} disabled={create.isPending} />
+      <FeedbackFields
+        value={fields}
+        onChange={(next) => {
+          setFields(next)
+          preserve(next)
+        }}
+        disabled={create.isPending}
+      />
+      {storageFailed && <p role="alert">浏览器无法保留新建草稿，请在离开前复制内容。</p>}
       <Button type="submit" busy={create.isPending}>
         创建草稿
       </Button>

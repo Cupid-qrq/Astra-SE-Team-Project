@@ -46,6 +46,11 @@ test('真实数据库：课程帮助草稿、预览、发布与冻结历史', as
   expect(errors).toEqual([])
   await page.evaluate(() => window.scrollTo(0, 0))
   await page.screenshot({ path: info.outputPath('feedback-editor.png'), fullPage: true })
+  await page.getByLabel('帮助标题', { exact: true }).fill('刷新前未保存的编辑')
+  await page.reload()
+  await expect(page.getByLabel('帮助标题', { exact: true })).toHaveValue('边界检查第二版')
+  await page.getByRole('button', { name: '恢复本地编辑', exact: true }).click()
+  await expect(page.getByLabel('帮助标题', { exact: true })).toHaveValue('刷新前未保存的编辑')
 })
 
 test('管理员可维护全局帮助，学生不能进入维护页面', async ({ page }) => {
@@ -60,4 +65,40 @@ test('管理员可维护全局帮助，学生不能进入维护页面', async ({
   await expect(page.getByRole('link', { name: '固定帮助维护', exact: true })).toHaveCount(0)
   await page.goto('/teacher/feedback')
   await expect(page.getByRole('heading', { name: '无权维护固定帮助', exact: true })).toBeVisible()
+})
+
+test('真实会话失效：重新登录后恢复新建帮助正文与选项', async ({ page }) => {
+  await login(page, 'teacher_a')
+  const title = `会话恢复-${crypto.randomUUID().slice(0, 8)}`
+  await page.getByLabel('新课程名称').fill(title)
+  await page.getByRole('button', { name: '创建课程', exact: true }).click()
+  await page.getByRole('link', { name: title, exact: true }).click()
+  await page.getByRole('link', { name: '管理固定帮助', exact: true }).click()
+  const returnUrl = page.url()
+  await page.getByRole('button', { name: '新建固定帮助', exact: true }).click()
+  await page.getByLabel('判定类别', { exact: true }).selectOption('RE')
+  await page.getByLabel('适用语言', { exact: true }).selectOption('python3')
+  await page.getByLabel('帮助标题', { exact: true }).fill('会话失效前写好的标题')
+  await page.getByLabel('帮助说明', { exact: true }).fill('需要保留的较长说明。')
+  // Revoke this real server-side session without unmounting the current form.
+  await page.evaluate(async () => {
+    const session = await fetch('/api/v1/auth/session').then((response) => response.json())
+    const response = await fetch('/api/v1/auth/logout', {
+      method: 'POST',
+      headers: { 'X-CSRF-Token': session.csrf_token },
+    })
+    if (response.status !== 204) throw new Error('Test session revocation failed')
+  })
+  await page.getByRole('button', { name: '创建草稿', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '欢迎回来', exact: true })).toBeVisible()
+  await login(page, 'teacher_a')
+  await page.goto(returnUrl)
+  await page.getByRole('button', { name: '新建固定帮助', exact: true }).click()
+  await page.getByRole('button', { name: '恢复新建草稿', exact: true }).click()
+  await expect(page.getByLabel('帮助标题', { exact: true })).toHaveValue('会话失效前写好的标题')
+  await expect(page.getByLabel('帮助说明', { exact: true })).toHaveValue('需要保留的较长说明。')
+  await expect(page.getByLabel('判定类别', { exact: true })).toHaveValue('RE')
+  await expect(page.getByLabel('适用语言', { exact: true })).toHaveValue('python3')
+  await page.getByRole('button', { name: '创建草稿', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '编辑固定帮助', exact: true })).toBeVisible()
 })

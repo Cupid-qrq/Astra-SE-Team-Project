@@ -1,5 +1,9 @@
 export type HelpFields = { title: string; explanation: string; checklistText: string }
-export type HelpSnapshot = { revision: number; fields: HelpFields }
+export type HelpSnapshot = {
+  revision: number
+  fields: HelpFields
+  creation?: { verdict: 'CE' | 'WA' | 'TLE' | 'RE' | 'SE'; language: 'ALL' | 'cpp17' | 'python3' }
+}
 
 function key(ownerId: string, catalogId: string) {
   return `astra:feedback:${ownerId}:${catalogId}`
@@ -14,6 +18,12 @@ export function readHelpDraft(ownerId: string, catalogId: string): HelpSnapshot 
       ![value.fields.title, value.fields.explanation, value.fields.checklistText].every(
         (v) => typeof v === 'string',
       )
+    )
+      return null
+    if (
+      value.creation &&
+      (!['CE', 'WA', 'TLE', 'RE', 'SE'].includes(value.creation.verdict) ||
+        !['ALL', 'cpp17', 'python3'].includes(value.creation.language))
     )
       return null
     return value

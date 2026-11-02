@@ -91,17 +91,36 @@ export function FeedbackEditor({
       setNotice('草稿已保存，尚未发布。')
       writeHelpDraft(ownerId, cid, null)
       setRecovery(null)
+      cache.setQueryData<components['schemas']['FeedbackDraftView']>(
+        ['feedbackDraft', cid],
+        (current) => ({
+          ...(current ?? initial),
+          title: body.title,
+          explanation: body.explanation,
+          checklist: body.checklist,
+          revision: result.revision,
+        }),
+      )
       void cache.invalidateQueries({ queryKey: ['feedbackCatalogs'] })
     },
   })
   const publish = useMutation({
     mutationFn: (body: components['schemas']['PublishCommand']) => api.publishFeedback(cid, body),
-    onSuccess: (_, body) => {
+    onSuccess: (result, body) => {
       setRevision(body.expected_revision + 1)
       setActive((number) => (number ?? 0) + 1)
       setReason('')
       setPending(null)
       setNotice('新版本已生效，历史版本保持不变。')
+      cache.setQueryData<components['schemas']['FeedbackDraftView']>(
+        ['feedbackDraft', cid],
+        (current) => ({
+          ...(current ?? initial),
+          revision: body.expected_revision + 1,
+          active_version_id: result.version_id,
+          active_version_no: (active ?? 0) + 1,
+        }),
+      )
       void cache.invalidateQueries({ queryKey: ['feedbackHistory', cid] })
       void cache.invalidateQueries({ queryKey: ['feedbackCatalogs'] })
     },
