@@ -47,11 +47,17 @@ export function CoursePage() {
           {course.data.status === 'ACTIVE' ? '进行中' : '已归档'}
         </span>
       </header>
+      {session.data?.user?.role === 'STUDENT' && (
+        <p>
+          <Link to={`/learning?course_id=${id}`}>本课学习记录</Link>
+        </p>
+      )}
       {session.data?.user?.role === 'TEACHER' && (
         <p>
           <Link to={`/courses/${id}/problems`}>管理题目</Link> ·{' '}
           <Link to={`/courses/${id}/assignments/new`}>新建作业</Link> ·{' '}
-          <Link to={`/teacher/feedback?course_id=${id}`}>管理固定帮助</Link>
+          <Link to={`/teacher/feedback?course_id=${id}`}>管理固定帮助</Link> ·{' '}
+          <Link to={`/teacher/hint-templates?course_id=${id}`}>管理提示模板</Link>
         </p>
       )}
       {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (

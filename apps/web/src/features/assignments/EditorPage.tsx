@@ -441,6 +441,13 @@ function DraftEditor({
           {error}
         </p>
       )}
+      {receipt && (
+        <p>
+          <Link to={`/learning?submission_id=${receipt.submission_id}#learning-hints`}>
+            为此提交查看学习帮助
+          </Link>
+        </p>
+      )}
       {receipt &&
         (ResultPanel ? (
           <ResultPanel submissionId={receipt.submission_id} onClose={() => setReceipt(null)} />

@@ -56,6 +56,16 @@ export function FeedbackCatalogsPage() {
           </Button>
         )}
       </header>
+      <p>
+        <Link
+          to={
+            (global ? '/admin/hint-templates' : '/teacher/hint-templates') +
+            (courseId && !global ? `?course_id=${courseId}` : '')
+          }
+        >
+          管理提示模板
+        </Link>
+      </p>
       {course.isError && (
         <StatePanel
           kind="error"

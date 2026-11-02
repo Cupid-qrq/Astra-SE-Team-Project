@@ -19,6 +19,9 @@ import { EditorPage } from '../features/assignments/EditorPage'
 import { ExpiredDraftPage } from '../features/assignments/ExpiredDraftPage'
 import { currentDraft } from '../features/assignments/drafts'
 import { StatePanel } from '../components/ui/StatePanel'
+const PublicPracticePage = lazy(() =>
+  import('../features/problems/PracticePolicy').then((m) => ({ default: m.PublicPracticePage })),
+)
 const FeedbackCatalogsPage = lazy(() =>
   import('../features/learning/FeedbackPages').then((module) => ({
     default: module.FeedbackCatalogsPage,
@@ -28,6 +31,17 @@ const FeedbackDetailPage = lazy(() =>
   import('../features/learning/FeedbackPages').then((module) => ({
     default: module.FeedbackDetailPage,
   })),
+)
+
+const LearningPage = lazy(() => import('../features/learning/LearningPage'))
+
+const TemplatesPage = lazy(() =>
+  import('../features/learning/TemplatePages').then((module) => ({
+    default: module.TemplatesPage,
+  })),
+)
+const TemplatePage = lazy(() =>
+  import('../features/learning/TemplatePages').then((module) => ({ default: module.TemplatePage })),
 )
 
 function Workspace() {
@@ -77,6 +91,21 @@ function Workspace() {
               {user.role === 'ADMIN' ? '全局固定帮助' : '固定帮助维护'}
             </NavLink>
           )}
+          {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
+            <NavLink
+              to={user.role === 'ADMIN' ? '/admin/hint-templates' : '/teacher/hint-templates'}
+              className="nav-item"
+            >
+              <BookOpen size={19} aria-hidden="true" />
+              {user.role === 'ADMIN' ? '全局提示模板' : '提示模板维护'}
+            </NavLink>
+          )}
+          {user.role === 'STUDENT' && (
+            <NavLink to="/learning" className="nav-item">
+              <BookOpen size={19} aria-hidden="true" />
+              我的学习
+            </NavLink>
+          )}
           <NavLink to="/account/password" className="nav-item">
             <KeyRound size={19} aria-hidden="true" />
             修改密码
@@ -113,7 +142,8 @@ function Workspace() {
             <PasswordPage forced />
           ) : user.role === 'ADMIN' &&
             location.pathname !== '/account/password' &&
-            !location.pathname.startsWith('/admin/feedback') ? (
+            !location.pathname.startsWith('/admin/feedback') &&
+            !location.pathname.startsWith('/admin/hint-templates') ? (
             <StatePanel
               kind="forbidden"
               title="请使用管理员工作区"
@@ -142,6 +172,12 @@ export function App() {
         <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
         <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
         <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
+        <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
+        <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
+        <Route path="/admin/hint-templates" element={<TemplatesPage />} />
+        <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
+        <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
+        <Route path="/learning" element={<LearningPage />} />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
