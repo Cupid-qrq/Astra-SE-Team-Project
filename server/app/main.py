@@ -126,7 +126,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b005":
+                if head != "b006":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):

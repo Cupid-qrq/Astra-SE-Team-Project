@@ -50,6 +50,7 @@ class TransactionalEffects:
                     "TESTCASE": "problem_version",
                     "REFERENCE": "problem_version",
                     "PROBLEM": "problem",
+                    "PREFLIGHT": "preflight",
                     "ASSIGNMENT": "assignment",
                     "DEADLINE": "assignment",
                     "POLICY": "assignment",

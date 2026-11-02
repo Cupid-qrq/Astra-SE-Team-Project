@@ -1,5 +1,13 @@
 # 当前项目状态
 
+## 2026-11-02：合并后推进P1-B1a独立预检持久化
+
+- PR#4已合入main 822687c9cdadf049d342f005fd9cef7f8abe53ff，代码树与864c154一致，合并后GitHub主线CI已成功（run41403814285）。API未记录非作者审批，不代填批准或标整体Done；本地D主检出仍有用户暂存材料，保持不动。
+- 用户指定oldali只读SSH核对成功：Alibaba Cloud Linux3/KVM、2vCPU/约1.8GiB/39GiB，无Docker/Podman/isolate，若干本地监听服务用途尚未核实；未安装、修改或执行程序。低于4vCPU/8GiB/60GiB/4槽目标。用户明确选择先推进预检持久化，VM稍后补齐，S5/I0仍未验收。
+- 复用B worktree，从已合并main创建feat/b/p1-preflight-persistence；既有199项B后端基线通过。按[本阶段计划](plans/2026-11-02-b-preflight-persistence.md)实现冻结快照、b006三表、同事务受理/去重/查询、审计Outbox和权限核验，严格类型通过，最终完整入口退出0：B232/A数据库114/前端58/契约6/浏览器59通过，12项既有跳过；见[阶段报告](reports/2026-11-02-b-preflight-persistence.md)。
+- 完整验证中发现既有建课首屏缓存竞态（POST201而旧GET仍在途，失效共用旧promise，列表不含新课程）。单元失败和受控真实PG浏览器失败均已复现；改为先cancelQueries再invalidate，单元2项及三视口浏览器3项通过。按B实际贡献独立fix提交，接口/样式和测试超时不变。
+- 本阶段无生产HTTP/Worker接线，教师端仍不能完成真实预检发布。库没有终态写入口，合成完成只在专用数据库测试夹具；不将FR-07/P1-B1或隔离业务标Done。
+
 ## 2026-11-02：本批独立审查重要项已修复
 
 - 三阶段本地提交dae786c/f26bee2/ca8acf9完成。一次fresh独立代理审查发现1项Important、无Critical/新增Minor：from None隐藏默认回溯但仍保留敏感原始异常上下文。新增10项回归先全部失败，修复后124项评测测试通过，最终完整入口退出0：B199/A数据库114/前端57/契约6/浏览器53通过，12项既有跳过；不重复派发复审，以TDD和完整回归核验。

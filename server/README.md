@@ -112,3 +112,11 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 本批114项评测相关纯配置/HTTP替身/文件结构测试，不是真实执行验收。登记文件/证据进入忽略的.local/judge或部署受控存储；隐藏材料和秘密不得放入证据。当前未登记实际VM，未联网探测真实执行端，未执行隔离样例、未部署监督端、未开启正式Worker。
 
 评测适配的安全错误在离开异常捕获块后抛出，避免from None仅隐藏回溯而仍持有原始__context__；异常链回归使用合成隐藏输入/HTTP认证材料验证，不保存真实材料。当前本批评测套件124项，物理隔离验收仍未执行。
+
+## P1-B1a 预检持久化与事务查询
+
+`app.modules.judging.preflight.TransactionalPreflight(repo,catalog,effects)`实现A PreflightPort，绑定同一个正式SqlRepository/UoW，拒绝跨事务使用。先取得policy_guard，再从数据库复核教师状态、课程归属及版本，冻结A快照摘要/profile摘要与私有bytea。全部语言全部样例/隐藏点一次写入preflight_runs/cases/jobs；同内容活跃任务去重，不重复审计或队列事实；审计/Outbox/后段失败随同事务回滚。
+
+b006延续正式迁移单head，私有快照支持合法NUL；冻结字段与终态受数据库保护，新FK均有索引。就绪检查要求b006，部署须先迁移。新增表以RESTRICT保留版本引用；公开预检HTTP接线前须与A统一“有预检引用的草稿删除”冲突语义，当前不改A删除接口或历史SQL。
+
+read/evidence只返回标识、状态与点判定；不加载/回显隐藏材料到普通查询，evidence仅完整PASSED/全点AC且冻结绑定一致时有效。没有生产终态写入器、Worker、租约/槽位或HTTP接线；jobs只有READY/DONE事实，后续随实际execution_slots添加租约和FK，不用空实现放行。当前仍无可执行的真实评测环境，正式执行保持关闭；数据库夹具的合成终态不进入正常启动。
