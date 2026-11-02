@@ -13,9 +13,10 @@ export function CreateCourseForm() {
   const cache = useQueryClient()
   const mutation = useMutation({
     mutationFn: api.createCourse,
-    onSuccess: () => {
+    onSuccess: async () => {
       setTitle('')
-      void cache.invalidateQueries({ queryKey: ['courses'] })
+      await cache.cancelQueries({ queryKey: ['courses'] })
+      await cache.invalidateQueries({ queryKey: ['courses'] })
     },
   })
   function submit(event: FormEvent) {
