@@ -7,7 +7,7 @@ down_revision = "b006"
 
 
 def upgrade():
-    sql = (Path(__file__).parents[1] / "sql/007_hint_jobs.sql").read_text(encoding="utf-8")
+    sql = (Path(__file__).parents[1] / "sql/007_templates.sql").read_text(encoding="utf-8")
     op.get_bind().exec_driver_sql(sql)
 
 
