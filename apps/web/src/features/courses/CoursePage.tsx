@@ -50,7 +50,8 @@ export function CoursePage() {
       {session.data?.user?.role === 'TEACHER' && (
         <p>
           <Link to={`/courses/${id}/problems`}>管理题目</Link> ·{' '}
-          <Link to={`/courses/${id}/assignments/new`}>新建作业</Link>
+          <Link to={`/courses/${id}/assignments/new`}>新建作业</Link> ·{' '}
+          <Link to={`/teacher/feedback?course_id=${id}`}>管理固定帮助</Link>
         </p>
       )}
       {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (

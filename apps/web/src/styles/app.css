@@ -896,3 +896,26 @@ tbody tr:hover {
   margin: 0;
   min-width: 0;
 }
+.feedback-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+  margin: 24px 0;
+}
+.feedback-layout > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.feedback-layout .panel {
+  margin: 0;
+}
+.feedback-layout textarea {
+  width: 100%;
+  resize: vertical;
+}
+@media (max-width: 1023px) {
+  .feedback-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

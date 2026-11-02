@@ -266,6 +266,43 @@ export function createApiClient({
     course: (id: string) => unwrap(client.GET('/courses/{id}', { params: { path: { id } } })),
     submissionFeedback: (id: string) =>
       unwrap(client.GET('/submissions/{id}/feedback', { params: { path: { id } } })),
+    feedbackCatalogs: (course_id?: string, cursor?: string) =>
+      unwrap(
+        client.GET('/feedback-catalogs', {
+          params: {
+            query: {
+              ...(course_id ? { course_id } : {}),
+              ...(cursor ? { cursor } : {}),
+            },
+          },
+        }),
+      ),
+    createFeedback: (body: components['schemas']['CreateFeedback']) =>
+      unwrap(
+        client.POST('/feedback-catalogs', { body, params: { header: { 'X-CSRF-Token': csrf! } } }),
+      ),
+    feedbackDraft: (id: string) =>
+      unwrap(client.GET('/feedback-catalogs/{id}/draft', { params: { path: { id } } })),
+    saveFeedbackDraft: (id: string, body: components['schemas']['UpdateFeedback']) =>
+      unwrap(
+        client.PUT('/feedback-catalogs/{id}/draft', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    publishFeedback: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(
+        client.POST('/feedback-catalogs/{id}/publish', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    feedbackHistory: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/feedback-catalogs/{id}/versions', {
+          params: { path: { id }, query: { ...(cursor ? { cursor } : {}) } },
+        }),
+      ),
     feedbackVersion: (id: string, version: number) =>
       unwrap(
         client.GET('/feedback-catalogs/{id}/versions/{version}', {
