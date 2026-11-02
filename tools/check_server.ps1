@@ -8,15 +8,15 @@ Push-Location -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'server
 try {
     & uv sync --locked
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff check app/shared app/api app/main.py tests/shared migrations ../tools/check_api_contract.py
+    & uv run --locked ruff check app/shared app/adapters app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff format --check app/shared app/api app/main.py tests/shared migrations ../tools/check_api_contract.py
+    & uv run --locked ruff format --check app/shared app/adapters app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked mypy app/shared app/api app/main.py
+    & uv run --locked mypy app/shared app/adapters app/api app/main.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & uv run --locked python ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked pytest tests/shared
+    & uv run --locked pytest tests/shared tests/judge
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     $env:ASTRA_SERVER_PYTHON = (& uv run --locked python -c 'import sys; print(sys.executable)').Trim()
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

@@ -1,5 +1,12 @@
 # 当前项目状态
 
+## 2026-11-02：A交接确认，S4a候选接口本地验证完成
+
+- 用户转达A已确认上一批交接，继续授权连续阶段实施、按建议中文标题逐阶段提交和检查后推送B功能分支；不代填新提交的成员审批。
+- S4a建立CaseLease/请求摘要/执行端口及部署profile允许列表，复用A的profile_digest；23项RED→GREEN纯测试通过；完整入口退出0，B98/A数据库114/前端57/契约6/浏览器53通过，12项既有跳过。忽略日志.local/s4a-full-final.log。源码和执行器ticket不进入repr。
+- 后续S4b仅做Judge0适配和监督清理候选协议；S5先准备独立VM登记和只读验证。当前未登记VM，不执行学生程序，不标S5/I0完成；需求中的VM由谁提供仍可协调。
+- 计划见[本批实施计划](plans/2026-11-02-b-judge-adapter.md)。正式Worker/创建账本及物理隔离实测仍待后续。
+
 ## 2026-11-02：B代码已推送，待A成员确认
 
 - 正式推送预检tools/pre_push.ps1实际退出0，验证代码SHA feee65c16af84eed747d980288206027381325f5，并成功刷新main ec3fb0bd8449700dfd4a9e69d1910d31d0f268e1。随后git push -u origin feat/b/p0-foundation-isolation成功，服务器确认创建远端B分支；阶段实现及两项重要修复均已发布到该分支。

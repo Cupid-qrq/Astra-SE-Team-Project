@@ -88,3 +88,9 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 浏览器随机schema以独立run marker记录；正常退出与独立teardown均可幂等清理，仅匹配本run和_test库。清理失败使检查失败，marker供定位；不会批量删除其他测试schema。此验证覆盖三个Chromium视口，完整跨浏览器、独立VM及业务闭环另行验收。
 
 正式HTTP将未知内部约束/持久化异常归为503，已知业务冲突由应用Fault返回409。PostgreSQL文本及JSONB的NUL按字段返回422；已明确的bytea源码/测试及散列密码通道保持其原字节语义。
+
+## B 执行契约 S4a
+
+`app.shared.judge.JudgePort`提供单测试点创建、轮询和监督清理端口。租约身份包含attempt/generation/lease_epoch/testcase_order；执行键与请求摘要分离，后续Worker必须持久记录创建状态，不能只靠进程内幂等。当前无生产Worker接入，也不在业务机执行代码。
+
+`RuntimeProfile.from_public`复用A的profile_digest冻结公开snapshot；`ProfileCatalog`按完全一致的摘要允许执行。部署单独登记语言ID，不使用公开演示服务的默认ID。资源与两语言时间按BR-07校验，部署映射不进入普通API。源码、输入、原始输出和后端ticket在repr中隐藏；缺指标保留None。本阶段23项纯端口/配置测试不代表真实隔离验收。
