@@ -1,5 +1,13 @@
 # 当前项目状态
 
+## 2026-11-02：B代码已推送，待A成员确认
+
+- 正式推送预检tools/pre_push.ps1实际退出0，验证代码SHA feee65c16af84eed747d980288206027381325f5，并成功刷新main ec3fb0bd8449700dfd4a9e69d1910d31d0f268e1。随后git push -u origin feat/b/p0-foundation-isolation成功，服务器确认创建远端B分支；阶段实现及两项重要修复均已发布到该分支。
+- 当前代码验证结果B75/A数据库114/前端57/契约6/浏览器53通过，12项既有跳过。独立审查2项Important已以RED-GREEN及完整入口修复，1项超长数字分页Minor延期。提交链包括37e3a40、64cf34c、5de0470、0ce197c、9140a02、7ad446a、feee65c。
+- 网络曾多次失败，推送后首次fetch也被重置；回读核验以实际命令输出为准，本段不把push自动更新的本地远端引用冒充独立fetch证据。本段是代码推送后的文档收尾，最终分支SHA以远端引用为准。
+- A工程接口已经接入，A本人审阅确认尚未取得，也未向A发送消息。双方本地未推送依赖、公共DTO及正式迁移部署仍需A核对，详见[交接清单](reports/2026-11-01-b-handoff.md)。未创建PR、未合并main或部署；现有CI只在main推送/PR触发，不能声称功能分支push已有CI通过。
+- 用户要求当前点完成即停止，B工作树保留，S4未启动。下一次先补A确认和远端/PR流程，再继续独立VM与执行适配。下方网络受阻记录是先前状态，不能覆盖本段后续push成功的事实。
+
 ## 2026-11-02：当前S3b本地收尾，待远端及A本人确认
 
 - S3b实现已提交7ad446a，独立fresh-context审查覆盖ec3fb0b—7ad446a六个提交；无已确认Critical，2项Important已核对并一次修复：内部审计/Outbox未知约束故障503，PostgreSQL文本/JSONB的NUL字段422；业务Fault409、bytea源码/测试及散列密码语义保留。见[最终审查记录](reports/2026-11-02-b-final-review.md)。
