@@ -975,6 +975,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/feedback-catalogs/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取管理用固定帮助版本历史
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listFeedbackVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1487,6 +1507,16 @@ export interface components {
             explanation: string;
             checklist: string[];
             revision: number;
+            /** @enum {string} */
+            scope?: "GLOBAL" | "COURSE";
+            course_id?: string | null;
+            /** @enum {string} */
+            verdict?: "CE" | "WA" | "TLE" | "RE" | "SE";
+            /** @enum {string} */
+            language_key?: "ALL" | "cpp17" | "python3";
+            active_version_id?: string | null;
+            active_version_no?: number | null;
+            course_status?: ("ACTIVE" | "ARCHIVED") | null;
         };
         CatalogSummary: {
             /** Format: uuid */
@@ -1601,6 +1631,19 @@ export interface components {
         HealthReady: {
             /** @constant */
             status: "ready";
+        };
+        FeedbackVersionSummary: {
+            /** Format: uuid */
+            version_id: string;
+            version_no: number;
+            title: string;
+            checksum: string;
+            /** Format: date-time */
+            published_at: string;
+        };
+        FeedbackVersionSummaryPage: {
+            items: components["schemas"]["FeedbackVersionSummary"][];
+            next_cursor: string | null;
         };
     };
     responses: {
@@ -4064,6 +4107,45 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    listFeedbackVersions: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackVersionSummaryPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
         };
     };
 }

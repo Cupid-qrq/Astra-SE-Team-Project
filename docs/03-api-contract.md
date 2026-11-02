@@ -101,6 +101,7 @@ A P1 防止轮询续期的接线约定：`GET /auth/session` 只验证、不延�
 | POST /feedback-catalogs | 本课 T/全局 M | scope、course_id?、verdict、language_key、draft | 201：catalog_id、revision |
 | PUT /feedback-catalogs/{id}/draft | 所属 T/全局 M | title、explanation、checklist、expected_revision | 200：新 revision |
 | POST /feedback-catalogs/{id}/publish | 所属 T/全局 M | expected_revision、reason | 200：version_id、checksum |
+| GET /feedback-catalogs/{id}/versions | 所属 T/全局 M | limit?、cursor? | 200：管理用冻结版本摘要分页，不含草稿；version_id、version_no、title、checksum、published_at |
 | GET /feedback-catalogs/{id}/versions/{version} | 授权 S/T/M | — | 200：固定版本帮助；不读最新草稿 |
 | POST /hint-templates | 本课 T/全局 M | scope、course_id?、draft | 201：template_id、revision |
 | PUT /hint-templates/{id}/draft | 所属 T/全局 M | body、allowed_placeholders、schema_version、expected_revision | 200：新 revision |
@@ -116,6 +117,8 @@ A P1 防止轮询续期的接线约定：`GET /auth/session` 只验证、不延�
 | POST /notifications/{id}/read | 本人 | — | 204；重复已读无副作用 |
 
 帮助正文同时≤8 KiB/2000 码点，检查清单≤10 项；模板正文≤8 KiB，只允许定义的占位符。发布只冻结已校验草稿，不在发布请求夹带新正文。列表和草稿读取补充 `GET /feedback-catalogs`、`GET /feedback-catalogs/{id}/draft`、`GET /hint-templates`、`GET /hint-templates/{id}/draft`，均仅所属教师/全局管理员，返回对应草稿字段和 revision。
+
+固定帮助草稿响应可附带 scope、course_id、verdict、language_key、active_version_id、active_version_no、course_status，供管理页面区分草稿与生效版本；旧的固定版本公开响应不变。全局帮助仅允许 ALL 且不携带 course_id；课程帮助必须指定本课，归档后只读。保存和发布均校验并递增草稿 revision；同范围/判定/语言重复创建返回409。历史分页同样只向所属教师或全局管理员开放，学生仍走固定版本/提交帮助接口。发布和审计/Outbox 在同一事务生效，失败全部回滚。
 
 ### 2.4 管理与运维（B 服务及页面；账号API由A实现）
 
