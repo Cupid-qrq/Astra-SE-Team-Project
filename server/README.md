@@ -110,3 +110,5 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 [登记与验证说明](../infra/judge/README.md)提供默认UNVERIFIED模板和`tools/verify_judge.py`。本地检查不联网；--probe仅对登记端GET配置和能力，绝不创建submission。登记冻结不同业务/评测VM身份、资源、镜像、两语言profile/映射、源码commit及配置指纹；证据校验V-01—V-06身份/文件摘要与目录边界。成功仅表示记录齐全待成员复核，execution_enabled始终false。
 
 本批114项评测相关纯配置/HTTP替身/文件结构测试，不是真实执行验收。登记文件/证据进入忽略的.local/judge或部署受控存储；隐藏材料和秘密不得放入证据。当前未登记实际VM，未联网探测真实执行端，未执行隔离样例、未部署监督端、未开启正式Worker。
+
+评测适配的安全错误在离开异常捕获块后抛出，避免from None仅隐藏回溯而仍持有原始__context__；异常链回归使用合成隐藏输入/HTTP认证材料验证，不保存真实材料。当前本批评测套件124项，物理隔离验收仍未执行。

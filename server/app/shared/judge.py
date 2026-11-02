@@ -22,7 +22,8 @@ def uuid_value(value: str) -> str:
             raise ValueError
         return str(parsed)
     except (ValueError, TypeError, AttributeError):
-        raise ExecutionError("INVALID_EXECUTION_ID") from None
+        pass
+    raise ExecutionError("INVALID_EXECUTION_ID")
 
 
 def sha_value(value: str) -> str:
@@ -117,7 +118,11 @@ class CaseRequest:
             self.code.decode("utf-8")
             self.stdin.decode("utf-8")
         except UnicodeError:
-            raise ExecutionError("INVALID_EXECUTION_UTF8") from None
+            pass
+        else:
+            return
+        # Raise after leaving the handler: `from None` alone retains __context__.
+        raise ExecutionError("INVALID_EXECUTION_UTF8")
 
     @property
     def identity(self) -> ExecutionIdentity:

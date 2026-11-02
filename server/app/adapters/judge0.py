@@ -98,7 +98,8 @@ def https_origin(value: str) -> str:
             raise ValueError
         return value.rstrip("/")
     except (ValueError, TypeError, AttributeError):
-        raise ExecutionError("INVALID_JUDGE_ORIGIN") from None
+        pass
+    raise ExecutionError("INVALID_JUDGE_ORIGIN")
 
 
 @dataclass(frozen=True)
@@ -147,7 +148,8 @@ def strict_json(raw: bytes) -> Any:
             raw.decode("utf-8"), object_pairs_hook=pairs, parse_constant=reject, parse_float=finite
         )
     except (ValueError, UnicodeError, RecursionError):
-        raise ExecutionError("INVALID_BACKEND_RESPONSE") from None
+        pass
+    raise ExecutionError("INVALID_BACKEND_RESPONSE")
 
 
 def read_json(

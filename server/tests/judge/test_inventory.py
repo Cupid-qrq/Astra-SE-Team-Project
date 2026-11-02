@@ -331,3 +331,21 @@ def test_evidence_rejects_external_paths_before_resolution(tmp_path, manifest, m
         Path, "is_symlink", lambda self: self.name == "linked" or original_symlink(self)
     )
     assert verify_evidence(inventory, tmp_path) == ("MISSING_OR_INVALID_V-01",)
+
+
+@pytest.mark.parametrize("kind", ["credentials", "transport"])
+def test_probe_safe_error_has_no_credentials_or_transport_exception_chain(
+    tmp_path, manifest, monkeypatch, kind
+):
+    inventory = registration(tmp_path, manifest)
+    monkeypatch.setenv("ASTRA_JUDGE_TOKEN", "PRIVATE_AUTH_TOKEN_12345678901234567890")
+    monkeypatch.setenv("ASTRA_SUPERVISOR_TOKEN", "x" if kind == "credentials" else "s" * 32)
+
+    def failed(req):
+        raise httpx.ConnectError("PRIVATE_TRANSPORT", request=req)
+
+    with pytest.raises(ExecutionError) as error:
+        probe_inventory(inventory, transport=httpx.MockTransport(failed))
+    assert "PRIVATE" not in str(error.value)
+    assert error.value.__context__ is None
+    assert error.value.__cause__ is None

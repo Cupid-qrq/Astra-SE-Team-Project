@@ -156,7 +156,8 @@ def load_inventory(path: Path) -> Inventory:
             frozen,
         )
     except (OSError, ValueError, TypeError, KeyError, AttributeError, RuntimeError):
-        raise ExecutionError("INVALID_JUDGE_REGISTRATION") from None
+        pass
+    raise ExecutionError("INVALID_JUDGE_REGISTRATION")
 
 
 def _inside(root: Path, relative: Path) -> Path:
@@ -246,24 +247,25 @@ class ProbeResult:
     observed_hashes: Mapping[str, str]
 
 
+def _probe_target(inventory: Inventory) -> Judge0Target:
+    try:
+        return Judge0Target(
+            inventory.management_origin,
+            inventory.supervisor_origin,
+            inventory.deployment_id,
+            os.environ["ASTRA_JUDGE_TOKEN"],
+            os.environ["ASTRA_SUPERVISOR_TOKEN"],
+        )
+    except (KeyError, ExecutionError):
+        pass
+    raise ExecutionError("JUDGE_CREDENTIALS_UNAVAILABLE")
+
+
 def probe_inventory(
     inventory: Inventory, *, transport: httpx.BaseTransport | None = None
 ) -> ProbeResult:
     """GET only; declared capabilities/configuration are not physical isolation proof."""
-    try:
-        auth, supervisor_auth = (
-            os.environ["ASTRA_JUDGE_TOKEN"],
-            os.environ["ASTRA_SUPERVISOR_TOKEN"],
-        )
-        target = Judge0Target(
-            inventory.management_origin,
-            inventory.supervisor_origin,
-            inventory.deployment_id,
-            auth,
-            supervisor_auth,
-        )
-    except (KeyError, ExecutionError):
-        raise ExecutionError("JUDGE_CREDENTIALS_UNAVAILABLE") from None
+    target = _probe_target(inventory)
     try:
         limits = httpx.Limits(max_connections=1, max_keepalive_connections=1)
         with httpx.Client(
@@ -326,4 +328,5 @@ def probe_inventory(
         )
         return ProbeResult(matched, MappingProxyType(observed))
     except (httpx.HTTPError, ValueError, TypeError, KeyError, ExecutionError):
-        raise ExecutionError("JUDGE_PROBE_FAILED") from None
+        pass
+    raise ExecutionError("JUDGE_PROBE_FAILED")

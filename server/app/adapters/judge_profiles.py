@@ -104,7 +104,8 @@ class RuntimeProfile:
             )
             return cls(profile_id, profile_digest(dict(value)), tuple(languages), public_json)
         except (ValueError, KeyError, TypeError, AttributeError):
-            raise ExecutionError("INVALID_EXECUTION_PROFILE") from None
+            pass
+        raise ExecutionError("INVALID_EXECUTION_PROFILE")
 
     def public_snapshot(self) -> dict[str, Any]:
         return dict(json.loads(self._public_json))
@@ -137,4 +138,5 @@ class ProfileCatalog:
                 raise ValueError
             return profile
         except (ValueError, TypeError, KeyError):
-            raise ExecutionError("EXECUTION_PROFILE_NOT_ALLOWED") from None
+            pass
+        raise ExecutionError("EXECUTION_PROFILE_NOT_ALLOWED")
