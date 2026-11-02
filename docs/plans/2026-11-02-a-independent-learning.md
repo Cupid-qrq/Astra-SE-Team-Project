@@ -15,7 +15,7 @@
 - [x] 错题/推荐端口、个人学习页面与服务端提示历史。
 - [x] 同族四阶段授权、数据库提示队列与额度/双预算、单轮 Worker 和默认禁用的供应商适配。
 - [x] 失败回归与独立交叉审查，修复超时后迟到回执丢失。
-- [ ] 当前完整入口、截图核对、分项提交及交接报告。
+- [x] 当前完整入口退出0、桌面/移动截图核对、分项提交及交接报告。
 
 新增文件集中在 server/app/modules/learning、server/app/adapters/deepseek.py、两条迁移链、apps/web/src/features/learning 和对应测试。tools/model_quality.py 提供部署后双人质量评分的离线核算。
 
