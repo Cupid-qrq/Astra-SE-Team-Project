@@ -19,6 +19,8 @@ Astra 为课程教学提供作业管理、代码评测、成绩管理和学习�
 | [部署与运维](docs/08-deployment-and-operations.md) | 环境、配置、发布、恢复与数据留存 |
 | [开发工作流](CONTRIBUTING.md) | Superpowers/Build Web Apps、任务、中文提交、审查、同步及推送检查 |
 | [当前项目状态](docs/project-status.md) | 基线、阶段进度、待落实事项和验证边界 |
+| [A线用户指南](docs/a-user-guide.md) | 教师备课、学生编辑与学习提示、错误恢复 |
+| [A线集成交接](docs/a-integration-handoff.md) | B来源/结果/预检接线与后续验收清单 |
 
 ## 仓库结构
 

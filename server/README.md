@@ -125,7 +125,9 @@ FR-19 维护已直接装配正式应用：本课教师与全局管理员分别�
 
 生产组装须显式提供 B 的 `Sources`，它在同一事务核实当前提交终态、本人归属、来源可见性和冻结固定帮助版本，并返回公开题面/样例、本人代码、脱敏诊断。`HintSource.feedback_version_id` 必须来自该轮结果，不能临时解析成最新帮助。`hint_context` 的原始执行输出和隐藏测试均不得返回。HTTP 服务和 Worker 使用同一已核验 `configuration_id`，模板目录的 `active_version_id` 通过受审部署流程设置。配置行不可变，价格以人民币每百万 token 计，`input_price` 必须覆盖供应商所有输入缓存价格，输出价格及 token 上限也一起冻结。
 
-Worker 的 transport 只在外发许可事务提交后执行。使用 `DeepSeekTransport` 时由部署层加载 Key、核对模型标识和配置引用、人民币价格、条款、分词计数实现和模板版本，并显式注入经过验证的内容安全检查 `content_check`。该检查必须覆盖完整答案、核心求解函数、隐藏信息、工具/改分请求和不确定性要求。JSON schema 与代码围栏过滤只承担结构校验。当前默认 HTTP 应用未注入这些资源，访问新模型请求明确返回 503，仓库没有启用收费服务的启动脚本。
+Worker 的 transport 只在外发许可事务提交后执行。`model_runtime.RuntimeProfile`读取严格配置，`hint_worker`提供显式初始化与独立进程入口，详见[模型运行说明](../specs/model/README.md)。HTTP的`ASTRA_MODEL_PROFILE_FILE`和Worker必须使用同一配置；密钥仅由Worker在外发时读取。缺少B来源、不可变配置或预算初始化时保持不可用。当前默认配置关闭，没有自动启动收费进程。
+
+真实Flash适配显式关闭思考模式，使用保守字节/token上限、固定官方HTTPS和零重试。内容门禁识别明显完整程序、危险执行指令及标记；它是启发式过滤，不提供语义安全保证。完整答案、核心求解函数、隐藏信息、工具/改分请求和不确定性仍需实际质量评审；结构有效不等于提示安全。本轮价格按高峰人民币单价估算，供应商实际扣费未核实时保留UNCERTAIN，不将估算当实际结算。
 
 账本锁顺序为个人日额度、项目总预算、接纳日预算，均在 policy_guard 内。运行中超时或 Worker 丢失将费用设为 UNCERTAIN，次数释放，费用继续占用原接纳日及项目预算。人工取得供应商权威账单后，在受控事务中调用 `HintService.reconcile(hint_id, Decimal(actual_cny))`，重复处理无重复扣费。计费 usage 与供应商请求 ID 仅保存在服务端账本关联记录，不出现在 HintView。
 
