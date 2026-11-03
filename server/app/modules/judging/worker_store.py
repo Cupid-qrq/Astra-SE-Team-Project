@@ -78,7 +78,18 @@ class WorkerStore:
             repo = SqlRepository(conn)
             slot = self._lock(repo)
             now = repo.now()
+            from app.modules.operations.controls import current_config
+
+            if not current_config(repo)["payload"]["judge_enabled"]:
+                return None
             if slot["state"] != "FREE":
+                return None
+            pending_students = conn.scalar(
+                text(
+                    "SELECT EXISTS(SELECT 1 FROM queue_jobs WHERE state='READY' AND ready_at<=clock_timestamp())"
+                )
+            )
+            if pending_students:
                 return None
             protected = conn.scalar(
                 text(
@@ -254,7 +265,7 @@ class WorkerStore:
             repo = SqlRepository(conn)
             slot = self._lock(repo)
             now = repo.now()
-            if slot["state"] == "FREE":
+            if slot["state"] == "FREE" or slot["job_id"] is None:
                 return None
             job = repo.get("preflight_jobs", slot["job_id"], lock=True)
             assert job is not None

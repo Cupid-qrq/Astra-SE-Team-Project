@@ -962,3 +962,12 @@ tbody tr:hover {
   margin: 0;
   overflow-wrap: anywhere;
 }
+
+.submission-dialog {
+  margin: auto;
+  border: 1px solid var(--border);
+  width: min(92vw, 640px);
+}
+.submission-dialog::backdrop {
+  background: #24232066;
+}

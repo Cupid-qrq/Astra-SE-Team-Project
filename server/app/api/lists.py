@@ -32,7 +32,11 @@ def sql_list(c: Record, path: str, pager: Cursor) -> Record | None:
     projection: Callable[[Record], Record] | None = None
     if path == "/courses":
         role(actor, ("TEACHER", "STUDENT"))
-        statement = select(courses)
+        statement = select(courses).where(
+            ~select(tables["course_cleanup"].c.course_id)
+            .where(tables["course_cleanup"].c.course_id == courses.c.course_id)
+            .exists()
+        )
         if actor["role"] == "TEACHER":
             statement = statement.where(courses.c.teacher_id == actor["user_id"])
         else:

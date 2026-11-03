@@ -7,12 +7,16 @@ async function openLearning(page: Page) {
   await page.getByRole('button', { name: '登录', exact: true }).click()
   await page.getByRole('link', { name: '我的学习', exact: true }).click()
 }
-test('正式应用：未连接提交源时，个人学习保留可访问的入口并显示不可用', async ({ page }) => {
+test('个人学习显示已连接来源的空态或独立环境的依赖状态', async ({ page }) => {
   await openLearning(page)
-  await expect(page.getByRole('heading', { name: '错题记录暂不可用' })).toBeVisible()
-  await expect(page.getByRole('heading', { name: '推荐练习暂不可用' })).toBeVisible()
+  if (process.env.ASTRA_SERVER_PYTHON) {
+    await expect(page.getByText('此类别暂无待复习的错题。')).toBeVisible()
+    await expect(page.getByText('暂无符合条件的练习')).toBeVisible()
+  } else {
+    await expect(page.getByRole('heading', { name: '错题记录暂不可用' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: '推荐练习暂不可用' })).toBeVisible()
+  }
   await page.getByLabel('提交类别').selectOption('PRACTICE')
-  await expect(page.getByRole('heading', { name: '错题记录暂不可用' })).toBeVisible()
   await expect(page.getByRole('button', { name: '请求提示', exact: true })).toBeDisabled()
   await expect(page.getByRole('heading', { name: '提示历史' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)

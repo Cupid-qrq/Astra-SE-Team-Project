@@ -1,3 +1,10 @@
+import { RetentionPage } from '../features/operations/RetentionPage'
+import { ControlsPage } from '../features/operations/ControlsPage'
+import { AdminPage } from '../features/operations/AdminPage'
+import { TeacherOperations } from '../features/operations/TeacherOperations'
+import { NotificationsPage } from '../features/operations/NotificationsPage'
+import { GradePage } from '../features/grades/GradePage'
+import { SubmissionPage, SubmissionHistoryPage } from '../features/submissions/SubmissionPages'
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
@@ -106,6 +113,24 @@ function Workspace() {
               我的学习
             </NavLink>
           )}
+          {user.role !== 'STUDENT' && (
+            <NavLink to="/retention" className="nav-item">
+              课程留存
+            </NavLink>
+          )}
+          {user.role === 'ADMIN' && (
+            <NavLink to="/admin/operations/controls" className="nav-item">
+              运行与应急
+            </NavLink>
+          )}
+          <NavLink to="/notifications" className="nav-item">
+            通知
+          </NavLink>
+          {user.role === 'ADMIN' && (
+            <NavLink to="/admin/operations" className="nav-item">
+              平台管理
+            </NavLink>
+          )}
           <NavLink to="/account/password" className="nav-item">
             <KeyRound size={19} aria-hidden="true" />
             修改密码
@@ -143,7 +168,10 @@ function Workspace() {
           ) : user.role === 'ADMIN' &&
             location.pathname !== '/account/password' &&
             !location.pathname.startsWith('/admin/feedback') &&
-            !location.pathname.startsWith('/admin/hint-templates') ? (
+            !location.pathname.startsWith('/admin/hint-templates') &&
+            !location.pathname.startsWith('/admin/operations') &&
+            location.pathname !== '/notifications' &&
+            location.pathname !== '/retention' ? (
             <StatePanel
               kind="forbidden"
               title="请使用管理员工作区"
@@ -168,6 +196,11 @@ export function App() {
       <Route path="/login" element={<LoginPage />} />
       <Route element={<Workspace />}>
         <Route path="/account/password" element={<PasswordPage />} />
+        <Route path="/admin/operations" element={<AdminPage />} />
+        <Route path="/admin/operations/controls" element={<ControlsPage />} />
+        <Route path="/retention" element={<RetentionPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/assignments/:id/operations" element={<TeacherOperations />} />
         <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
         <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
         <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
@@ -182,6 +215,9 @@ export function App() {
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
         <Route path="/assignments/:id" element={<AssignmentPage />} />
+        <Route path="/assignments/:id/grades" element={<GradePage />} />
+        <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
+        <Route path="/submissions/:id" element={<SubmissionPage />} />
         <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
         <Route path="/courses/:id/problems" element={<ProblemsPage />} />
         <Route path="/teacher/problems/:id" element={<VersionsPage />} />

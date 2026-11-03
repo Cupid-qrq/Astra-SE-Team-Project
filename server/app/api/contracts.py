@@ -22,6 +22,7 @@ NON_TEXT_FIELDS: dict[str, frozenset[str]] = {
     "resetPassword": frozenset({"one_time_password"}),
     "putTestcase": frozenset({"input_text", "answer_text"}),
     "putReference": frozenset({"code"}),
+    "createSubmission": frozenset({"code"}),
 }
 
 

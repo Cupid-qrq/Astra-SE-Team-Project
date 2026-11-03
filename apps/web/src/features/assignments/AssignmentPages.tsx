@@ -94,6 +94,10 @@ export function AssignmentPage() {
           description="开放后可以查看题目并开始编程。"
         />
       )}
+      <p>
+        <Link to={`/assignments/${id}/submissions`}>查看提交历史</Link> ·{' '}
+        <Link to={`/assignments/${id}/grades`}>查看作业成绩</Link>
+      </p>
       <ul className="resource-list">
         {value.items.map((item) => (
           <li key={item.problem_id}>
@@ -106,6 +110,11 @@ export function AssignmentPage() {
         ))}
       </ul>
       {value.state === 'CLOSED' && <p>正式提交已截止，后续提交仅用于练习。</p>}
+      {teacher && (
+        <p>
+          <Link to={`/assignments/${id}/operations`}>重评与公平处理</Link>
+        </p>
+      )}
       {teacher && value.state !== 'ARCHIVED' && (
         <AssignmentActions value={value} reload={() => query.refetch()} />
       )}

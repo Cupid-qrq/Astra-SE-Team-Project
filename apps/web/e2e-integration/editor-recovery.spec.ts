@@ -36,6 +36,8 @@ test('A编辑器端口：未知受理刷新后仍重放原始快照', async ({ p
   await page.evaluate(async () => {
     const path = '/src/features/integrations/teaching.ts'
     const { teaching } = await import(path)
+    // This port-only fixture returns a synthetic receipt, so use the receipt fallback.
+    delete teaching.ResultPanel
     teaching.submissions.send = async (intent: unknown) => {
       sessionStorage.setItem('test.replayed', JSON.stringify(intent))
       return {
