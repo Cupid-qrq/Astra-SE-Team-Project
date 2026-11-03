@@ -60,6 +60,9 @@ class SubmissionSources:
             detail["state"],
             detail["verdict"] or "",
             detail["feedback_version_id"],
+            detail["result_basis_id"],
+            detail["attempt_id"],
+            detail["effective_version_id"],
         )
 
     def hint_context(self, repo: Repository, source: HintSource) -> Record:

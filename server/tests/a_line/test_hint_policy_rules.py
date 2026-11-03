@@ -35,7 +35,18 @@ class PolicyRepo:
             ],
             assignment_items=[dict(assignment_id="exam", problem_id="copy")],
         )
-        self.source = HintSource("submission", "student", "a", "original", "FINISHED", "WA")
+        self.source = HintSource(
+            "submission",
+            "student",
+            "a",
+            "original",
+            "FINISHED",
+            "WA",
+            "help",
+            "basis",
+            "attempt",
+            "version",
+        )
 
     def guard(self):
         self.guarded = True
@@ -108,7 +119,10 @@ def test_consent_owner_source_and_member_revalidated():
 def test_read_projection_never_leaks_internal_or_restricted_fields():
     repo = PolicyRepo()
     policy = HintPolicy(repo, repo)
+    from app.modules.learning.policy_rules import source_snapshot
+
     hint = dict(
+        source_snapshot=source_snapshot(repo.source),
         hint_id="h",
         submission_id="submission",
         user_id="student",

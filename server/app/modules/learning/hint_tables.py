@@ -72,6 +72,7 @@ hints = Table(
     timestamp("authorized_at"),
     timestamp("consented_at", nullable=False),
     timestamp("created_at", nullable=False),
+    Column("source_snapshot", JSONB(none_as_null=True)),
     Column("sections", JSONB(none_as_null=True)),
     Column("usage", JSONB(none_as_null=True)),
     string("provider_request_id", 128, True),

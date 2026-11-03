@@ -21,7 +21,7 @@ export function LoginPage() {
     onSuccess: (session) => {
       queryClient.clear()
       queryClient.setQueryData(sessionKey, session)
-      navigate('/courses', { replace: true })
+      navigate(session.user?.role === 'ADMIN' ? '/admin/operations' : '/courses', { replace: true })
     },
   })
   function submit(event: FormEvent<HTMLFormElement>) {

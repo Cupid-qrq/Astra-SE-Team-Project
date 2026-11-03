@@ -18,7 +18,18 @@ def setup_hint(env):
 
     class Source:
         def hint_source(self, repo, student_id, submission_id):
-            return HintSource(submission, student, course, problem, "FINISHED", "WA", fixed)
+            return HintSource(
+                submission,
+                student,
+                course,
+                problem,
+                "FINISHED",
+                "WA",
+                fixed,
+                "basis",
+                "attempt",
+                "version",
+            )
 
         def hint_context(self, repo, source):
             return dict(
@@ -391,3 +402,99 @@ def test_polling_expired_hint_returns_fixed_help_without_worker(env, dispatched)
             "UNCERTAIN" if dispatched else "RELEASED"
         )
         assert service.create(actor, body) == (200, first)
+
+
+@pytest.mark.parametrize("phase", ["dispatch", "finish", "read"])
+@pytest.mark.parametrize("identity", ["result_basis_id", "attempt_id", "effective_version_id"])
+def test_same_verdict_rejudge_invalidates_frozen_hint(env, phase, identity):
+    from dataclasses import asdict
+    from types import SimpleNamespace
+
+    source, model, actor, body = setup_hint(env)
+    original = source.hint_source
+    identities = dict(result_basis_id="basis-1", attempt_id="attempt-1", effective_version_id="v1")
+    source.hint_source = lambda *args: SimpleNamespace(**(asdict(original(*args)) | identities))
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        service = HintService(repo, source, model)
+        hid = service.create(actor, body)[1]["hint_id"]
+        if phase != "dispatch":
+            permit = service.dispatch(hid)
+            assert permit
+        candidate = Candidate(dict(checks="old result"), None, "SETTLED", Decimal("0.001"))
+        if phase == "read":
+            assert service.finish(hid, permit.lease_epoch, candidate)
+        identities[identity] = "replacement"
+        if phase == "dispatch":
+            assert service.dispatch(hid) is None
+        elif phase == "finish":
+            assert service.finish(hid, permit.lease_epoch, candidate)
+        view = service.read(actor, hid)
+        assert view["status"] == "BLOCKED"
+        assert view["reason_code"] == "SOURCE_CHANGED"
+        assert view["sections"] is None and view["fallback_feedback"] is None
+        assert service.create(actor, body) == (200, view)
+        assert len(repo.rows("ai_hints")) == 1
+        assert service.dispatch(hid) is None
+        reservation = repo.get("budget_reservations", hid)
+        assert reservation["state"] == ("RELEASED" if phase == "dispatch" else "SETTLED")
+
+
+@pytest.mark.parametrize("phase", ["dispatch", "finish", "read"])
+def test_legacy_hint_without_source_snapshot_fails_closed(env, phase):
+    source, model, actor, body = setup_hint(env)
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        service = HintService(repo, source, model)
+        hid = service.create(actor, body)[1]["hint_id"]
+        if phase != "dispatch":
+            permit = service.dispatch(hid)
+        candidate = Candidate(dict(checks="old"), None, "UNCERTAIN", None)
+        if phase == "read":
+            service.finish(hid, permit.lease_epoch, candidate)
+        repo.change("ai_hints", hid, source_snapshot=None)
+        if phase == "dispatch":
+            assert service.dispatch(hid) is None
+        elif phase == "finish":
+            service.finish(hid, permit.lease_epoch, candidate)
+        view = service.read(actor, hid)
+        assert view["status"] == "BLOCKED" and view["reason_code"] == "SOURCE_CHANGED"
+        assert view["sections"] is view["fallback_feedback"] is None
+        assert service.create(actor, body) == (200, view)
+        assert service.dispatch(hid) is None
+        assert repo.get("ai_hints", hid)["source_snapshot"] is None
+        assert repo.get("budget_reservations", hid)["state"] == (
+            "RELEASED" if phase == "dispatch" else "UNCERTAIN"
+        )
+
+
+def test_incomplete_source_identity_is_rejected_before_acceptance(env):
+    from dataclasses import replace
+
+    source, model, actor, body = setup_hint(env)
+    original = source.hint_source
+    source.hint_source = lambda *args: replace(original(*args), attempt_id=None)
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        with pytest.raises(Fault) as denied:
+            HintService(repo, source, model).create(actor, body)
+        assert denied.value.code == "SOURCE_UNVERIFIABLE"
+        assert not repo.rows("ai_hints") and not repo.rows("budget_reservations")
+
+
+def test_hint_provenance_prevents_destructive_downgrade(env):
+    from pathlib import Path
+
+    from alembic import command
+    from alembic.config import Config
+
+    source, model, actor, body = setup_hint(env)
+    with env.engine.begin() as conn:
+        repo = SqlRepository(conn, env.clock)
+        hid = HintService(repo, source, model).create(actor, body)[1]["hint_id"]
+        snapshot = repo.get("ai_hints", hid)["source_snapshot"]
+        config = Config(str(Path(__file__).parents[2] / "a_line/alembic.ini"))
+        config.attributes["connection"] = conn
+        with pytest.raises(RuntimeError, match="provenance must be retained"):
+            command.downgrade(config, "a006")
+        assert repo.get("ai_hints", hid)["source_snapshot"] == snapshot

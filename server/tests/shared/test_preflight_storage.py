@@ -57,14 +57,14 @@ def finish_for_fixture(conn, pid):
 
 def test_preflight_migration_single_head_and_upgrade_preserves_a_rows(database):
     cfg = Config(str(Path(__file__).parents[2] / "alembic.ini"))
-    assert ScriptDirectory.from_config(cfg).get_heads() == ["b016"]
+    assert ScriptDirectory.from_config(cfg).get_heads() == ["b017"]
     with database.begin() as conn:
         cfg.attributes["connection"] = conn
         command.upgrade(cfg, "b005")
         assert conn.scalar(text("SELECT count(*) FROM users")) == 0
         command.upgrade(cfg, "head")
         command.upgrade(cfg, "head")
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b016"
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b017"
         for name in ("preflight_runs", "preflight_cases", "preflight_jobs"):
             assert conn.scalar(text("SELECT to_regclass(:name)"), {"name": name}) is not None
 

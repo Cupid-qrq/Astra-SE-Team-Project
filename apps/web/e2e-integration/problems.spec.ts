@@ -1,7 +1,16 @@
 import { openCourse } from './course-navigation'
 import { expect, test } from '@playwright/test'
+import path from 'node:path'
 
-test('真实数据库：创建题目草稿、配对测试、参考程序与重进恢复', async ({ page }) => {
+test('真实数据库：题目材料、跨标签题面同步与复制版本', async ({ page, context }, testInfo) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('console', (message) => {
+    if (!['error', 'warning'].includes(message.type())) return
+    if (message.location().url.endsWith('/preflight') && /\b(404|409)\b/.test(message.text()))
+      return
+    errors.push(message.text())
+  })
   await page.goto('/login')
   await page.getByLabel('账号', { exact: true }).fill('teacher_a')
   await page.getByLabel('密码', { exact: true }).fill('ExamplePassword123!')
@@ -46,6 +55,34 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
   }
   await page.reload()
   await expect(page.getByLabel('题目标题')).toHaveValue('两数之和')
+  const other = await context.newPage()
+  await other.goto(page.url())
+  await other.getByLabel('题目标题').fill('另一标签更新的两数之和')
+  const changed = other.waitForResponse((r) => r.request().method() === 'PATCH')
+  await other.getByRole('button', { name: '保存题面' }).click()
+  expect((await changed).status()).toBe(200)
+  await expect(other.getByText('题面已保存。')).toBeVisible()
+  if (process.env.ASTRA_SERVER_PYTHON) {
+    const conflict = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url().endsWith('/preflight'),
+    )
+    await page.getByRole('button', { name: '启动预检' }).click()
+    expect((await conflict).status()).toBe(409)
+    await page.getByRole('button', { name: '重新读取修订，保留测试和参考程序输入' }).click()
+    await expect(page.getByLabel('题目标题')).toHaveValue('另一标签更新的两数之和')
+    await expect(page.getByRole('button', { name: '启动预检' })).toBeEnabled()
+  } else {
+    await page.reload()
+    await expect(page.getByLabel('题目标题')).toHaveValue('另一标签更新的两数之和')
+  }
+  await other.close()
+  await expect(page).toHaveTitle(/Astra/)
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await page.screenshot({
+    path: path.resolve('../../.local', `problem-sync-${testInfo.project.name}.png`),
+    fullPage: true,
+  })
   await page.getByRole('button', { name: '载入测试 1', exact: true }).click()
   await expect(page.getByLabel('测试输入')).toHaveValue('10 20\n')
   const preflight = page.waitForResponse(
@@ -61,6 +98,14 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
     expect(preflightResponse.status()).toBe(404)
     await expect(page.getByRole('alert')).toBeVisible()
   }
+  await page.getByRole('link', { name: '复制为新版本' }).click()
+  await expect(page.getByLabel('题目标题')).toHaveValue('另一标签更新的两数之和')
+  const copied = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && r.url().endsWith('/problem-versions'),
+  )
+  await page.getByRole('button', { name: '保存题面' }).click()
+  expect((await copied).status()).toBe(201)
+  await expect(page.getByText('题面已保存。')).toBeVisible()
   await page.getByRole('link', { name: '我的课程', exact: true }).click()
   await openCourse(page, course)
   await page.getByRole('link', { name: '管理题目' }).click()
@@ -72,4 +117,5 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
   await page.getByRole('button', { name: '确认调整', exact: true }).click()
   await expect(page.getByRole('button', { name: '调整练习开放策略' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  expect(errors).toEqual([])
 })

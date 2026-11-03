@@ -4,9 +4,11 @@
 
 ## 1. 当前装配及数据边界
 
-正式 HTTP 入口为 `server/app/main.py:create_app`，共享 B 的 `SqlRepository`、`UnitOfWork` 和 `TransactionalEffects`。迁移单链为 b006预检→b007模板→b008提示；不要重新分叉历史迁移。启动不建库、不创建账号、不插入模拟提交。前端生成类型来自 `specs/openapi.yaml`，API 统一前缀 `/api/v1`。
+2026-11-03收尾复核基线为main `cd65926`，PR10已经合入，代码树与此前审查的`81ec585`一致；提交/成绩/管理与学习来源已在主线。B正在推进的`feat/b/course-delivery`未另行合入。当前分工与待办见[复核报告](reports/2026-11-03-a-progress-review.md)。
 
-`create_app` 接受 `learning_results`、`hint_sources`、`hint_configuration`。默认没有 B 来源，相关接口明确503；本批模型运行配置及独立 Worker 的最终命令见[服务端说明](../server/README.md)，配置ID必须与 HTTP/Worker一致。模型凭据仅服务端按环境变量引用读取，不传入浏览器、数据库或普通日志。
+正式 HTTP 入口为 `server/app/main.py:create_app`，共享 B 的 `SqlRepository`、`UnitOfWork` 和 `TransactionalEffects`。本批正式迁移单链到b017（B已合并基线为b016），包含预检、模板、提示、发布引用、执行租约、提交、成绩、重评与管理留存；后续迁移须以最终合并head为基准。启动不建库、不创建账号、不插入模拟提交。前端生成类型来自 `specs/openapi.yaml`，API 统一前缀 `/api/v1`。
+
+`create_app` 接受 `learning_results`、`hint_sources`、`hint_configuration`，正式应用默认装配`SubmissionSources`。提示Worker通过可信工厂`app.modules.submissions.sources:build_sources`单独装配；模型配置未启用时仍明确拒绝新提示。最终命令见[服务端说明](../server/README.md)，配置ID必须与 HTTP/Worker一致。模型凭据仅服务端按环境变量引用读取，不传入浏览器、数据库或普通日志。
 
 自动 GET/轮询发送 `X-Astra-Background: 1`，不延长交互活跃期。写操作沿用同源 HTTPS Cookie、Origin、CSRF、统一错误和请求编号；禁止将后台轮询伪装成用户操作来维持会话。
 
@@ -14,16 +16,16 @@
 
 | 连接点 | A 提供/消费的精确接口 | B 需要提供的行为 | 联验断言与当前边界 |
 | --- | --- | --- | --- |
-| 模型提示来源 | `hint_service.Sources` 继承 `policy_rules.HintSources`；`hint_source(repo, student_id, submission_id) -> HintSource | None` | 在调用者当前事务重新确认来源可见性、归属、练习公开状态，返回 submission_id/student_id/course_id/problem_id/state/verdict/feedback_version_id | state为FINISHED，verdict为CE/WA/TLE/RE；固定帮助指向该轮冻结版本。跨账号/跨课/停用/撤销公开均拒绝，不能用合成提交填生产空缺 |
+| 模型提示来源 | `hint_service.Sources` 继承 `policy_rules.HintSources`；`hint_source(repo, student_id, submission_id) -> HintSource或None` | 在调用者当前事务重新确认作业项、来源可见性和归属，返回 submission_id/student_id/course_id/problem_id/state/verdict/feedback_version_id/result_basis_id/attempt_id/effective_version_id | state为FINISHED，verdict为CE/WA/TLE/RE；固定帮助指向该轮冻结版本。跨账号/无课程访问/停用均拒绝。截止后的作业练习使用该项有效版本，不因推荐入口关闭而拒绝。PR10已合入真实来源，本批已冻结并复验轮次/有效题面版本，不能用合成提交填生产空缺 |
 | 模型上下文 | `hint_context(repo, source) -> Record`；`model_worker.prepare_context` 处理上下文 | 只返回允许外发的公开题面/样例、本人代码、净化诊断；结构与 `prepare_context` 同步 | 不传隐藏输入、答案、参考代码、密钥或其他学生信息。先授权再读取；读取后复验来源未变，网络调用发生在事务外 |
 | 学习结果投影 | `student.LearningResults.projection(repo, actor) -> Select[Any]`，注入 `create_app(learning_results=...)` | 只读SQL列：user_id、submission_id、assignment_id、problem_id、version_id、accepted_at、context(FORMAL/PRACTICE)、verdict、effective(bool) | 保留历史学生错误，仅当前有效AC标effective；不得混入源码/测试/诊断/分数。A加入当前成员、作业和发布版本过滤，稳定排序、先授权再推荐前5题 |
 | 错题/推荐 HTTP | `GET /review-items?context=FORMAL\|PRACTICE&course_id=...&cursor=...`；`GET /recommendations?course_id=...`；`GET /practice-problems/{id}` | 提供上述投影并在重评/激活时更新有效语义 | SE不算错题；练习与正式分开；同族限制及公开版本复验。来源缺失为503而非空列表。公开题面路由不代表练习受理已接入 |
-| 教师预检 UI | `configureTeachingIntegrations({preflight:{enqueue(versionId, revision), read(id)}, submissions, ResultPanel})`；`Preflight`字段 preflight_id/state/content_digest/summary? | B 在应用组合处注入 transport，state映射QUEUED/RUNNING/PASSED/FAILED，轮询保留background语义 | A每2秒读未终态；修订改变后旧预检失效。题目发布仍由 `POST /problem-versions/{id}/publish` 校验 expected_revision/preflight_id/reason。当前总契约尚无预检HTTP路径，不在A臆造URL |
-| 提交 transport | `submissions.send(Readonly<SubmissionIntent>) -> Promise<SubmissionReceipt>` | 接收 idempotency_key/assignment_id/problem_id/language_key/code/code_sha256/intent；返回 submission_id/mode/accepted_at，由服务端决定正式性 | 未知受理保留同键原快照；同键异内容拒绝；截止跨越按B规则。默认503，不模拟成功；当前总契约尚无提交受理HTTP路径 |
+| 教师预检 UI | `POST /problem-versions/{id}/preflight`、`GET /preflights/{id}`及既有`teaching.preflight` | 已在主线注入真实HTTP，state映射QUEUED/RUNNING/PASSED/FAILED，后台轮询不续期；独立Worker执行 | 页面检查version_id/current_revision/matches_current；URL指针不构成通过证据。发布仍由服务端校验revision、同版本/内容/profile和全点AC。主线已接通，不再标为缺少HTTP；实际部署仍需启动Worker及冻结配置 |
+| 提交 transport | `submissions.send(Readonly<SubmissionIntent>) -> Promise<SubmissionReceipt>`已接`POST /submissions` | transport将idempotency_key/intent传为请求头，正文为assignment_id/problem_id/language_key/code；code_sha256是本地恢复校验，不冒充服务端摘要；回执含submission_id/mode/accepted_at | 未知受理保留同键原快照；同键异内容拒绝；截止跨越按B规则。真实接口已接通，不能再写默认503 |
 | 结果组件 | `ResultPanel?: ComponentType<{submissionId: string; onClose: () => void}>`，编辑器以受理回执ID挂载 | B 自行实现结果、历史、轮次、成绩、重评及错误/空态；关闭后回到编辑器 | 切换submission/attempt清除旧结果和帮助；不展示上一轮/他人数据。可引导 `/learning?submission_id=...#learning-hints`，仍由后端授权 |
-| 冻结固定帮助 | `GET /submissions/{id}/feedback`；`FixedHelp`组件消费返回的 `FeedbackVersion` | B 结果轮次绑定冻结feedback_version_id，从接口取本轮授权帮助再嵌入；不得读“最新帮助”替代历史版本 | 切轮次清空旧帮助；未完成判定不编造固定帮助；安全Markdown，不暴露隐藏测试。当前A浏览器仅测试组件宿主，不算B结果页联验 |
+| 冻结固定帮助 | `GET /submissions/{id}/feedback`；`FixedHelp`组件消费返回的 `FeedbackVersion` | B结果页已嵌入固定帮助，按当前结果冻结feedback_version_id | 本批公共修复同时在查询和显示检查ID，错配则丢弃帮助并刷新结果，错误可重试。浏览器控制响应样例证明竞态显示，真实重评/结果事务联验仍单列 |
 | 提示 HTTP | `POST /ai-hints`；`GET /ai-hints`；`GET /ai-hints/{hint_id}`；`POST /ai-hints/{id}/feedback` | B 来源可用后与A装配同配置；请求含 submission_id/request_key/data_sharing_consent/question? | 接纳202或同键已有结果200；读取重新授权；PENDING/READY/FAILED/BLOCKED及冻结降级明确；错误不影响评测/成绩 |
-| 公平/重评展示 | A作业页直接展示 AssignmentView 的 `fairness_review`（PENDING/RESOLVED）与非空 `fairness_notice`；暂无重评状态接口/插槽 | B 提供当前授权的真实复核状态和公告，完成裁决事务；重评进度组件、状态及路由契约另行约定 | 当前公告按纯文本显示，空态不留空面板。前端契约样例只证明显示，不证明B裁决流程；B发布/重评/公平事务规则及真实公告联验仍待B完成 |
+| 公平/重评展示 | A作业页展示AssignmentView的fairness_review/notice；B已接重评与公平处理页面及入口 | B提供真实状态/公告并完成裁决事务，A检查与原作业页的连接 | 公告纯文本、空态隐藏；B已实现不等于A已完成真实故障/延期/成绩整链验收 |
 
 `hint_context` 必需字段为 `public_problem`、`student_code`、`language_key`、`sanitized_diagnostic`、`verdict`、`public_samples`，每个公开样例含 `input`/`output`。`prepare_context` 添加 `schema_version="1"` 与学生 `question`，限制以 `server/app/modules/learning/model_worker.py` 为准。适配前共同核对测试夹具和严格校验，不将任意 B record 原样外发。接口拓展先更新契约和生成客户端，不手改 `schema.d.ts`。
 
@@ -31,9 +33,11 @@
 
 1. 核对最新 main、A/B分支及本地未推送依赖；B确认来源适配器和总契约。保持B进行中分支独立，不为演示直接合入。
 2. 在独立 `_test` 数据库运行单链空库/升级迁移，组装正式HTTP；先测真实来源的停用、跨账号、跨课、同族、公开撤销和重评有效性，再接页面。测试夹具不能进入正式装配。
-3. B注入预检/提交/结果组件，执行教师建课→版本材料→真实两语言预检→发布作业→学生草稿→受理→真实判定→冻结帮助→成绩。保留同键并发、响应丢失、跨截止、旧预检失效及切轮次证据。
+3. 主线预检、提交、结果和学习来源均已注入。执行教师建课→版本材料→真实两语言预检→发布作业→学生草稿→受理→真实判定→冻结帮助→成绩。保留同键并发、响应丢失、跨截止、旧预检失效及切轮次证据；优先执行下列重评竞态用例。
 4. 接学习投影及 Sources，用同一提交验证错题、推荐、固定帮助、提示权限；策略在排队/外发/生成/读取之间变化均拦截。Worker网络调用不得持有数据库事务；重启未知费用保留预占，不自动重发收费请求。
 5. 完成B公平公告/重评状态后，在A相关页面复验可见性和理解路径，再执行I1/I2。跨线结果以真实当前候选记录；独立规则、替身模型、真实小额模型调用、人工质量和整站联调分别计数。
+
+PR10静态与最小只读复现发现两项连接问题：本批A已补提示来源的冻结快照及四阶段身份复验，B来源提供basis/attempt/effective_version；固定帮助双GET错配也已修复。用替身模型暂停返回、两次GET之间切换结果即可验证，无需收费。证据和通过断言见[验收清单](a-acceptance-checklist.md)。本次只基于已合并主线修复连接，没有改写B进行中分支。
 
 ## 4. 可复用检查与未完成验收
 
@@ -62,3 +66,14 @@
 `AssignmentActions.test.tsx`先观察2项缺公告区域失败，再实现展示；最终该文件5项通过。类型检查及修改文件ESLint/Prettier通过。新用例中的公平内容、READY提示和错题列表按名称明确标为前端契约样例，不证明B真实来源或裁决。测试原始产物位于本机临时目录 `astra-a-ui-20261103`，最终报告和截图另复制到工作区忽略目录 `.local/a-live-ui`，最终Chromium和WebKit公平专项保留JSON报告及截图；最终交付SHA与全量检查由本次交付记录补齐。
 
 5名非开发者、实际A/B模型评分、B真实来源/结果/预检/公平/重评联调及课程环境恢复仍待完成；未完成项不因写出步骤或自动化通过而计为验收。
+
+## 6. 给队友的本批接入步骤
+
+用户确认真实运行环境及后续整站联调均由队友负责，A在本机完成代码、必要回归和远端交付，不再搭建另一套环境。
+
+1. 拉取本批PR对应提交，保留现有配置及模型预算账本，先备份再在正式server链执行 `uv run --locked alembic upgrade head`，目标b017；不要在正式库执行A验证链a007。
+2. 先保持模型enabled=false。启动服务后readiness应通过；Sources工厂不变，仍为 `app.modules.submissions.sources:build_sources`，HTTP无新增字段。
+3. 核对管理员登录管理页、教师编辑/复制题面、预检冲突重读、成绩发布理由和账号操作理由；提交结果与固定帮助ID必须匹配。
+4. 在队友环境完成真实评测及重评链；换basis/attempt/version时旧提示应BLOCKED，不能展示旧建议/旧fallback。既有无source_snapshot提示同样失败关闭，不为通过验收回填猜测身份。
+5. 来源变化不清除未知费用或重发请求。已有快照数据禁止降级删列；需要回滚时保留兼容schema并按已验证备份处理。
+6. 真实模型质量和人工评分尚未通过，不能仅凭来源修复开启课程收费后台；5人可用性、真实设备和完整恢复均按后续环境验收记录。
