@@ -162,11 +162,40 @@ class Fairness:
             min(incident["recovered_at"], old_due)
             - max(incident["started_at"], assignment["open_at"]),
         )
-        new_due = (
-            max(old_due, incident["recovered_at"], now) + max(overlap, timedelta(minutes=10))
-            if body["decision"] == "EXTEND"
-            else None
-        )
+        new_due = None
+        if body["decision"] == "EXTEND":
+            start, end = incident["started_at"], incident["recovered_at"]
+            previous = []
+            for row in self.repo.rows("incident_assignments", assignment_id=assignment_id):
+                if row["decision"] == "EXTEND":
+                    prior = self.repo.required("fairness_incidents", row["incident_id"])
+                    previous.append((row, prior))
+            credited = timedelta()
+            merged = set()
+            expanded = True
+            while expanded:
+                expanded = False
+                for row, prior in previous:
+                    if (
+                        row["incident_id"] in merged
+                        or prior["started_at"] > end
+                        or prior["recovered_at"] < start
+                    ):
+                        continue
+                    merged.add(row["incident_id"])
+                    start = min(start, prior["started_at"])
+                    end = max(end, prior["recovered_at"])
+                    credited += max(
+                        timedelta(),
+                        row["new_due"]
+                        - max(row["old_due"], prior["recovered_at"], row["approved_at"]),
+                    )
+                    expanded = True
+            overlap = max(timedelta(), min(end, old_due) - max(start, assignment["open_at"]))
+            additional = max(timedelta(), max(overlap, timedelta(minutes=10)) - credited)
+            new_due = (
+                max(old_due, incident["recovered_at"], now) + additional if additional else old_due
+            )
         self.repo.change(
             "incident_assignments",
             (body["incident_id"], assignment_id),
@@ -187,7 +216,7 @@ class Fairness:
             revision=assignment["revision"] + 1,
             updated_at=now,
         )
-        if new_due:
+        if new_due is not None and new_due != old_due:
             values.update(due_at=new_due, grade_epoch=assignment["grade_epoch"] + 1)
         self.repo.change("assignments", assignment_id, **values)
         self.effects.record(

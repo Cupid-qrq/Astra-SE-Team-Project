@@ -1,6 +1,7 @@
 from datetime import timedelta
 from uuid import uuid4
 
+import pytest
 from test_submissions import lesson as lesson
 
 from app.modules.identity.domain import utc
@@ -49,3 +50,53 @@ def test_recovered_incident_extends_whole_assignment_and_delivers_one_notificati
         deliver(repo)
         deliver(repo)
         assert len(repo.rows("notifications", user_id=ids["student"])) == 1
+
+
+@pytest.mark.parametrize("second_start_minutes,expected_extra", [(4, 0), (2, 0), (1, 10)])
+def test_overlapping_or_adjacent_incidents_share_one_minimum_compensation(
+    lesson, second_start_minutes, expected_extra
+):
+    from app.modules.operations.fairness import Fairness
+
+    engine, ids = lesson
+    with engine.begin() as conn:
+        repo = SqlRepository(conn)
+        service = Fairness(repo, TransactionalEffects(repo, str(uuid4())))
+        admin = repo.required("users", ids["admin"])
+        teacher = repo.required("users", ids["teacher"])
+        now = repo.now()
+        old_due = repo.required("assignments", ids["assignment"])["due_at"]
+        for start, end in [
+            (now - timedelta(minutes=4), now - timedelta(minutes=2)),
+            (now - timedelta(minutes=second_start_minutes), now),
+        ]:
+            event = service.create(
+                admin,
+                dict(
+                    started_at=utc(start),
+                    assignment_ids=[ids["assignment"]],
+                    reason_code="JUDGE_UNAVAILABLE",
+                    reason="evidence",
+                    evidence_refs=[],
+                    evidence_incomplete=True,
+                ),
+            )
+            service.recovery(
+                admin,
+                event["incident_id"],
+                dict(recovered_at=utc(end), expected_revision=1, reason="restored"),
+            )
+            assignment = repo.required("assignments", ids["assignment"])
+            service.decide(
+                teacher,
+                ids["assignment"],
+                dict(
+                    incident_id=event["incident_id"],
+                    decision="EXTEND",
+                    reason="compensation",
+                    expected_revision=assignment["revision"],
+                ),
+            )
+        assert repo.required("assignments", ids["assignment"])["due_at"] == old_due + timedelta(
+            minutes=10 + expected_extra
+        )
