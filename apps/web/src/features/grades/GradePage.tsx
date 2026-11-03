@@ -82,12 +82,14 @@ export function GradePage() {
         <section className="panel stack">
           <TextArea
             label="成绩发布理由"
+            hint="请填写 10–500 字的发布理由。"
+            minLength={10}
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             maxLength={500}
           />
           <Button
-            disabled={!reason.trim() || value.state === 'PUBLISHED'}
+            disabled={[...reason.trim()].length < 10 || value.state === 'PUBLISHED'}
             onClick={() =>
               setCommand({ expected_revision: value.assignment_revision, reason: reason.trim() })
             }

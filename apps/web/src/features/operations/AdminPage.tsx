@@ -93,6 +93,7 @@ export function AdminPage() {
       </div>
       <TextArea
         label="管理操作理由"
+        hint={tab === 'users' ? '账号操作请填写 10–500 字的理由。' : undefined}
         value={reason}
         onChange={(event) => setReason(event.target.value)}
         maxLength={500}
@@ -148,7 +149,7 @@ export function AdminPage() {
             />
             <Button
               type="submit"
-              disabled={!reason.trim() || password.length < 12}
+              disabled={[...reason.trim()].length < 10 || password.length < 12}
               busy={action.isPending}
             >
               创建账号
@@ -166,7 +167,7 @@ export function AdminPage() {
                   {user.role} · {user.status}
                 </p>
                 <Button
-                  disabled={!reason.trim()}
+                  disabled={[...reason.trim()].length < 10}
                   busy={action.isPending}
                   onClick={() =>
                     action.mutate(() =>
@@ -181,7 +182,7 @@ export function AdminPage() {
                   {user.status === 'ACTIVE' ? '停用账号' : '恢复账号'}
                 </Button>
                 <Button
-                  disabled={!reason.trim() || password.length < 12}
+                  disabled={[...reason.trim()].length < 10 || password.length < 12}
                   busy={action.isPending}
                   onClick={() =>
                     action.mutate(() =>
