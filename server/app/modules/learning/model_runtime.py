@@ -21,6 +21,7 @@ from app.adapters.judge0 import strict_json
 from app.modules.identity.ports import Record, Repository
 
 from .model_worker import FrozenModel
+from .output_safety import has_forbidden_markup
 
 PRICES = PriceSnapshot(Decimal("0.04"), Decimal("2"), Decimal("8"))
 
@@ -235,7 +236,6 @@ class RuntimeProfile:
 def content_gate(sections: dict[str, str]) -> bool:
     """Reject obvious code/markup/prompt disclosure. A heuristic, not semantic assurance."""
     blocked = re.compile(
-        r"```|<\s*/?\s*[a-zA-Z][\w:-]*(?:\s[^>]*)?>|"
         r"\b(?:def|class)\s+\w+\s*[:(]|\b(?:int|void|auto)\s+main\s*\(|"
         r"(?m:^\s*(?:import\s|from\s+\w+\s+import|#include\s|using namespace))|"
         r"\b(?:os\.system|subprocess\.|eval\s*\(|exec\s*\()|"
@@ -244,6 +244,9 @@ def content_gate(sections: dict[str, str]) -> bool:
         re.IGNORECASE,
     )
     return bool(sections) and all(
-        isinstance(value, str) and bool(value.strip()) and not blocked.search(value)
+        isinstance(value, str)
+        and bool(value.strip())
+        and not has_forbidden_markup(value)
+        and not blocked.search(value)
         for value in sections.values()
     )

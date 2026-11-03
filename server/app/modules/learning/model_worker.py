@@ -18,6 +18,8 @@ from jsonschema import Draft202012Validator
 
 from app.modules.identity.ports import Record
 
+from .output_safety import has_forbidden_markup
+
 SCHEMAS = Path(__file__).resolve().parents[4] / "specs" / "model"
 
 
@@ -209,10 +211,7 @@ async def evaluate_candidate(
     try:
         # Reject active markup and code fences before the caller's semantic safety review.
         safe = (
-            not any(
-                re.search(r"```|<\s*/?\s*[a-zA-Z][\w:-]*(?:\s[^>]*)?>", s)
-                for s in sections.values()
-            )
+            not any(has_forbidden_markup(s) for s in sections.values())
             and content_check(sections.copy()) is True
         )
     except Exception:
