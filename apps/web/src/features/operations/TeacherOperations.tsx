@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../../app/runtime'
@@ -11,7 +11,12 @@ import type { components } from '../../lib/api/schema'
 export function TeacherOperations() {
   const { id = '' } = useParams()
   const assignment = useQuery({ queryKey: ['assignment', id], queryFn: () => api.assignment(id) })
-  const incidents = useQuery({ queryKey: ['incidents'], queryFn: () => api.incidents() })
+  const incidents = useInfiniteQuery({
+    queryKey: ['incidents'],
+    queryFn: ({ pageParam }) => api.incidents(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.next_cursor || undefined,
+  })
   const [problem, setProblem] = useState('')
   const [version, setVersion] = useState('')
   const [reason, setReason] = useState('')
@@ -195,7 +200,8 @@ export function TeacherOperations() {
       </section>
       <section className="panel stack">
         <h2>公平事件裁决</h2>
-        {incidents.data?.items
+        {incidents.data?.pages
+          .flatMap((page) => page.items)
           .filter((event) => event.assignments.some((row) => row.assignment_id === id))
           .map((event) => (
             <article key={event.incident_id}>
@@ -227,6 +233,14 @@ export function TeacherOperations() {
             </article>
           ))}
         {decision.error && <p role="alert">{decision.error.message}</p>}
+        {incidents.hasNextPage && (
+          <Button
+            busy={incidents.isFetchingNextPage}
+            onClick={() => void incidents.fetchNextPage()}
+          >
+            加载更多公平事件
+          </Button>
+        )}
         {incidents.isError && <p role="alert">{incidents.error.message}</p>}
       </section>
     </>

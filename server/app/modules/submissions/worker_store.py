@@ -364,6 +364,12 @@ class SubmissionStore:
                 "processing_cycles", cycle["cycle_id"], capacity_held=False, finished_at=now
             )
             repo.change("result_bases", attempt["basis_id"], processing_state="FINISHED")
+            if batch is not None:
+                repo.change(
+                    "rejudge_members",
+                    (batch["batch_id"], attempt["submission_id"]),
+                    state="FINISHED",
+                )
             if verdict == "SE" and (batch is None or batch["state"] != "CANCELLED"):
                 from app.modules.operations.fairness import note_platform_failure
 

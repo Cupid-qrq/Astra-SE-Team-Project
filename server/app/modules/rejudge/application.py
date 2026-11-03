@@ -8,7 +8,7 @@ from sqlalchemy import select
 from app.modules.assignments.application import Assignments
 from app.modules.grades.application import Grades
 from app.modules.identity.domain import require, revision
-from app.modules.submissions.models import bases, submissions
+from app.modules.submissions.models import bases, cycles, submissions
 from app.modules.submissions.processing import start_cycle
 from app.shared.effects import TransactionalEffects
 from app.shared.repository import SqlRepository
@@ -334,6 +334,13 @@ class Rejudges:
             if capacity["pending_count"] >= 100:
                 return
             submission = repo.get("submissions", member["submission_id"])
+            held = repo.connection.execute(
+                select(cycles.c.cycle_id)
+                .where(cycles.c.submission_id == member["submission_id"], cycles.c.capacity_held)
+                .limit(1)
+            ).first()
+            if held is not None:
+                continue
             counter = repo.get("admission_users", submission["user_id"], lock=True)
             if counter["pending_count"] >= 3:
                 continue

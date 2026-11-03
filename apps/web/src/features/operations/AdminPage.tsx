@@ -36,9 +36,11 @@ export function AdminPage() {
     getNextPageParam: (p) => p.next_cursor || undefined,
     enabled: tab === 'jobs',
   })
-  const incidents = useQuery({
+  const incidents = useInfiniteQuery({
     queryKey: ['incidents'],
-    queryFn: () => api.incidents(),
+    queryFn: ({ pageParam }) => api.incidents(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.next_cursor || undefined,
     enabled: tab === 'incidents',
   })
   const audit = useInfiniteQuery({
@@ -294,34 +296,45 @@ export function AdminPage() {
               登记并通知教师裁决
             </Button>
           </section>
+          {incidents.hasNextPage && (
+            <Button
+              busy={incidents.isFetchingNextPage}
+              onClick={() => void incidents.fetchNextPage()}
+            >
+              加载更多公平事件
+            </Button>
+          )}
           {incidents.error && <p role="alert">{incidents.error.message}</p>}
-          {incidents.data?.items.map((event) => (
-            <article className="panel stack" key={event.incident_id}>
-              <p className="template-text">事件 {event.incident_id}</p>
-              <p>
-                开始 {beijingTime(event.started_at)} · {event.recovered_at ? '已恢复' : '尚未恢复'}
-              </p>
-              {!event.recovered_at && (
-                <Button
-                  disabled={!reason.trim()}
-                  busy={action.isPending}
-                  onClick={() =>
-                    action.mutate(() =>
-                      api.adminHealth().then((health) =>
-                        api.recoverIncident(event.incident_id, {
-                          recovered_at: health.server_time,
-                          expected_revision: event.revision,
-                          reason,
-                        }),
-                      ),
-                    )
-                  }
-                >
-                  确认现已恢复
-                </Button>
-              )}
-            </article>
-          ))}
+          {incidents.data?.pages
+            .flatMap((page) => page.items)
+            .map((event) => (
+              <article className="panel stack" key={event.incident_id}>
+                <p className="template-text">事件 {event.incident_id}</p>
+                <p>
+                  开始 {beijingTime(event.started_at)} ·{' '}
+                  {event.recovered_at ? '已恢复' : '尚未恢复'}
+                </p>
+                {!event.recovered_at && (
+                  <Button
+                    disabled={!reason.trim()}
+                    busy={action.isPending}
+                    onClick={() =>
+                      action.mutate(() =>
+                        api.adminHealth().then((health) =>
+                          api.recoverIncident(event.incident_id, {
+                            recovered_at: health.server_time,
+                            expected_revision: event.revision,
+                            reason,
+                          }),
+                        ),
+                      )
+                    }
+                  >
+                    确认现已恢复
+                  </Button>
+                )}
+              </article>
+            ))}
         </>
       )}
       {tab === 'audit' && (

@@ -16,7 +16,7 @@ try {
  & $taskPython tools/create_demo_tls.py (Join-Path $taskDirectory 'tls')
  if($LASTEXITCODE -ne 0){throw '本地TLS准备失败'}
  Push-Location (Join-Path $taskRoot 'apps/web')
- try { & pnpm run build; if($LASTEXITCODE -ne 0){throw '前端构建失败'} } finally {Pop-Location}
+ try { & pnpm exec tsc -b; if($LASTEXITCODE -ne 0){throw '前端类型检查失败'}; & node node_modules/vite/bin/vite.js build --outDir (Join-Path $taskDirectory 'dist'); if($LASTEXITCODE -ne 0){throw '前端构建失败'} } finally {Pop-Location}
  $env:ASTRA_DEMO_TLS=Join-Path $taskDirectory 'tls'
  $env:VITE_API_PROXY_TARGET='http://127.0.0.1:8021'
  $taskProcesses=@()
@@ -31,7 +31,7 @@ try {
  }
  $taskNode=(Get-Command node).Source
  $taskVite=Join-Path $taskRoot 'apps/web/node_modules/vite/bin/vite.js'
- $taskProcess=Start-Process -FilePath $taskNode -ArgumentList @($taskVite,'preview','--host','127.0.0.1','--port','4176','--strictPort') -WorkingDirectory (Join-Path $taskRoot 'apps/web') -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskDirectory 'web.out.log') -RedirectStandardError (Join-Path $taskDirectory 'web.err.log') -PassThru
+ $taskProcess=Start-Process -FilePath $taskNode -ArgumentList @($taskVite,'preview','--outDir',(Join-Path $taskDirectory 'dist'),'--host','127.0.0.1','--port','4176','--strictPort') -WorkingDirectory (Join-Path $taskRoot 'apps/web') -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskDirectory 'web.out.log') -RedirectStandardError (Join-Path $taskDirectory 'web.err.log') -PassThru
  $taskProcesses+=@{name='web';id=$taskProcess.Id;started=$taskProcess.StartTime.ToUniversalTime().ToString('o')}
  $taskProcesses|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $taskDirectory 'processes.json') -Encoding utf8
  Write-Output '演示地址 https://localhost:4176；进程与日志位于 .local/course-demo。'

@@ -119,3 +119,128 @@ def test_full_rejudge_keeps_old_grade_until_atomic_activation_and_can_lower_scor
             Grades(repo, effects).snapshot(actor, old["grade_version"])["students"][0]["total"]
             == 100
         )
+
+
+def batch_after_initial_failure(queued):
+    from app.modules.identity.domain import utc
+    from app.modules.operations.fairness import Fairness
+    from app.modules.rejudge.application import Rejudges
+    from app.modules.submissions.worker_store import SubmissionStore
+
+    engine, ids, _, _ = queued
+    store = SubmissionStore(engine)
+    for _ in range(2):
+        claim = store.claim()
+        store.begin_case(claim, 1)
+        store.record_case(claim, 1, "SE", None, None)
+    target = replacement(engine, ids)
+    with engine.begin() as conn:
+        repo = SqlRepository(conn)
+        effects = TransactionalEffects(repo, str(uuid4()))
+        fairness = Fairness(repo, effects)
+        incident = repo.rows("fairness_incidents")[0]
+        fairness.recovery(
+            repo.required("users", ids["admin"]),
+            incident["incident_id"],
+            dict(
+                recovered_at=utc(repo.now()),
+                expected_revision=incident["revision"],
+                reason="restored",
+            ),
+        )
+        assignment = repo.required("assignments", ids["assignment"])
+        fairness.decide(
+            repo.required("users", ids["teacher"]),
+            ids["assignment"],
+            dict(
+                incident_id=incident["incident_id"],
+                decision="NO_IMPACT",
+                reason="checked",
+                expected_revision=assignment["revision"],
+            ),
+        )
+        conn.execute(text("UPDATE assignments SET due_at=clock_timestamp()-interval '1 second'"))
+        assignment = repo.required("assignments", ids["assignment"])
+        service = Rejudges(repo, effects)
+        actor = repo.required("users", ids["teacher"])
+        preview = service.preview(
+            actor,
+            ids["assignment"],
+            dict(
+                problem_id=ids["problem"],
+                new_version_id=target,
+                expected_revision=assignment["revision"],
+            ),
+        )
+        batch = service.create(
+            actor,
+            ids["assignment"],
+            dict(
+                new_version_id=target,
+                expected_revision=assignment["revision"],
+                range_checksum=preview["range_checksum"],
+                reason="rejudge",
+            ),
+        )
+    return batch
+
+
+def test_rejudge_dispatch_waits_for_existing_manual_cycle(queued):
+    from app.modules.operations.application import Operations
+    from app.modules.submissions.worker_store import SubmissionStore
+
+    engine, ids, _, receipt = queued
+    batch_after_initial_failure(queued)
+    with engine.begin() as conn:
+        repo = SqlRepository(conn)
+        service = Operations(repo, TransactionalEffects(repo, str(uuid4())))
+        submission = repo.required("submissions", receipt["submission_id"])
+        service.retry(
+            repo.required("users", ids["admin"]),
+            submission["submission_id"],
+            dict(expected_revision=submission["revision"], reason="manual retry"),
+        )
+    assert SubmissionStore(engine).claim() is not None
+
+
+def test_active_rejudge_allows_no_impact_decision_after_recovery(queued):
+    from app.modules.identity.domain import utc
+    from app.modules.operations.fairness import Fairness
+    from app.modules.submissions.worker_store import SubmissionStore
+
+    engine, ids, _, _ = queued
+    batch_after_initial_failure(queued)
+    store = SubmissionStore(engine)
+    for _ in range(2):
+        claim = store.claim()
+        store.begin_case(claim, 1)
+        store.record_case(claim, 1, "SE", None, None)
+    with engine.begin() as conn:
+        repo = SqlRepository(conn)
+        service = Fairness(repo, TransactionalEffects(repo, str(uuid4())))
+        incident = repo.rows("fairness_incidents", recovered_at=None)[0]
+        admin = repo.required("users", ids["admin"])
+        teacher = repo.required("users", ids["teacher"])
+        service.recovery(
+            admin,
+            incident["incident_id"],
+            dict(
+                expected_revision=incident["revision"],
+                recovered_at=utc(repo.now()),
+                reason="restored",
+            ),
+        )
+        assignment = repo.required("assignments", ids["assignment"])
+        assert (
+            service.decide(
+                teacher,
+                ids["assignment"],
+                dict(
+                    expected_revision=assignment["revision"],
+                    incident_id=incident["incident_id"],
+                    decision="NO_IMPACT",
+                    reason="no submission opportunity affected",
+                ),
+            )["fairness_review"]
+            == "RESOLVED"
+        )

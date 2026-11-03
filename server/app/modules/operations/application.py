@@ -202,7 +202,9 @@ def deliver(repo):
                             user_id=uid,
                             event_key=key,
                             title=title,
-                            body="作业 " + str(aid) + " 有更新，请从课程进入查看。",
+                            body=("平台事件 " + object_id + " 等待处理，请进入重评与公平处理。")
+                            if event["event_type"].startswith("INCIDENT")
+                            else "作业 " + str(aid) + " 有更新，请从课程进入查看。",
                             created_at=repo.now(),
                             read_at=None,
                         ),

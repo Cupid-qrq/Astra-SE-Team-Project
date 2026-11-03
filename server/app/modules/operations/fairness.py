@@ -146,7 +146,12 @@ class Fairness:
         )
         require(link["decision"] == "PENDING", "REVISION_CONFLICT", "该事件已裁决。")
         require(incident["recovered_at"] is not None, "NOT_READY", "请先登记故障恢复。")
-        require(assignment["active_rejudge_batch_id"] is None, "ACTIVE_REJUDGE", "请先取消重评。")
+        if body["decision"] == "EXTEND":
+            require(
+                assignment["active_rejudge_batch_id"] is None,
+                "ACTIVE_REJUDGE",
+                "延期前请先取消重评。",
+            )
         require(
             body["decision"] in ("EXTEND", "NO_IMPACT"), "VALIDATION_ERROR", "裁决类型无效。", 422
         )
