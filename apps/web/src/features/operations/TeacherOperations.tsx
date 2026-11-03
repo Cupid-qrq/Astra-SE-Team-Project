@@ -135,7 +135,7 @@ export function TeacherOperations() {
               .filter((row) => row.published_at)
               .map((row) => (
                 <option key={row.version_id} value={row.version_id}>
-                  版本 {row.revision} · {row.title}
+                  修订 {row.revision} · {row.title}
                 </option>
               ))}
           </select>

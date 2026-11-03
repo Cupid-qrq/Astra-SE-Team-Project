@@ -206,7 +206,8 @@ export function createApiClient({
       unwrap(client.POST('/rejudge-batches/{id}/retry', { params: { path: { id } }, body })),
     retrySubmission: (id: string, body: { expected_revision: number; reason: string }) =>
       unwrap(client.POST('/submissions/{id}/retry', { params: { path: { id } }, body })),
-    adminHealth: () => unwrap(client.GET('/admin/health')),
+    adminHealth: () =>
+      unwrap(client.GET('/admin/health', { headers: { 'X-Astra-Background': '1' } })),
     adminJobs: (cursor?: string) =>
       unwrap(client.GET('/admin/jobs', { params: { query: { cursor } } })),
     adminUsers: (cursor?: string) =>

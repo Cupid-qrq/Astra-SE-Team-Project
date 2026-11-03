@@ -153,3 +153,24 @@ it('预检写请求带CSRF和revision，状态轮询明确使用后台请求头'
   expect(requests[1].headers.get('X-CSRF-Token')).toBe('preflight-csrf')
   expect(requests[2].headers.get('X-Astra-Background')).toBe('1')
 })
+
+it('管理员健康轮询使用后台标记，避免延长空闲会话', async () => {
+  const requests: Request[] = []
+  const api = createApiClient({
+    baseUrl: 'https://test.invalid/api/v1',
+    fetch: async (request) => {
+      requests.push(request)
+      return Response.json({
+        database: 'READY',
+        server_time: '2026-11-03T00:00:00Z',
+        pending: 0,
+        slot_state: 'FREE',
+        disk_free_bytes: 1,
+        clock_skew_ms: 0,
+        budget: [],
+      })
+    },
+  })
+  await api.adminHealth()
+  expect(requests[0].headers.get('X-Astra-Background')).toBe('1')
+})
