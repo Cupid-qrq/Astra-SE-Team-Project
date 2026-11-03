@@ -7,6 +7,19 @@ from app.shared.effects import TransactionalEffects
 from app.shared.repository import SqlRepository
 
 
+def has_uncovered_interval(start, end, segments):
+    cursor = start
+    for left, right in sorted(segments):
+        if right < cursor:
+            continue
+        if left > cursor:
+            return True
+        cursor = max(cursor, right)
+        if cursor >= end:
+            return False
+    return True
+
+
 class Fairness:
     def __init__(self, repo: SqlRepository, effects: TransactionalEffects):
         self.repo, self.effects = repo, effects
@@ -192,10 +205,24 @@ class Fairness:
                     )
                     expanded = True
             overlap = max(timedelta(), min(end, old_due) - max(start, assignment["open_at"]))
-            additional = max(timedelta(), max(overlap, timedelta(minutes=10)) - credited)
-            new_due = (
-                max(old_due, incident["recovered_at"], now) + additional if additional else old_due
-            )
+            segments = [
+                (prior["started_at"], prior["recovered_at"])
+                for row, prior in previous
+                if row["incident_id"] in merged
+            ]
+            if not has_uncovered_interval(
+                incident["started_at"], incident["recovered_at"], segments
+            ):
+                new_due = old_due
+            else:
+                additional = max(timedelta(), max(overlap, timedelta(minutes=10)) - credited)
+                new_due = (
+                    max(old_due, incident["recovered_at"], now) + additional
+                    if additional
+                    else old_due
+                )
+                # A continuing outage must not consume the entire previously granted window.
+                new_due = max(new_due, max(incident["recovered_at"], now) + timedelta(minutes=10))
         self.repo.change(
             "incident_assignments",
             (body["incident_id"], assignment_id),
