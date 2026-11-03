@@ -1,5 +1,73 @@
 import { expect, test } from '@playwright/test'
 
+test('前端契约样例：公平公告安全展示、状态更新、键盘与窄屏', async ({ page, browser }, info) => {
+  const errors: string[] = []
+  const consoleProblems: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('console', (message) => {
+    if (['error', 'warning'].includes(message.type())) consoleProblems.push(message.text())
+  })
+  const id = '10000000-0000-4000-8000-000000000001'
+  let review = 'PENDING'
+  let notice: string | null = null
+  await page.route('**/api/v1/assignments/' + id, (route) =>
+    route.fulfill({
+      json: {
+        assignment_id: id,
+        course_id: id,
+        title: '公告展示检查',
+        state: 'OPEN',
+        revision: 1,
+        items: [],
+        open_at: '2020-01-01T00:00:00.000Z',
+        due_at: '2030-01-01T00:00:00.000Z',
+        server_time: '2026-11-03T00:00:00.000Z',
+        ai_policy: 'DISABLED',
+        grade_state: 'PROVISIONAL',
+        fairness_review: review,
+        fairness_notice: notice,
+      },
+    }),
+  )
+  await page.goto('/login')
+  await page.getByLabel('账号', { exact: true }).fill('student_a')
+  await page.getByLabel('密码', { exact: true }).fill('ExamplePassword123!')
+  await page.getByRole('button', { name: '登录', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '我的课程', exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: '编辑器测试课程', exact: true })).toBeVisible()
+  await page.goto('/assignments/' + id)
+  await expect(page).toHaveTitle('Astra · 课程编程学习平台')
+  await expect(page).toHaveURL(new RegExp('/assignments/' + id + '$'))
+  const announcement = page.getByRole('region', { name: '公平与作业公告' })
+  await expect(announcement).toContainText('公平复核中')
+  const skip = page.getByRole('link', { name: '跳到主要内容' })
+  // Playwright's Windows WebKit defaults to tabbing form controls, skipping all links.
+  // Check keyboard activation there; Chromium additionally checks natural Tab discovery.
+  if (browser.browserType().name() === 'webkit') await skip.focus()
+  else await page.keyboard.press('Tab')
+  await expect(skip).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('main')).toBeFocused()
+  await page.screenshot({ path: info.outputPath('fairness-pending.png'), fullPage: true })
+  review = 'RESOLVED'
+  notice = '已统一延期，请以页面截止时间为准。\n<img src=x onerror=alert(1)> ' + 'x'.repeat(100)
+  await page.reload()
+  await expect(announcement).toContainText('公平复核已处理')
+  await expect(announcement).toContainText('<img src=x onerror=alert(1)>')
+  await expect(announcement.locator('img')).toHaveCount(0)
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0)
+  expect(errors).toEqual([])
+  expect(consoleProblems).toEqual([])
+  await page.screenshot({ path: info.outputPath('fairness-resolved.png'), fullPage: true })
+  console.log(`A fairness browser: ${browser.browserType().name()} ${browser.version()}`)
+  review = 'NONE'
+  notice = null
+  await page.reload()
+  await expect(page.getByRole('heading', { name: '公告展示检查' })).toBeVisible()
+  await expect(announcement).toHaveCount(0)
+})
+
 test('真实数据库：创建发布作业并进入学生编辑器，异常保留代码和刷新恢复', async ({ page }, info) => {
   await page.goto('/login')
   await page.getByLabel('账号', { exact: true }).fill('teacher_a')

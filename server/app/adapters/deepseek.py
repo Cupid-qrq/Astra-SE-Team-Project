@@ -3,12 +3,12 @@
 import json
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 
 import httpx
 
-from app.adapters.judge0 import sensitive_transport
+from app.adapters.judge0 import sensitive_transport, strict_json
 from app.modules.identity.ports import Record
 from app.modules.learning.model_worker import (
     FrozenModel,
@@ -60,7 +60,19 @@ class PriceSnapshot:
         ) / 1_000_000
 
 
+@dataclass(frozen=True, init=False)
 class DeepSeekTransport:
+    _token: str = field(repr=False)
+    model_id: str
+    template_id: str
+    config_id: str | None
+    version_label: str
+    body: str = field(repr=False)
+    prices: PriceSnapshot
+    count_tokens: Callable[[list[dict[str, str]]], int] = field(repr=False)
+    transport: httpx.AsyncBaseTransport | None = field(repr=False)
+    conservative_billing: bool
+
     def __init__(
         self,
         *,
@@ -73,6 +85,7 @@ class DeepSeekTransport:
         transport: httpx.AsyncBaseTransport | None = None,
         config_id: str | None = None,
         version_label: str | None = None,
+        conservative_billing: bool = False,
     ):
         if not token or not model_id or not template_id or template.get("schema_version") != "1":
             raise ValueError("MODEL_CONFIG_INVALID")
@@ -82,12 +95,43 @@ class DeepSeekTransport:
         ):
             raise ValueError("MODEL_PRICE_INVALID")
         validate_template(template)
-        self._token, self.model_id, self.template_id = token, model_id, template_id
-        self.config_id, self.version_label = config_id, version_label or model_id
-        self.body, self.prices = template["body"], prices
-        self.count_tokens, self.transport = count_tokens, transport
+        for name, value in dict(
+            _token=token,
+            model_id=model_id,
+            template_id=template_id,
+            config_id=config_id,
+            version_label=version_label or model_id,
+            body=template["body"],
+            prices=prices,
+            count_tokens=count_tokens,
+            transport=transport,
+            conservative_billing=conservative_billing,
+        ).items():
+            object.__setattr__(self, name, value)
 
     async def generate(self, context: Record, model: FrozenModel) -> ModelReply:
+        # Raw HTTP/JSON exceptions may carry credentials, response bodies and owner code.
+        # Raise a safe exception after leaving the handler so __context__ stays empty.
+        failure = "MODEL_RESPONSE_UNAVAILABLE"
+        try:
+            return await self._generate(context, model)
+        except ModelNotDispatched:
+            failure = "MODEL_NOT_DISPATCHED"
+        except ModelRateLimited:
+            failure = "MODEL_RATE_LIMITED"
+        except TimeoutError:
+            failure = "MODEL_TIMEOUT"
+        except Exception:
+            pass
+        if failure == "MODEL_NOT_DISPATCHED":
+            raise ModelNotDispatched(failure)
+        if failure == "MODEL_RATE_LIMITED":
+            raise ModelRateLimited(failure)
+        if failure == "MODEL_TIMEOUT":
+            raise TimeoutError(failure)
+        raise ValueError(failure)
+
+    async def _generate(self, context: Record, model: FrozenModel) -> ModelReply:
         if (model.model_version, model.template_version_id) != (
             self.version_label,
             self.template_id,
@@ -135,6 +179,7 @@ class DeepSeekTransport:
                         "model": self.model_id,
                         "messages": messages,
                         "stream": False,
+                        "thinking": {"type": "disabled"},
                         "max_tokens": model.max_output_tokens,
                         "response_format": {"type": "json_object"},
                     },
@@ -151,14 +196,26 @@ class DeepSeekTransport:
                         if len(raw) + len(chunk) > 131072:
                             raise ValueError("MODEL_RESPONSE_LIMIT")
                         raw.extend(chunk)
-        data = json.loads(raw)
+        data = strict_json(bytes(raw))
+        if (
+            not isinstance(data, dict)
+            or not isinstance(data.get("choices"), list)
+            or len(data["choices"]) != 1
+        ):
+            raise ValueError("MODEL_RECEIPT_INVALID")
+        if self.conservative_billing and data.get("model") != self.model_id:
+            raise ValueError("MODEL_RECEIPT_INVALID")
         choice = data["choices"][0]
+        if not isinstance(choice, dict) or not isinstance(choice.get("message"), dict):
+            raise ValueError("MODEL_RECEIPT_INVALID")
         usage = data.get("usage")
         charge = self.prices.charge(usage, model) if isinstance(usage, dict) else None
         body = choice["message"]["content"] if choice.get("finish_reason") == "stop" else ""
         return ModelReply(
             body if isinstance(body, str) else "",
-            charge,
+            None if self.conservative_billing else charge,
             usage=usage if isinstance(usage, dict) else None,
             provider_request_id=data.get("id"),
+            estimated_cost_cny=charge if self.conservative_billing else None,
+            provider_model=data.get("model") if data.get("model") == self.model_id else None,
         )

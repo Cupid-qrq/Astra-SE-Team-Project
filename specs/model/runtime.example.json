@@ -1,0 +1,15 @@
+{
+  "schema_version": "1",
+  "enabled": false,
+  "provider": "deepseek",
+  "base_url": "https://api.deepseek.com",
+  "model_id": "deepseek-flash",
+  "version_label": "deepseek-flash@2026-11-03-nonthinking",
+  "api_key_env": "DeepSeek_API",
+  "max_input_tokens": 32768,
+  "max_output_tokens": 1024,
+  "price_verified_at": "2026-11-03T00:00:00Z",
+  "terms_review_ref": "docs/reports/2026-11-03-a-live-model.md",
+  "prices": {"cached_input": "0.04", "uncached_input": "2", "output": "8"},
+  "project_budget_cny": "20"
+}

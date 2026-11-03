@@ -2,6 +2,7 @@
 
 import hmac
 import json
+import os
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from copy import deepcopy
@@ -29,6 +30,7 @@ from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
 from app.modules.learning.application import Learning
 from app.modules.learning.hint_service import HintService, Sources
+from app.modules.learning.model_runtime import RuntimeProfile
 from app.modules.learning.student import LearningResults, StudentLearning
 from app.modules.problems.application import Problems
 from app.shared.config import Settings
@@ -46,8 +48,16 @@ def create_app(
     learning_results: LearningResults | None = None,
     hint_sources: Sources | None = None,
     hint_configuration: str | None = None,
+    model_profile: RuntimeProfile | None = None,
 ) -> FastAPI:
     settings = settings or Settings.from_env()
+    profile_path = os.environ.get("ASTRA_MODEL_PROFILE_FILE")
+    if model_profile is None and profile_path:
+        model_profile = RuntimeProfile.from_file(profile_path)
+    if model_profile is not None:
+        if hint_configuration is not None and hint_configuration != model_profile.config_id:
+            raise ValueError("MODEL_CONFIG_CHANGED")
+        hint_configuration = model_profile.config_id if model_profile.enabled else None
     owned = engine is None
     database = engine if engine is not None else create_database_engine(settings.database_url)
     configuration = settings
@@ -71,6 +81,7 @@ def create_app(
         openapi_url=None,
         lifespan=lifespan,
     )
+    app.state.hint_configuration = hint_configuration
 
     @app.middleware("http")
     async def protocol(
@@ -199,7 +210,12 @@ def create_app(
                         courses=Courses(repo, effects),
                         problems=Problems(repo, effects),
                         assignments=Assignments(repo, effects),
-                        hints=HintService(repo, hint_sources, hint_configuration),
+                        hints=HintService(
+                            repo,
+                            hint_sources,
+                            hint_configuration,
+                            model_profile.project_budget_cny if model_profile else None,
+                        ),
                         learning=Learning(repo, effects),
                         actor=actor,
                         token=token,
