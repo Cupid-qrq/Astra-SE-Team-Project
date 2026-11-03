@@ -78,6 +78,10 @@ class WorkerStore:
             repo = SqlRepository(conn)
             slot = self._lock(repo)
             now = repo.now()
+            from app.modules.operations.controls import current_config
+
+            if not current_config(repo)["payload"]["judge_enabled"]:
+                return None
             if slot["state"] != "FREE":
                 return None
             pending_students = conn.scalar(

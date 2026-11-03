@@ -6,7 +6,8 @@ import { Button } from '../../components/ui/Button'
 import { StatePanel } from '../../components/ui/StatePanel'
 import { TextArea } from '../../components/ui/TextArea'
 import { beijingTime } from '../assignments/time'
-import { SubmissionContent, verdictLabels } from './SubmissionResult'
+import { SubmissionContent } from './SubmissionResult'
+import { verdictLabels } from './resultLabels'
 
 export function SubmissionPage() {
   const { id = '' } = useParams()

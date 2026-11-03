@@ -33,6 +33,17 @@ class SqlRepository:
         row = self.connection.execute(query).mappings().first()
         return dict(row) if row is not None else None
 
+    def course_is_cleaned(self, course_id: str) -> bool:
+        return self.get("course_cleanup", course_id) is not None
+
+    def required(self, table: str, key: Any, *, lock: bool = False) -> Record:
+        from app.modules.identity.domain import Fault
+
+        row = self.get(table, key, lock=lock)
+        if row is None:
+            raise Fault(404, "NOT_FOUND", "记录不存在或无权访问。")
+        return row
+
     def rows(self, table: str, **filters: Any) -> list[Record]:
         # Complete internal collections retain A's semantics; never silently truncate.
         entity = metadata.tables[table]

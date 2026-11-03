@@ -110,6 +110,11 @@ export function AssignmentPage() {
         ))}
       </ul>
       {value.state === 'CLOSED' && <p>正式提交已截止，后续提交仅用于练习。</p>}
+      {teacher && (
+        <p>
+          <Link to={`/assignments/${id}/operations`}>重评与公平处理</Link>
+        </p>
+      )}
       {teacher && value.state !== 'ARCHIVED' && (
         <AssignmentActions value={value} reload={() => query.refetch()} />
       )}

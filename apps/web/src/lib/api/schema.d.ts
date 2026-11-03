@@ -1203,6 +1203,590 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/assignments/{id}/rejudge-preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * previewRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["previewRejudge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{id}/rejudge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * createRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["createRejudge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rejudge-batches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getRejudge"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rejudge-batches/{id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * activateRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["activateRejudge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rejudge-batches/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * cancelRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["cancelRejudge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/rejudge-batches/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * retryRejudge
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["retryRejudge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submissions/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * retrySubmission
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["retrySubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getAdminHealth
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getAdminHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getAdminJobs
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getAdminJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/audit-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getAuditEvents
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getAuditEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * createIncident
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["createIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/incidents/{id}/recovery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * recoverIncident
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        patch: operations["recoverIncident"];
+        trace?: never;
+    };
+    "/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listIncidents
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/incidents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getIncident
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getIncident"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{id}/fairness-decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * decideFairness
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["decideFairness"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listNotifications
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * markNotificationRead
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["markNotificationRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * archiveCourse
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["archiveCourse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/retention/previews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * previewRetention
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["previewRetention"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/retention/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getRetention
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getRetention"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/retention/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * confirmRetention
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["confirmRetention"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/retention/{id}/execute": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * executeRetention
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["executeRetention"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/holds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * createHold
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["createHold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/holds/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * closeHold
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["closeHold"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/runtime-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getRuntimeControl
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getRuntimeControl"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * updateRuntimeControl
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        patch: operations["updateRuntimeControl"];
+        trace?: never;
+    };
+    "/admin/emergency-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * grantEmergencyAccess
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["grantEmergencyAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/emergency-access/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * revokeEmergencyAccess
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["revokeEmergencyAccess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/emergency-access/{id}/submission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * readEmergencySubmission
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["readEmergencySubmission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{id}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 查询作业提交历史
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listAssignmentSubmissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2034,12 +2618,229 @@ export interface components {
                     source_attempt_id: string | null;
                 }[];
             }[];
+            next_cursor?: string | null;
         };
         GradePublished: {
             /** Format: uuid */
             grade_version: string;
             /** Format: date-time */
             published_at: string;
+        };
+        RejudgePreview: {
+            affected_count: number;
+            range_checksum: string;
+            languages: string[];
+            /** Format: uuid */
+            old_version_id: string;
+            /** Format: uuid */
+            new_version_id: string;
+        };
+        RejudgeCreated: {
+            /** Format: uuid */
+            batch_id: string;
+            affected_count: number;
+            state: string;
+        };
+        RejudgeStatus: {
+            /** Format: uuid */
+            batch_id: string;
+            /** Format: uuid */
+            assignment_id: string;
+            /** Format: uuid */
+            problem_id: string;
+            /** Format: uuid */
+            new_version_id: string;
+            state: string;
+            affected_count: number;
+            finished_count: number;
+            failed_count: number;
+            revision: number;
+            assignment_revision: number;
+            range_checksum: string;
+            differences: {
+                /** Format: uuid */
+                student_id: string;
+                before: number;
+                after: number;
+                delta: number;
+            }[];
+        };
+        RejudgeActivated: {
+            /** Format: uuid */
+            grade_version: string;
+            assignment_revision: number;
+        };
+        OperationRevision: {
+            revision: number;
+        };
+        OperationState: {
+            state: string;
+            revision: number;
+        };
+        RetryResult: {
+            /** Format: uuid */
+            cycle_id: string;
+            /** Format: uuid */
+            attempt_id: string;
+        };
+        BatchRetryResult: {
+            retried_count: number;
+            revision: number;
+        };
+        AdminHealth: {
+            database: string;
+            pending: number;
+            slot_state: string;
+            disk_free_bytes: number;
+            clock_skew_ms: number;
+            budget: {
+                scope: string;
+                limit: string;
+                settled: string;
+                reserved: string;
+                uncertain: string;
+            }[];
+            /** Format: date-time */
+            server_time: string;
+        };
+        AdminJob: {
+            /** Format: uuid */
+            job_id: string;
+            kind: string;
+            state: string;
+            /** Format: uuid */
+            submission_id: string;
+            revision: number;
+            verdict: string | null;
+            /** Format: uuid */
+            batch_id: string | null;
+        };
+        AdminJobPage: {
+            items: components["schemas"]["AdminJob"][];
+            next_cursor: string | null;
+        };
+        AuditEvent: {
+            /** Format: uuid */
+            event_id: string;
+            /** Format: uuid */
+            actor_id: string | null;
+            actor_kind: string;
+            action: string;
+            object_type: string;
+            /** Format: uuid */
+            object_id: string;
+            before_after_digest: string;
+            reason: string;
+            /** Format: date-time */
+            timestamp: string;
+            /** Format: uuid */
+            request_id: string;
+        };
+        AuditPage: {
+            items: components["schemas"]["AuditEvent"][];
+            next_cursor: string | null;
+        };
+        IncidentCreated: {
+            /** Format: uuid */
+            incident_id: string;
+            revision: number;
+        };
+        IncidentView: {
+            /** Format: uuid */
+            incident_id: string;
+            /** Format: date-time */
+            started_at: string;
+            /** Format: date-time */
+            recovered_at: string | null;
+            reason_code: string;
+            revision: number;
+            evidence_incomplete: boolean;
+            assignments: {
+                /** Format: uuid */
+                assignment_id: string;
+                decision: string;
+                /** Format: date-time */
+                new_due_at: string | null;
+            }[];
+        };
+        IncidentPage: {
+            items: components["schemas"]["IncidentView"][];
+            next_cursor: string | null;
+        };
+        FairnessDecision: {
+            /** Format: date-time */
+            old_due_at: string;
+            /** Format: date-time */
+            new_due_at: string | null;
+            revision: number;
+            fairness_review: string;
+        };
+        Notification: {
+            /** Format: uuid */
+            notification_id: string;
+            title: string;
+            body: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            read_at: string | null;
+        };
+        NotificationPage: {
+            items: components["schemas"]["Notification"][];
+            next_cursor: string | null;
+        };
+        NotificationRead: {
+            read: boolean;
+        };
+        ArchivedCourse: {
+            status: string;
+            revision: number;
+        };
+        RetentionCreated: {
+            /** Format: uuid */
+            plan_id: string;
+        };
+        RetentionView: {
+            /** Format: uuid */
+            plan_id: string;
+            /** Format: uuid */
+            course_id: string;
+            object_digest: string;
+            state: string;
+            revision: number;
+            submission_count: number;
+            /** Format: date-time */
+            eligible_at: string | null;
+            hold: boolean;
+        };
+        RetentionConfirmed: {
+            /** Format: uuid */
+            confirmation_id: string;
+            revision: number;
+        };
+        HoldCreated: {
+            /** Format: uuid */
+            hold_id: string;
+            revision: number;
+        };
+        RuntimeControl: {
+            revision: number;
+            submission_enabled: boolean;
+            judge_enabled: boolean;
+        };
+        EmergencyGranted: {
+            /** Format: uuid */
+            grant_id: string;
+            /** Format: date-time */
+            expires_at: string;
+        };
+        EmergencySubmission: {
+            /** Format: uuid */
+            submission_id: string;
+            code: string;
+            language_key: string;
+            /** Format: date-time */
+            accepted_at: string;
         };
     };
     responses: {
@@ -4853,7 +5654,10 @@ export interface operations {
     };
     getGrades: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
             header?: {
                 /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
                 "X-Astra-Background"?: "1";
@@ -4988,6 +5792,1177 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    previewRejudge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    problem_id: string;
+                    /** Format: uuid */
+                    new_version_id: string;
+                    expected_revision: number;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RejudgePreview"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    createRejudge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    new_version_id: string;
+                    range_checksum: string;
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RejudgeCreated"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getRejudge: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RejudgeStatus"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    activateRejudge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_batch_revision: number;
+                    expected_assignment_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RejudgeActivated"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    cancelRejudge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationState"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    retryRejudge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchRetryResult"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    retrySubmission: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetryResult"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getAdminHealth: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminHealth"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getAdminJobs: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminJobPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getAuditEvents: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuditPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    createIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: date-time */
+                    started_at: string;
+                    assignment_ids: string[];
+                    reason_code: string;
+                    reason: string;
+                    evidence_refs: string[];
+                    evidence_incomplete: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            201: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentCreated"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    recoverIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: date-time */
+                    recovered_at: string;
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationRevision"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listIncidents: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getIncident: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    decideFairness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    incident_id: string;
+                    /** @enum {string} */
+                    decision: "EXTEND" | "NO_IMPACT";
+                    reason: string;
+                    expected_revision: number;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FairnessDecision"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listNotifications: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    markNotificationRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationRead"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    archiveCourse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArchivedCourse"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    previewRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    course_id: string;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionCreated"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    confirmRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    object_digest: string;
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RetentionConfirmed"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    executeRetention: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    object_digest: string;
+                    /** Format: uuid */
+                    confirmation_id: string;
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationState"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    createHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @constant */
+                    object_type: "course";
+                    /** Format: uuid */
+                    object_id: string;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            201: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HoldCreated"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    closeHold: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OperationRevision"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getRuntimeControl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeControl"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    updateRuntimeControl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    submission_enabled: boolean;
+                    judge_enabled: boolean;
+                    expected_revision: number;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RuntimeControl"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    grantEmergencyAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    incident_id: string;
+                    scope: {
+                        /** Format: uuid */
+                        course_id: string;
+                    };
+                    /** Format: date-time */
+                    expires_at: string;
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            201: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyGranted"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    revokeEmergencyAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            204: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    readEmergencySubmission: {
+        parameters: {
+            query: {
+                submission_id: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencySubmission"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listAssignmentSubmissions: {
+        parameters: {
+            query?: {
+                problem_id?: string;
+                verdict?: "AC" | "WA" | "CE" | "TLE" | "RE" | "SE";
+                limit?: number;
+                cursor?: string;
+                student_id?: string;
+                mode?: "FORMAL" | "PRACTICE";
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionPage"];
                 };
             };
             400: components["responses"]["Error400"];

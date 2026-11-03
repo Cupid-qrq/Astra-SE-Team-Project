@@ -7170,6 +7170,25 @@
               "const": "1"
             },
             "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
           }
         ],
         "responses": {
@@ -7516,6 +7535,3131 @@
           },
           "503": {
             "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/assignments/{id}/rejudge-preview": {
+      "post": {
+        "operationId": "previewRejudge",
+        "summary": "previewRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejudgePreview"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "problem_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "new_version_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "problem_id",
+                  "new_version_id",
+                  "expected_revision"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignments/{id}/rejudge": {
+      "post": {
+        "operationId": "createRejudge",
+        "summary": "createRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejudgeCreated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "new_version_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "range_checksum": {
+                    "type": "string"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "new_version_id",
+                  "range_checksum",
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rejudge-batches/{id}": {
+      "get": {
+        "operationId": "getRejudge",
+        "summary": "getRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejudgeStatus"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/rejudge-batches/{id}/activate": {
+      "post": {
+        "operationId": "activateRejudge",
+        "summary": "activateRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejudgeActivated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_batch_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "expected_assignment_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_batch_revision",
+                  "expected_assignment_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rejudge-batches/{id}/cancel": {
+      "post": {
+        "operationId": "cancelRejudge",
+        "summary": "cancelRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rejudge-batches/{id}/retry": {
+      "post": {
+        "operationId": "retryRejudge",
+        "summary": "retryRejudge",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchRetryResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/submissions/{id}/retry": {
+      "post": {
+        "operationId": "retrySubmission",
+        "summary": "retrySubmission",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetryResult"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/health": {
+      "get": {
+        "operationId": "getAdminHealth",
+        "summary": "getAdminHealth",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminHealth"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/admin/jobs": {
+      "get": {
+        "operationId": "getAdminJobs",
+        "summary": "getAdminJobs",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminJobPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/admin/audit-events": {
+      "get": {
+        "operationId": "getAuditEvents",
+        "summary": "getAuditEvents",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/admin/incidents": {
+      "post": {
+        "operationId": "createIncident",
+        "summary": "createIncident",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "201": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentCreated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "started_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "assignment_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "reason_code": {
+                    "type": "string",
+                    "maxLength": 60
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "evidence_refs": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 500
+                    }
+                  },
+                  "evidence_incomplete": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "started_at",
+                  "assignment_ids",
+                  "reason_code",
+                  "reason",
+                  "evidence_refs",
+                  "evidence_incomplete"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/incidents/{id}/recovery": {
+      "patch": {
+        "operationId": "recoverIncident",
+        "summary": "recoverIncident",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationRevision"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "recovered_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "recovered_at",
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/incidents": {
+      "get": {
+        "operationId": "listIncidents",
+        "summary": "listIncidents",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/incidents/{id}": {
+      "get": {
+        "operationId": "getIncident",
+        "summary": "getIncident",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentView"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/assignments/{id}/fairness-decisions": {
+      "post": {
+        "operationId": "decideFairness",
+        "summary": "decideFairness",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FairnessDecision"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "incident_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "decision": {
+                    "type": "string",
+                    "enum": [
+                      "EXTEND",
+                      "NO_IMPACT"
+                    ]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                },
+                "required": [
+                  "incident_id",
+                  "decision",
+                  "reason",
+                  "expected_revision"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "operationId": "listNotifications",
+        "summary": "listNotifications",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER",
+          "STUDENT"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationPage"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/notifications/{id}/read": {
+      "post": {
+        "operationId": "markNotificationRead",
+        "summary": "markNotificationRead",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER",
+          "STUDENT"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/courses/{id}/archive": {
+      "post": {
+        "operationId": "archiveCourse",
+        "summary": "archiveCourse",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchivedCourse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/retention/previews": {
+      "post": {
+        "operationId": "previewRetention",
+        "summary": "previewRetention",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionCreated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "course_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "course_id",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/retention/{id}": {
+      "get": {
+        "operationId": "getRetention",
+        "summary": "getRetention",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionView"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/retention/{id}/confirm": {
+      "post": {
+        "operationId": "confirmRetention",
+        "summary": "confirmRetention",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetentionConfirmed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "object_digest": {
+                    "type": "string"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "object_digest",
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/retention/{id}/execute": {
+      "post": {
+        "operationId": "executeRetention",
+        "summary": "executeRetention",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationState"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "object_digest": {
+                    "type": "string"
+                  },
+                  "confirmation_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "object_digest",
+                  "confirmation_id",
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/holds": {
+      "post": {
+        "operationId": "createHold",
+        "summary": "createHold",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "201": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HoldCreated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "object_type": {
+                    "type": "string",
+                    "const": "course"
+                  },
+                  "object_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "object_type",
+                  "object_id",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/holds/{id}/close": {
+      "post": {
+        "operationId": "closeHold",
+        "summary": "closeHold",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationRevision"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/runtime-config": {
+      "get": {
+        "operationId": "getRuntimeControl",
+        "summary": "getRuntimeControl",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeControl"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      },
+      "patch": {
+        "operationId": "updateRuntimeControl",
+        "summary": "updateRuntimeControl",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeControl"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "submission_enabled": {
+                    "type": "boolean"
+                  },
+                  "judge_enabled": {
+                    "type": "boolean"
+                  },
+                  "expected_revision": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "submission_enabled",
+                  "judge_enabled",
+                  "expected_revision",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/emergency-access": {
+      "post": {
+        "operationId": "grantEmergencyAccess",
+        "summary": "grantEmergencyAccess",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "201": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyGranted"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "incident_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "scope": {
+                    "type": "object",
+                    "properties": {
+                      "course_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "course_id"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "incident_id",
+                  "scope",
+                  "expires_at",
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/emergency-access/{id}/revoke": {
+      "post": {
+        "operationId": "revokeEmergencyAccess",
+        "summary": "revokeEmergencyAccess",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "204": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/emergency-access/{id}/submission": {
+      "get": {
+        "operationId": "readEmergencySubmission",
+        "summary": "readEmergencySubmission",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "ADMIN"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "submission_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencySubmission"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/assignments/{id}/submissions": {
+      "get": {
+        "operationId": "listAssignmentSubmissions",
+        "summary": "查询作业提交历史",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "STUDENT",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "problem_id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false
+          },
+          {
+            "name": "verdict",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "AC",
+                "WA",
+                "CE",
+                "TLE",
+                "RE",
+                "SE"
+              ]
+            },
+            "required": false
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "student_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "mode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FORMAL",
+                "PRACTICE"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          },
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmissionPage"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -11435,6 +14579,12 @@
               ],
               "additionalProperties": false
             }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -11463,6 +14613,835 @@
         "required": [
           "grade_version",
           "published_at"
+        ],
+        "additionalProperties": false
+      },
+      "RejudgePreview": {
+        "type": "object",
+        "properties": {
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "range_checksum": {
+            "type": "string"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "old_version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "new_version_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "affected_count",
+          "range_checksum",
+          "languages",
+          "old_version_id",
+          "new_version_id"
+        ],
+        "additionalProperties": false
+      },
+      "RejudgeCreated": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "state": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "batch_id",
+          "affected_count",
+          "state"
+        ],
+        "additionalProperties": false
+      },
+      "RejudgeStatus": {
+        "type": "object",
+        "properties": {
+          "batch_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "problem_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "new_version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string"
+          },
+          "affected_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "finished_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "failed_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "assignment_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "range_checksum": {
+            "type": "string"
+          },
+          "differences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "student_id",
+                "before",
+                "after",
+                "delta"
+              ],
+              "properties": {
+                "student_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "before": {
+                  "type": "integer"
+                },
+                "after": {
+                  "type": "integer"
+                },
+                "delta": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "batch_id",
+          "assignment_id",
+          "problem_id",
+          "new_version_id",
+          "state",
+          "affected_count",
+          "finished_count",
+          "failed_count",
+          "revision",
+          "assignment_revision",
+          "range_checksum",
+          "differences"
+        ],
+        "additionalProperties": false
+      },
+      "RejudgeActivated": {
+        "type": "object",
+        "properties": {
+          "grade_version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assignment_revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "grade_version",
+          "assignment_revision"
+        ],
+        "additionalProperties": false
+      },
+      "OperationRevision": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "OperationState": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "state",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "RetryResult": {
+        "type": "object",
+        "properties": {
+          "cycle_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "attempt_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "cycle_id",
+          "attempt_id"
+        ],
+        "additionalProperties": false
+      },
+      "BatchRetryResult": {
+        "type": "object",
+        "properties": {
+          "retried_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "retried_count",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "AdminHealth": {
+        "type": "object",
+        "properties": {
+          "database": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slot_state": {
+            "type": "string"
+          },
+          "disk_free_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "clock_skew_ms": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "budget": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "scope": {
+                  "type": "string"
+                },
+                "limit": {
+                  "type": "string"
+                },
+                "settled": {
+                  "type": "string"
+                },
+                "reserved": {
+                  "type": "string"
+                },
+                "uncertain": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "scope",
+                "limit",
+                "settled",
+                "reserved",
+                "uncertain"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "server_time": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "database",
+          "pending",
+          "slot_state",
+          "disk_free_bytes",
+          "clock_skew_ms",
+          "budget",
+          "server_time"
+        ],
+        "additionalProperties": false
+      },
+      "AdminJob": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "submission_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "verdict": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "batch_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "state",
+          "submission_id",
+          "revision",
+          "verdict",
+          "batch_id"
+        ],
+        "additionalProperties": false
+      },
+      "AdminJobPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminJob"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "AuditEvent": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "actor_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "actor_kind": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "object_type": {
+            "type": "string"
+          },
+          "object_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "before_after_digest": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "event_id",
+          "actor_id",
+          "actor_kind",
+          "action",
+          "object_type",
+          "object_id",
+          "before_after_digest",
+          "reason",
+          "timestamp",
+          "request_id"
+        ],
+        "additionalProperties": false
+      },
+      "AuditPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditEvent"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "IncidentCreated": {
+        "type": "object",
+        "properties": {
+          "incident_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "incident_id",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "IncidentView": {
+        "type": "object",
+        "properties": {
+          "incident_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recovered_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reason_code": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "evidence_incomplete": {
+            "type": "boolean"
+          },
+          "assignments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "assignment_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "decision": {
+                  "type": "string"
+                },
+                "new_due_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "assignment_id",
+                "decision",
+                "new_due_at"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "incident_id",
+          "started_at",
+          "recovered_at",
+          "reason_code",
+          "revision",
+          "evidence_incomplete",
+          "assignments"
+        ],
+        "additionalProperties": false
+      },
+      "IncidentPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncidentView"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "FairnessDecision": {
+        "type": "object",
+        "properties": {
+          "old_due_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "new_due_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "fairness_review": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "old_due_at",
+          "new_due_at",
+          "revision",
+          "fairness_review"
+        ],
+        "additionalProperties": false
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "notification_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "read_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "notification_id",
+          "title",
+          "body",
+          "created_at",
+          "read_at"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "NotificationRead": {
+        "type": "object",
+        "properties": {
+          "read": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "read"
+        ],
+        "additionalProperties": false
+      },
+      "ArchivedCourse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "status",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "RetentionCreated": {
+        "type": "object",
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "plan_id"
+        ],
+        "additionalProperties": false
+      },
+      "RetentionView": {
+        "type": "object",
+        "properties": {
+          "plan_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "course_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "object_digest": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "submission_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "eligible_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "hold": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "plan_id",
+          "course_id",
+          "object_digest",
+          "state",
+          "revision",
+          "submission_count",
+          "eligible_at",
+          "hold"
+        ],
+        "additionalProperties": false
+      },
+      "RetentionConfirmed": {
+        "type": "object",
+        "properties": {
+          "confirmation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "confirmation_id",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "HoldCreated": {
+        "type": "object",
+        "properties": {
+          "hold_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "hold_id",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "RuntimeControl": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "submission_enabled": {
+            "type": "boolean"
+          },
+          "judge_enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "revision",
+          "submission_enabled",
+          "judge_enabled"
+        ],
+        "additionalProperties": false
+      },
+      "EmergencyGranted": {
+        "type": "object",
+        "properties": {
+          "grant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "grant_id",
+          "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "EmergencySubmission": {
+        "type": "object",
+        "properties": {
+          "submission_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "language_key": {
+            "type": "string"
+          },
+          "accepted_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "submission_id",
+          "code",
+          "language_key",
+          "accepted_at"
         ],
         "additionalProperties": false
       }

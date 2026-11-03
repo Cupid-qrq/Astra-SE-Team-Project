@@ -26,3 +26,11 @@ def register(add: Registrar) -> None:
         "/submissions/{id}/attempts",
         lambda c: c["submissions"].rounds(c["actor"], c["path"]["id"], c["learning_pager"]),
     )
+
+    add(
+        "GET",
+        "/assignments/{id}/submissions",
+        lambda c: c["submissions"].history(
+            c["actor"], dict(c["query"], assignment_id=c["path"]["id"]), c["learning_pager"]
+        ),
+    )

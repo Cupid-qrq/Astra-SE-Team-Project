@@ -1,3 +1,4 @@
+import { verdictLabels } from './resultLabels'
 import { useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -9,15 +10,7 @@ import type { components } from '../../lib/api/schema'
 import type { ResultProps } from '../integrations/teaching'
 
 export type Submission = components['schemas']['SubmissionView']
-export const verdictLabels: Record<string, string> = {
-  AC: '通过',
-  WA: '答案错误',
-  CE: '编译错误',
-  TLE: '超出时间限制',
-  RE: '运行错误',
-  SE: '平台故障',
-  SKIPPED: '未执行',
-}
+
 const states = {
   QUEUED: '等待评测',
   RUNNING: '正在评测',

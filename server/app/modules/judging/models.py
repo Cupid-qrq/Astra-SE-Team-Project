@@ -130,6 +130,8 @@ scheduler = Table(
     metadata,
     Column("control_id", Integer, primary_key=True),
     Column("executor_binding", String(64)),
+    Column("cursor", Integer, nullable=False, server_default=text("0")),
+    Column("previous_queue_mode", String(12), nullable=False, server_default=text("'EMPTY'")),
     CheckConstraint("control_id=1", name="singleton"),
 )
 slots = Table(

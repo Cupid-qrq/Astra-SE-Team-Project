@@ -47,6 +47,7 @@ class Grades:
                     submissions.c.assignment_id == assignment["assignment_id"],
                     submissions.c.mode == "FORMAL",
                 )
+                .order_by(submissions.c.accepted_at, submissions.c.submission_id)
             )
             .mappings()
             .all()
@@ -155,6 +156,11 @@ class Grades:
         self.repo.guard()
         assignment, _ = self.assignments.access(actor, assignment_id, teacher=True, write=True)
         revision(assignment, body["expected_revision"])
+        require(
+            assignment["published_at"] is not None,
+            "ASSIGNMENT_DRAFT",
+            "作业发布并截止后才可发布成绩。",
+        )
         require(bool(body.get("reason", "").strip()), "VALIDATION_ERROR", "请填写发布理由。", 422)
         require(self.repo.now() >= assignment["due_at"], "NOT_READY", "作业截止后才可发布成绩。")
         require(
@@ -261,9 +267,12 @@ class Grades:
 
 class GradeCoordination:
     def before_change(self, repo, assignment, action):
-        require(
-            assignment["active_rejudge_batch_id"] is None, "ACTIVE_REJUDGE", "请先取消未激活重评。"
-        )
+        if action == "DEADLINE_EXTENDED":
+            require(
+                assignment["active_rejudge_batch_id"] is None,
+                "ACTIVE_REJUDGE",
+                "请先取消未激活重评。",
+            )
 
     def status(self, repo, assignment):
         state = "REJUDGING" if assignment["active_rejudge_batch_id"] else "PROVISIONAL"
@@ -275,4 +284,12 @@ class GradeCoordination:
                 and assignment["fairness_review"] != "PENDING"
             ):
                 state = snapshot["state"]
-        return dict(grade_state=state, fairness_notice=None)
+        links = repo.rows("incident_assignments", assignment_id=assignment["assignment_id"])
+        notices = [
+            "故障事件 " + row["incident_id"] + " 待教师裁决。"
+            if row["decision"] == "PENDING"
+            else "故障事件已裁决，"
+            + ("全班统一延期。" if row["decision"] == "EXTEND" else "确认无影响。")
+            for row in links
+        ]
+        return dict(grade_state=state, fairness_notice=" ".join(notices) if notices else None)

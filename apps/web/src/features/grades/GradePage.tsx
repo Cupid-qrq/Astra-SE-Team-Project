@@ -13,9 +13,13 @@ export function GradePage() {
   const { id = '' } = useParams()
   const cache = useQueryClient()
   const [reason, setReason] = useState('')
+  const [cursor, setCursor] = useState<string | undefined>()
   const [command, setCommand] = useState<{ expected_revision: number; reason: string } | null>(null)
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
-  const grades = useQuery({ queryKey: ['grades', id], queryFn: () => api.grades(id) })
+  const grades = useQuery({
+    queryKey: ['grades', id, cursor],
+    queryFn: () => api.grades(id, cursor),
+  })
   const publish = useMutation({
     mutationFn: () => api.publishGrades(id, command!),
     onSuccess: async () => {
@@ -70,6 +74,10 @@ export function GradePage() {
           </ul>
         </section>
       ))}
+      {cursor && <Button onClick={() => setCursor(undefined)}>返回成绩首页</Button>}
+      {value.next_cursor && (
+        <Button onClick={() => setCursor(value.next_cursor!)}>下一页成绩</Button>
+      )}
       {teacher && (
         <section className="panel stack">
           <TextArea
@@ -79,7 +87,7 @@ export function GradePage() {
             maxLength={500}
           />
           <Button
-            disabled={!reason.trim()}
+            disabled={!reason.trim() || value.state === 'PUBLISHED'}
             onClick={() =>
               setCommand({ expected_revision: value.assignment_revision, reason: reason.trim() })
             }

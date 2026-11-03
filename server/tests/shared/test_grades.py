@@ -48,3 +48,31 @@ def test_grade_publish_requires_finished_results_and_freezes_same_snapshot(queue
         assert grades.snapshot(actor, published["grade_version"])["students"][0]["total"] == 100
         with pytest.raises(Fault):
             grades.read(repo.get("users", ids["admin"]), ids["assignment"])
+
+
+def test_unpublished_assignment_cannot_publish_grades(queued):
+    from app.modules.grades.application import Grades
+
+    engine, ids, _, _ = queued
+    with engine.begin() as conn:
+        repo = SqlRepository(conn)
+        old = repo.required("assignments", ids["assignment"])
+        draft_id = str(uuid4())
+        repo.add(
+            "assignments",
+            {
+                **old,
+                "assignment_id": draft_id,
+                "published_at": None,
+                "due_at": repo.now(),
+                "active_grade_version": None,
+            },
+        )
+        service = Grades(repo, TransactionalEffects(repo, str(uuid4())))
+        with pytest.raises(Fault) as error:
+            service.publish(
+                repo.required("users", ids["teacher"]),
+                draft_id,
+                dict(expected_revision=1, reason="not published"),
+            )
+        assert error.value.code == "ASSIGNMENT_DRAFT"

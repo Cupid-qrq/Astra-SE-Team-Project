@@ -24,6 +24,7 @@ from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
 from app.api.grades import register as register_grades
 from app.api.lists import sql_list
+from app.api.operations import register as register_operations
 from app.api.preflights import register as register_preflights
 from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
@@ -38,7 +39,12 @@ from app.modules.learning.application import Learning
 from app.modules.learning.hint_service import HintService, Sources
 from app.modules.learning.model_runtime import RuntimeProfile
 from app.modules.learning.student import LearningResults, StudentLearning
+from app.modules.operations.application import Operations
+from app.modules.operations.controls import Controls
+from app.modules.operations.fairness import Fairness
+from app.modules.operations.retention import Retention
 from app.modules.problems.application import Problems
+from app.modules.rejudge.application import Rejudges
 from app.modules.submissions.application import Submissions
 from app.modules.submissions.sources import SubmissionSources
 from app.shared.config import Settings
@@ -167,7 +173,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b013":
+                if head != "b016":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -242,6 +248,11 @@ def create_app(
                         request_id=request_id,
                         assignments=Assignments(repo, effects, GradeCoordination()),
                         grades=Grades(repo, effects),
+                        rejudges=Rejudges(repo, effects),
+                        operations=Operations(repo, effects),
+                        fairness=Fairness(repo, effects),
+                        controls=Controls(repo, effects),
+                        retention=Retention(repo, effects),
                         hints=HintService(
                             repo,
                             hint_sources,
@@ -309,6 +320,28 @@ def create_app(
                     )
                 return response
             except Fault as error:
+                if (
+                    path == "/submissions"
+                    and actor is not None
+                    and isinstance(body, dict)
+                    and method == "POST"
+                    and error.code in ("GLOBAL_CAPACITY", "JUDGE_UNAVAILABLE", "CLOCK_UNHEALTHY")
+                ):
+                    try:
+                        from app.modules.operations.fairness import note_platform_failure
+
+                        with UnitOfWork(database) as evidence_connection:
+                            evidence_repo = SqlRepository(evidence_connection)
+                            evidence_repo.guard()
+                            evidence_effects = TransactionalEffects(evidence_repo, request_id)
+                            Assignments(evidence_repo, evidence_effects).access(
+                                actor, body["assignment_id"]
+                            )
+                            note_platform_failure(
+                                evidence_repo, body["assignment_id"], error.code, request_id
+                            )
+                    except Exception:
+                        pass
                 return error_response(error, request_id)
 
             except (SQLAlchemyError, PoolTimeout):
@@ -343,6 +376,7 @@ def create_app(
             endpoint(method, path, handler, operation),
             methods=[method],
             response_model=None,
+            response_class=Response if path.endswith(".csv") else JSONResponse,
             status_code=next(int(k) for k in operation["responses"] if k.startswith("2")),
             operation_id=operation["operationId"],
             openapi_extra=deepcopy(operation),
@@ -352,6 +386,7 @@ def create_app(
     register_preflights(add)
     register_submissions(add)
     register_grades(add)
+    register_operations(add)
 
     def export_openapi() -> Record:
         document = get_openapi(

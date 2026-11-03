@@ -213,3 +213,38 @@ def test_a_learning_source_projects_only_authorized_public_material(queued):
             .all()
         )
         assert len(rows) == 1 and "code" not in rows[0]
+
+
+def test_expired_waiting_cycle_releases_capacity_while_other_slot_is_quarantined(queued):
+    from app.modules.submissions.worker_store import SubmissionStore
+
+    engine, ids, _, _ = queued
+    store = SubmissionStore(engine)
+    claim = store.claim()
+    store.begin_case(claim, 1)
+    store.quarantine(claim)
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE admission_users SET last_accepted_at=clock_timestamp()-interval '6 seconds'"
+            )
+        )
+    receipt, _ = accept((engine, ids), str(uuid4()))
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE processing_cycles SET started_at=clock_timestamp()-interval '16 minutes' WHERE submission_id=:sid"
+            ),
+            {"sid": receipt["submission_id"]},
+        )
+    assert store.claim() is None
+    with engine.connect() as conn:
+        assert (
+            conn.scalar(
+                text("SELECT verdict FROM attempts WHERE submission_id=:sid"),
+                {"sid": receipt["submission_id"]},
+            )
+            == "SE"
+        )
+        assert conn.scalar(text("SELECT pending_count FROM capacity_control")) == 1
+        assert conn.scalar(text("SELECT state FROM execution_slots")) == "QUARANTINED"

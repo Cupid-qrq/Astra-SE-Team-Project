@@ -49,6 +49,14 @@ class Submissions:
                 "该请求编号已用于不同提交。",
             )
             return dict(existing["original_receipt"], request_id=request_id), True
+        from app.modules.operations.controls import current_config
+
+        require(
+            current_config(self.repo)["payload"]["submission_enabled"],
+            "JUDGE_UNAVAILABLE",
+            "平台暂时停止新提交，请稍后重试。",
+            503,
+        )
         admission = self.assignments.admission(
             user, body["assignment_id"], body["problem_id"], body["language_key"], intent
         )
@@ -254,6 +262,16 @@ class Submissions:
         )
         if user["role"] == "STUDENT":
             statement = statement.where(submissions.c.user_id == user["user_id"])
+        if "student_id" in query:
+            require(
+                user["role"] == "TEACHER" or query["student_id"] == user["user_id"],
+                "NOT_FOUND",
+                "无权查询其他学生提交。",
+                404,
+            )
+            statement = statement.where(submissions.c.user_id == query["student_id"])
+        if "mode" in query:
+            statement = statement.where(submissions.c.mode == query["mode"])
         for name in ("problem_id", "verdict"):
             if name in query:
                 column = submissions.c.problem_id if name == "problem_id" else attempts.c.verdict

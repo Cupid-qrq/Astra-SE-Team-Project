@@ -1,8 +1,14 @@
 from app.api.teaching import Registrar
+from app.modules.identity.ports import Record
 
 
 def register(add: Registrar) -> None:
-    add("GET", "/assignments/{id}/grades", lambda c: c["grades"].read(c["actor"], c["path"]["id"]))
+    def current(c: Record) -> Record:
+        value = c["grades"].read(c["actor"], c["path"]["id"])
+        page = c["learning_pager"].bounded(value["students"], "student_id")
+        return dict(value, students=page["items"], next_cursor=page["next_cursor"])
+
+    add("GET", "/assignments/{id}/grades", current)
     add("GET", "/grades/{id}", lambda c: c["grades"].snapshot(c["actor"], c["path"]["id"]))
     add(
         "POST",

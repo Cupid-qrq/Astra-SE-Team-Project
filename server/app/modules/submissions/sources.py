@@ -81,6 +81,8 @@ class SubmissionSources:
         )
 
     def projection(self, repo: Repository, actor: Record) -> Select[Any]:
+        from app.modules.operations.models import cleanup
+
         effective = and_(
             submissions.c.active_basis_id == bases.c.basis_id,
             bases.c.current_attempt_id == attempts.c.attempt_id,
@@ -119,6 +121,9 @@ class SubmissionSources:
                 )
             )
             .where(
+                ~select(cleanup.c.course_id)
+                .where(cleanup.c.course_id == courses.c.course_id)
+                .exists(),
                 submissions.c.user_id == actor["user_id"],
                 course_members.c.status == "ACTIVE",
                 attempts.c.state == "FINISHED",

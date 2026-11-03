@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 
 from app.modules.judging.worker_store import WorkerStore
@@ -14,7 +14,7 @@ from app.shared.effects import TransactionalEffects
 from app.shared.repository import SqlRepository
 from app.shared.uow import UnitOfWork
 
-from .models import jobs
+from .models import attempts, cycles, jobs
 
 
 @dataclass(frozen=True)
@@ -62,14 +62,73 @@ class SubmissionStore:
         with UnitOfWork(self.engine) as conn:
             repo = SqlRepository(conn)
             slot = WorkerStore._lock(repo)
+            self._expire_waiting(repo)
+            from app.modules.operations.controls import current_config
+
+            if not current_config(repo)["payload"]["judge_enabled"]:
+                return None
             if slot["state"] != "FREE":
                 return None
             now = repo.now()
+            from app.modules.rejudge.application import Rejudges
+
+            Rejudges.dispatch_one(repo)
+            now = repo.now()
+            control = repo.required("scheduler_control", 1)
+            normal = (
+                conn.execute(
+                    select(jobs.c.job_id)
+                    .where(jobs.c.state == "READY", jobs.c.kind == "NORMAL", jobs.c.ready_at <= now)
+                    .limit(1)
+                ).first()
+                is not None
+            )
+            rejudge = (
+                conn.execute(
+                    select(jobs.c.job_id)
+                    .where(
+                        jobs.c.state == "READY", jobs.c.kind == "REJUDGE", jobs.c.ready_at <= now
+                    )
+                    .limit(1)
+                ).first()
+                is not None
+            )
+            protected = conn.scalar(
+                text(
+                    "SELECT EXISTS(SELECT 1 FROM assignments a JOIN courses c ON c.course_id=a.course_id WHERE a.published_at IS NOT NULL AND c.status='ACTIVE' AND a.due_at>:now AND a.due_at<=:until)"
+                ),
+                {"now": now, "until": now + timedelta(minutes=10)},
+            )
+            mode = (
+                "PROTECTED"
+                if protected
+                else "BOTH"
+                if normal and rejudge
+                else "NORMAL"
+                if normal
+                else "REJUDGE"
+                if rejudge
+                else "EMPTY"
+            )
+            cursor = (
+                control["cursor"]
+                if mode == "BOTH" and control["previous_queue_mode"] == "BOTH"
+                else 0
+            )
+            kind = "NORMAL" if normal and (mode != "BOTH" or cursor < 4) else "REJUDGE"
+            repo.change(
+                "scheduler_control",
+                1,
+                cursor=(cursor + 1) % 5 if mode == "BOTH" else 0,
+                previous_queue_mode=mode,
+            )
+            if (protected and not normal) or mode == "EMPTY":
+                return None
             row = (
                 conn.execute(
                     select(jobs)
-                    .where(jobs.c.state == "READY", jobs.c.ready_at <= now, jobs.c.kind == "NORMAL")
-                    .order_by(jobs.c.created_at, jobs.c.job_id)
+                    .where(jobs.c.state == "READY", jobs.c.ready_at <= now, jobs.c.kind == kind)
+                    .order_by(jobs.c.ready_at, jobs.c.created_at, jobs.c.job_id)
                     .limit(1)
                     .with_for_update()
                 )
@@ -188,9 +247,33 @@ class SubmissionStore:
                 self._finish(repo, claim, verdict)
             return True
 
-    def _finish(self, repo, claim, verdict, reason=None):
+    def _expire_waiting(self, repo):
+        now = repo.now()
+        rows = (
+            repo.connection.execute(
+                select(jobs, cycles.c.started_at.label("cycle_started"))
+                .join(attempts, attempts.c.attempt_id == jobs.c.attempt_id)
+                .join(cycles, cycles.c.cycle_id == attempts.c.cycle_id)
+                .where(
+                    jobs.c.state == "READY",
+                    cycles.c.capacity_held,
+                    cycles.c.started_at <= now - timedelta(minutes=15),
+                )
+            )
+            .mappings()
+            .all()
+        )
+        for row in rows:
+            job = dict(row)
+            job["deadline"] = job["cycle_started"] + timedelta(minutes=15)
+            claim = self._claim(repo, job)
+            self._finish(repo, claim, "SE", "CYCLE_TIMEOUT", release_slot=False)
+
+    def _finish(self, repo, claim, verdict, reason=None, *, release_slot=True):
         attempt = repo.get("attempts", claim.attempt_id)
         cycle = repo.get("processing_cycles", attempt["cycle_id"])
+        basis = repo.get("result_bases", attempt["basis_id"])
+        batch = repo.get("rejudge_batches", basis["batch_id"]) if basis["batch_id"] else None
         now = repo.now()
         rows = repo.rows("case_results", attempt_id=claim.attempt_id)
         completed = {r["order"] for r in rows}
@@ -229,9 +312,11 @@ class SubmissionStore:
         repo.change(
             "queue_jobs", claim.job_id, state="DONE", current_execution=None, lease_until=None
         )
-        repo.change("execution_slots", 1, state="FREE", submission_job_id=None)
+        if release_slot:
+            repo.change("execution_slots", 1, state="FREE", submission_job_id=None)
         if (
             verdict == "SE"
+            and (batch is None or batch["state"] != "CANCELLED")
             and cycle["auto_retry_count"] == 0
             and now < cycle["started_at"] + timedelta(minutes=15)
         ):
@@ -261,7 +346,7 @@ class SubmissionStore:
                 dict(
                     job_id=str(uuid4()),
                     attempt_id=next_attempt,
-                    kind="NORMAL",
+                    kind="REJUDGE" if basis["batch_id"] else "NORMAL",
                     state="READY",
                     ready_at=now,
                     created_at=now,
@@ -279,6 +364,12 @@ class SubmissionStore:
                 "processing_cycles", cycle["cycle_id"], capacity_held=False, finished_at=now
             )
             repo.change("result_bases", attempt["basis_id"], processing_state="FINISHED")
+            if verdict == "SE" and (batch is None or batch["state"] != "CANCELLED"):
+                from app.modules.operations.fairness import note_platform_failure
+
+                note_platform_failure(
+                    repo, assignment["assignment_id"], "JUDGE_UNAVAILABLE", str(uuid4())
+                )
             capacity = repo.get("capacity_control", 1, lock=True)
             counter = repo.get("admission_users", claim.submission["user_id"], lock=True)
             repo.change("capacity_control", 1, pending_count=capacity["pending_count"] - 1)
@@ -289,7 +380,7 @@ class SubmissionStore:
             )
         submission = repo.get("submissions", claim.submission["submission_id"])
         repo.change("submissions", submission["submission_id"], revision=submission["revision"] + 1)
-        if submission["mode"] == "FORMAL":
+        if submission["mode"] == "FORMAL" and submission["active_basis_id"] == attempt["basis_id"]:
             repo.change(
                 "assignments",
                 assignment["assignment_id"],
