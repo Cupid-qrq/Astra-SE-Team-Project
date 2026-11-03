@@ -36,3 +36,14 @@ sudo python3 tools/course_container_smoke.py --image sha256:<实际镜像ID> --s
 ```bash
 python -m unittest discover -s tools/tests -p test_course_container_smoke.py -v
 ```
+
+
+## 课程执行接口（Worker候选）
+
+`tools/course_executor.py`和`course_runtime.py`复用冒烟工具的Podman限制，供独立Worker经固定SSH命令调用，JSON仅经stdin/stdout私有通道传输。需将三个脚本放在受控目录，保持字节一致；宿主为已验证cgroup v1 Linux，SSH已知主机校验开启。默认状态目录/var/lib/astra-course-executor为私有目录，journal只保存身份、摘要和私有结果，不保存输入源码；结果不是普通日志，部署须按留存规则清理。容器仅挂载本次tmpfs工作卷，不能访问状态目录或控制socket。
+
+命令：`python3 /opt/astra-course-test/course_executor.py --image sha256:<已验证镜像ID>`。execute请求字段operation、execution_id（64位摘要）、request_hash、image、language、code/base64、stdin/base64；cancel只传operation与execution_id。身份在创建前fsync，STARTED未完成记录不重跑，取消先写持久fence再清理。单槽文件锁覆盖操作；取消遇到运行锁忙时不声称清理完成，调用者保留数据库槽并稍后恢复。执行异常或不确定清理返回安全SE，不回显原始异常。
+
+运行CPU统计使用独立父cgroup累计用量且排除conmon，保持原RLIMIT_CPU C++2秒/Python4秒；退出后读取真实CPU用量判断TLE，再清理所有空父组。未知内存指标为null；cgroup v2尚未验证，会拒绝执行，不伪装兼容。输出合计限1MiB，返回正文只供服务端比较，非授权API/报告不得转发。编译20秒、运行墙钟5/10秒、单实体等限制继续执行。
+
+`app.adapters.course_executor.CourseExecutor`固定主机别名、镜像和远端脚本路径，禁止把源码拼接进命令；传输限时/限长，状态校验失败不接受成功结果。必须在数据库事务外调用execute/cancel。当前阶段不自动启动Worker或启用学生接口；后续账本接线需以数据库租约保护领取及回写。
