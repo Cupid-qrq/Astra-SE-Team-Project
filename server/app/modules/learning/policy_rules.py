@@ -19,13 +19,44 @@ class HintSource:
     state: str
     verdict: str
     feedback_version_id: str | None = None
+    result_basis_id: str | None = None
+    attempt_id: str | None = None
+    effective_version_id: str | None = None
+
+
+def source_snapshot(source: HintSource) -> Record:
+    """Only immutable provenance and public result identifiers; never code or diagnostics."""
+    return {
+        name: getattr(source, name)
+        for name in (
+            "submission_id",
+            "student_id",
+            "course_id",
+            "problem_id",
+            "state",
+            "verdict",
+            "feedback_version_id",
+            "result_basis_id",
+            "attempt_id",
+            "effective_version_id",
+        )
+    }
+
+
+def require_same_source(hint: Record, source: HintSource) -> None:
+    require(
+        bool(hint.get("source_snapshot")) and hint["source_snapshot"] == source_snapshot(source),
+        "SOURCE_CHANGED",
+        "提示来源已变化，请重新请求。",
+        409,
+    )
 
 
 class HintSources(Protocol):
     def hint_source(
         self, repo: Repository, student_id: str, submission_id: str
     ) -> HintSource | None:
-        """B revalidates source visibility, including practice release, in this transaction."""
+        """B revalidates assignment and submission visibility in this transaction."""
         ...
 
 
@@ -68,6 +99,12 @@ class HintPolicy:
             404,
         )
         assert source
+        require(
+            all((source.result_basis_id, source.attempt_id, source.effective_version_id)),
+            "SOURCE_UNVERIFIABLE",
+            "提交来源身份不完整。",
+            503,
+        )
         memberships = self.repo.rows("course_members", user_id=student_id, status="ACTIVE")
         ids = [m["course_id"] for m in memberships]
         require(source.course_id in ids, "NOT_FOUND", "提交不存在或无权访问。", 404)
@@ -154,6 +191,16 @@ class HintPolicy:
             course_id=hint["course_id"],
             consent=hint["consented_at"] is not None,
         )
+        current = (
+            self.sources.hint_source(self.repo, hint["user_id"], hint["submission_id"])
+            if self.sources
+            else None
+        )
+        same_source = bool(
+            current
+            and hint.get("source_snapshot")
+            and hint["source_snapshot"] == source_snapshot(current)
+        )
         result = {
             k: hint[k]
             for k in (
@@ -168,10 +215,12 @@ class HintPolicy:
         }
         if not allowed:
             result.update(status="BLOCKED", reason_code="HINT_POLICY_BLOCKED")
+        if not same_source:
+            result.update(status="BLOCKED", reason_code="SOURCE_CHANGED")
         result["sections"] = hint["sections"] if result["status"] == "READY" else None
         result["fallback_feedback"] = (
             {k: fallback[k] for k in ("feedback_version_id", "title", "explanation", "checklist")}
-            if fallback and result["status"] in ("FAILED", "BLOCKED")
+            if fallback and same_source and result["status"] in ("FAILED", "BLOCKED")
             else None
         )
         return result

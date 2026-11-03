@@ -68,6 +68,9 @@ def test_formal_hint_http_accept_replay_ready_rating_and_disabled_model(http_env
                 "FINISHED",
                 "WA",
                 feedback,
+                "basis",
+                "attempt",
+                "version",
             )
 
         def hint_context(self, repo, source):

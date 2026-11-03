@@ -196,6 +196,12 @@ def test_a_learning_source_projects_only_authorized_public_material(queued):
         sources = SubmissionSources()
         source = sources.hint_source(repo, ids["student"], receipt["submission_id"])
         assert isinstance(source, HintSource) and source.verdict == "WA"
+        submission = repo.get("submissions", receipt["submission_id"])
+        basis = repo.get("result_bases", submission["active_basis_id"])
+        assert source.result_basis_id == submission["active_basis_id"]
+        assert source.attempt_id == basis["current_attempt_id"]
+        assert source.effective_version_id == basis["target_version_id"]
+
         context = sources.hint_context(repo, source)
         assert set(context) == {
             "public_problem",

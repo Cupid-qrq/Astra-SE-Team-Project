@@ -13,7 +13,7 @@ from app.modules.problems.domain import canonical_hash
 from .domain import public_version
 from .hint_store import HintLedger
 from .model_worker import Candidate, FrozenModel, prepare_context
-from .policy_rules import HintPolicy, HintSource, HintSources
+from .policy_rules import HintPolicy, HintSource, HintSources, require_same_source, source_snapshot
 
 
 class Sources(HintSources, Protocol):
@@ -138,6 +138,7 @@ class HintService:
                 template_version_id=template,
                 model_config_id=model["config_id"],
                 feedback_version_id=auth.source.feedback_version_id,
+                source_snapshot=source_snapshot(auth.source),
                 accepted_policy_digest=auth.policy_digest,
                 consented_at=now,
                 created_at=now,
@@ -250,6 +251,7 @@ class HintService:
                 consent=hint["consented_at"] is not None,
                 phase="dispatch",
             )
+            require_same_source(hint, auth.source)
             require(
                 auth.source.course_id == hint["course_id"],
                 "HINT_POLICY_BLOCKED",
@@ -353,6 +355,7 @@ class HintService:
                     consent=hint["consented_at"] is not None,
                     phase="ready",
                 )
+                require_same_source(hint, auth.source)
                 require(
                     auth.source.course_id == hint["course_id"],
                     "HINT_POLICY_BLOCKED",
