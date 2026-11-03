@@ -1,6 +1,48 @@
-# P0-A4 离线接入准备
+# 模型配置与验证
 
-当前适用v0.4。真实账号、Key及运行配置由用户后续提供；代码回归、合并与外部模型启用验收分别记录。以下早期离线说明保留其日期语境，当前已存在DeepSeek传输适配代码，具体验证证据见[项目状态](../../docs/project-status.md)。默认不启用收费调用。
+当前适用v0.4。用户于2026-11-03提供deepseek-flash、官方接口、用户环境变量DeepSeek_API及本轮20元预算。`runtime.example.json`是本轮运行配置，默认关闭；旧`config.example.json`及其schema仍是P0离线检查夹具。以下早期说明保留其日期语境，不能当作当前配置。验证见[本批报告](../../docs/reports/2026-11-03-a-live-model.md)。
+
+## 本轮独立模型回归
+
+在仓库根目录用server虚拟环境运行，默认只冻结合成样例而不联网：
+
+```powershell
+& server/.venv/Scripts/python.exe tools/model_live.py
+```
+
+真实调用需将`runtime.example.json`复制到忽略的`.local/model-live/runtime.json`，核对参数并将enabled设为true。密钥留在`DeepSeek_API`环境变量；Windows可从用户变量读取，无需复制到配置文件。Linux部署需显式注入进程环境变量。模板采用本目录`quality-template.json`，30例来自自编`quality-cases.json`。
+
+```powershell
+& server/.venv/Scripts/python.exe tools/model_live.py --profile .local/model-live/runtime.json --live --limit 1
+```
+
+`--limit`控制本次最多新增多少个首轮请求；再次运行只处理尚未预占的案例，不自动重试失败/中断案例。完整账本固定保存在`.local/model-live/budget.sqlite3`，不能通过删除/另开工作树重置授权总预算。结果在对应清单摘要目录。评分用的预期原因和范围不会发送给供应商。review-a/b.template.json留空，需真实评审独立填写，代理检查不冒充成员评分。
+
+该工具是合成适配器回归，不经过学生账号和正式提交；即使30例结构有效，也不代表每日20次额度、正式W-03或端到端验收通过。正常业务的限额测试仍在真实PG用例中，完整验收等B来源接线后按正常账号/日期执行。
+
+评分模板只在30例均有已保存终态时生成，避免运行中的请求被提前算成失败。确认调用进程已经停止后，可用同一profile加`--finalize-interrupted ATTEMPT_ID`显式将遗留请求记为失败；未知费用全额保留且不再重发。该操作不能与`--live`组合，不得用于仍在运行的请求。已填写的评分文件始终保留。
+
+## 课程提示 Worker
+
+HTTP进程设置`ASTRA_MODEL_PROFILE_FILE`指向核验后的配置，同一配置用于独立Worker。配置加载不读取密钥、不自动建表、不启动付费后台任务。B须提供受信`Sources`工厂；缺失时服务继续关闭。完成迁移后，在server目录显式初始化不可变模型配置及收紧后的预算：
+
+```powershell
+python -m app.modules.learning.hint_worker --profile ../.local/model-runtime.json --bootstrap
+# B工厂是后续接入模块，以下占位名称不能直接执行：
+python -m app.modules.learning.hint_worker --profile ../.local/model-runtime.json --sources B_MODULE:factory --once
+```
+
+不带`--once`时独立Worker轮询；没有任务时等待0.5秒，外发不持有数据库事务。HTTP必须注入同一受信来源并共享配置ID。冻结模板的启用与发布分开，不能用最新草稿代替已验版本。先在模板页面保存并发布，再由部署操作明确选定目录ID、版本ID、页面返回的SHA-256、现有管理员或本课教师ID及理由：
+
+```powershell
+python -m app.modules.learning.hint_worker --profile ../.local/model-runtime.json --activate-template TEMPLATE_ID --version VERSION_ID --checksum SHA256 --actor USER_ID --reason "明确说明已核验版本及本次启用理由"
+```
+
+该受信部署命令重验账号、归属、归档、版本和校验值，启用指针、TEMPLATE_ACTIVATED审计及Outbox同事务；不会自动追随之后发布的新版本。回退也显式选择已核验的历史版本，已有提示保留原引用。内容门禁只识别明显代码/危险输出，不能代替语义质量评审。
+
+**预算不能重复分配。** 本轮20元包含工具回归和后续Worker调用。工具和课程数据库账本相互独立；启用Worker前必须扣除本地账本已占用金额，并把剩余额度写入部署配置。未知供应商费用继续全额预占，usage乘高峰价只记估算；实际账单取得后才调用`HintService.reconcile`结算。不要把默认规划500元当作本轮授权。
+
+## 早期离线准备记录
 
 发起人于2026-10-24确认：账号和API Key暂未准备，本次仅完成schema、配置和离线测试。该次离线准备没有网络调用，不读取密钥。
 
