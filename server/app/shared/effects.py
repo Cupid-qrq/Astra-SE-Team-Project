@@ -51,6 +51,7 @@ class TransactionalEffects:
                     "REFERENCE": "problem_version",
                     "PROBLEM": "problem",
                     "PREFLIGHT": "preflight",
+                    "SUBMISSION": "submission",
                     "ASSIGNMENT": "assignment",
                     "DEADLINE": "assignment",
                     "POLICY": "assignment",

@@ -18,6 +18,7 @@ import app.modules.courses.models  # noqa: F401
 import app.modules.judging.models  # noqa: F401
 import app.modules.learning.models  # noqa: F401
 import app.modules.problems.models  # noqa: F401
+import app.modules.submissions.models  # noqa: F401
 from app.modules.identity.models import metadata as metadata
 
 policy_guard = Table(

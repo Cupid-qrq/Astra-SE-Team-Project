@@ -37,3 +37,27 @@ Task3学生提交受理/幂等/正式性、队列结果与历史页面；Task4�
 - 任务领取与所有进度/完成/恢复写回必须检查同一租约及运行身份；网络在事务外。
 - 预检私密快照、学生源码只进入已授权执行上下文，不进日志、报告或模型。
 - 本分支集成依赖、迁移单head及A后续模型接口需最终核对，不虚构审批或绕过保护。
+
+## Task 3: 学生提交与结果闭环（2026-11-03追加）
+
+授权：用户要求继续完成全部v0.4工作、简化流程；实施B，成员评审A，代理批次独立审查单列。前两阶段已完成并推送PR9，fea64bf的完整本地/CI通过，主线d50b9e9；本阶段复用检出，新分支feat/b/p1-submission-results。
+
+### 3a 持久受理与不可变来源
+Files: server/app/modules/submissions/{models,application}.py、shared/metadata.py、新SQL011/b011、tests/shared/test_submissions.py及迁移head断言。
+Interface: Submissions.accept(actor, body, key, intent, request_id)返回receipt和replayed，调用者拥有UoW；先policy_guard、身份/已有幂等记录当前授权，再新作业admission取DB时刻。参数不接受user/mode/时间。一个事务持久submission/basis/cycle/attempt/job、容量/间隔、审计Outbox；原始源码/资格/回执不可修改。
+- [ ] RED：10路同键一次；异内容409；跨截止重放；停用/越权；3个人/100全局/5秒；意图不降级；副作用失败全部回滚；跨提交结果指针约束；原始内容不可变。
+- [ ] b011保存提交、原始及未来重评basis、周期/轮次/队列/容量；延迟复合外键保证归属；本阶段不冒称评测终态已运行。
+- [ ] `uv run --locked --project server pytest server/tests/shared/test_submissions.py`及迁移测试，预期真实PG通过。提交中文feat。迁移有业务数据时禁止破坏性downgrade，停止新入口后使用前向修复。
+
+### 3b Worker与安全结果API
+Files: submissions/{worker_store,worker,api,sources}.py，judging共享slot调度、main/worker_cli、OpenAPI/生成客户端，shared/HTTP测试。
+Interface: 共用单物理槽，先正常学生任务再预检；已持久identity再SSH，事务外执行/取消，epoch fencing。六判定/首错停，最多一次基础设施重试，15分钟cycle/360秒round，释放容量一次；冻结Learning.resolve引用，适配A反馈/提示/学习结果接口。查询与列表当前授权，无隐藏数据/token/stdout。
+- [ ] RED：并发claim、超时/失联/迟到、一次重试/周期不重置、回滚/清理失败隔离、权限/秘密字段检查；真实公开夹具经oldali闭环。
+- [ ] 修正接口契约并生成客户端；对应pytest通过后中文阶段提交。
+
+### 3c 学生页面与历史
+Files: apps/web/src/features/submissions/*、integrations/teaching.ts、runtime/路由接线及e2e-integration/submissions.spec.ts。
+- [ ] 复用公共组件，编辑器真实受理/轮询、结果抽屉/详情/历史/轮次；保留A原幂等快照恢复及代码保护，接固定帮助与学习页。
+- [ ] 单元失败用例、正式PG三视口浏览器、业务恢复检查通过后阶段提交。
+
+本批一次独立审查，修复重要项后完整入口及远端CI；后续Task4—6沿用上述既有范围，在开工前补齐具体文件，持续执行不再次索取开始许可。
