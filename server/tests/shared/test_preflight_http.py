@@ -180,3 +180,23 @@ def test_background_status_poll_does_not_extend_idle_session(environment):
             )
             == before
         )
+
+
+def test_failed_preflight_summary_is_derived_only_from_safe_case_verdict(environment):
+    engine, _, _, _, _ = environment
+    teacher, receipt = accepted(environment)
+    with engine.begin() as conn:
+        conn.execute(
+            text("UPDATE preflight_cases SET state='FINISHED',verdict='WA' WHERE preflight_id=:id"),
+            {"id": receipt["preflight_id"]},
+        )
+        conn.execute(
+            text(
+                "UPDATE preflight_runs SET state='FAILED',started_at=created_at,finished_at=created_at WHERE preflight_id=:id"
+            ),
+            {"id": receipt["preflight_id"]},
+        )
+    result = teacher.get("/api/v1/preflights/" + receipt["preflight_id"])
+    assert result.status_code == 200, result.text
+    assert "WA" in result.json()["summary"]
+    assert "SECRET" not in result.text

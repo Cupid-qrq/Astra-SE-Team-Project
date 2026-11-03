@@ -129,12 +129,18 @@ Worker 的 transport 只在外发许可事务提交后执行。使用 `DeepSeekT
 
 账本锁顺序为个人日额度、项目总预算、接纳日预算，均在 policy_guard 内。运行中超时或 Worker 丢失将费用设为 UNCERTAIN，次数释放，费用继续占用原接纳日及项目预算。人工取得供应商权威账单后，在受控事务中调用 `HintService.reconcile(hint_id, Decimal(actual_cny))`，重复处理无重复扣费。计费 usage 与供应商请求 ID 仅保存在服务端账本关联记录，不出现在 HintView。
 
-## P1-B1a 预检持久化与事务查询
+## P1-B1 预检受理、查询与发布接线
 
-`app.modules.judging.preflight.TransactionalPreflight(repo,catalog,effects)`实现A PreflightPort，绑定同一个正式SqlRepository/UoW，拒绝跨事务使用。先取得policy_guard，再从数据库复核教师状态、课程归属及版本，冻结A快照摘要/profile摘要与私有bytea。全部语言全部样例/隐藏点一次写入preflight_runs/cases/jobs；同内容活跃任务去重，不重复审计或队列事实；审计/Outbox/后段失败随同事务回滚。
+正式应用注册`POST /problem-versions/{id}/preflight`与`GET /preflights/{id}`。前者接收`expected_revision`并返回202，后者只返回标识、摘要、状态、语言/点键/判定及安全派生失败摘要；没有frozen_blob、engine_meta、源码或隐藏输入输出。两者均复用登录会话、课程归属校验、CSRF/Origin写保护和同一Repository/UoW；背景GET带`X-Astra-Background: 1`，不延长空闲会话。
 
-b006延续正式迁移单head，私有快照支持合法NUL；冻结字段与终态受数据库保护，新FK均有索引。就绪检查要求b006，部署须先迁移。新增表以RESTRICT保留版本引用；公开预检HTTP接线前须与A统一“有预检引用的草稿删除”冲突语义，当前不改A删除接口或历史SQL。
+`ASTRA_PROFILES_FILE`沿用公开Profile JSON数组。正式启动通过SnapshotCatalog按BR-07严格校验、冻结元数据允许列表，不分配或猜测Judge0语言ID，不声称验证过安装镜像。RuntimeProfile仍要求独立的真实执行映射。缺配置时受理返回503，已有历史查询仍可用。配置元数据不会启动Worker或执行程序。
 
-read/evidence只返回标识、状态与点判定；不加载/回显隐藏材料到普通查询，evidence仅完整PASSED/全点AC且冻结绑定一致时有效。没有生产终态写入器、Worker、租约/槽位或HTTP接线；jobs只有READY/DONE事实，后续随实际execution_slots添加租约和FK，不用空实现放行。当前仍无可执行的真实评测环境，正式执行保持关闭；数据库夹具的合成终态不进入正常启动。
+`TransactionalPreflight`先取得policy_guard，再复核教师状态、课程归属及版本；全部语言和全部样例/隐藏点、队列、审计与Outbox同事务受理，同内容活跃任务复用，后段失败整体回滚。冻结bytea支持合法NUL。case_manifest只含语言/类别/序号，子表INSERT锁父任务并验证冻结清单，绑定和终态禁止篡改。
 
-预检case_manifest仅保存语言/点类别/序号，随私有快照一并冻结。子表INSERT先锁父任务，须为QUEUED且点键属于冻结清单；初始事务已创建的键由主键阻止重复，终态任务不能追加，避免历史PASSED证据被增行破坏。此约束不代表真实执行或完成写入器已实现。
+发布先授权读取目标预检，再读取已授权私有快照核验证据：要求同版本、相同内容/profile摘要、完整点集合且全部AC。缺失或未授权预检返回404，不提前读其私有blob；未完成或旧摘要返回409。b009复合FK将发布引用绑定到同版本的预检，缺失/跨版本UUID均受数据库拒绝。旧数据非空坏引用会阻止升级，不自动伪造证据；旧NULL引用保持原样。
+
+草稿有任何预检历史时删除返回409 VERSION_IN_USE，并保留材料与任务；未引用草稿的原删除语义不变。正式组合通过Problems的可选draft_delete_guard回调接入，不让A独立验证工程依赖B表。就绪检查要求正式迁移头b009。
+
+教师页面使用真实传输，发起后在URL保存任务UUID和启动revision以支持刷新；每次查询仍由服务端授权。修订变化或跨版本响应不能解锁发布。A独立验证host不注册B路由，相关测试如实检查404，不冒充B实现。完整浏览器回归通过正式host验证受理与刷新。
+
+此阶段没有生产完成写入器、Worker、租约或执行槽；真实任务保持QUEUED，正式执行未启用，测试库合成终态不进入正常启动。已验证的课程基础容器环境在独立[PR#6](https://github.com/Cupid-qrq/Astra-SE-Team-Project/pull/6)，本分支不依赖该未合并PR。后续Worker需使用相同冻结profile并补执行、超时、清理及恢复，不能把本次受理接线当FR-07或I0完整验收。

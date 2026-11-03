@@ -160,7 +160,16 @@ class TransactionalPreflight:
             if value is None:
                 raise Fault(404, "NOT_FOUND", "预检记录不存在或无权访问。")
             Problems(self.repo, self.effects).version(teacher, value["version_id"])
-            return {**value, "cases": self._cases(pid)}
+            rows = self._cases(pid)
+            summary = None
+            if value["state"] == "FAILED":
+                failed = next((row for row in rows if row["verdict"] not in (None, "AC")), None)
+                summary = (
+                    f"{failed['language_key']} {'样例' if failed['case_kind'] == 'SAMPLE' else '隐藏测试'} {failed['case_order']}：{failed['verdict']}"
+                    if failed is not None
+                    else "预检未通过，暂无已完成的失败点。"
+                )
+            return {**value, "cases": rows, "summary": summary}
         except SQLAlchemyError:
             pass
         raise Fault(

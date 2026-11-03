@@ -21,15 +21,44 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
   await page.getByLabel('预期答案').fill('30\n')
   await page.getByRole('button', { name: '保存配对测试' }).click()
   await expect(page.getByText('测试点已保存。')).toBeVisible()
-  await page.getByLabel('参考程序').fill('print(sum(map(int, input().split())))')
-  await page.getByRole('button', { name: '保存参考程序', exact: true }).click()
-  await expect(page.getByText('参考程序已保存。')).toBeVisible()
+  const languages = await page
+    .getByLabel('参考语言')
+    .locator('option')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value))
+  for (const language of languages) {
+    await page.getByLabel('参考语言').selectOption(language)
+    await page
+      .getByLabel('参考程序')
+      .fill(
+        language === 'cpp17'
+          ? '#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<a+b;}'
+          : 'print(sum(map(int, input().split())))',
+      )
+    const saved = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' && response.url().endsWith('/references/' + language),
+    )
+    await page.getByRole('button', { name: '保存参考程序', exact: true }).click()
+    expect((await saved).status()).toBe(200)
+    await expect(page.getByText('参考程序已保存。')).toBeVisible()
+  }
   await page.reload()
   await expect(page.getByLabel('题目标题')).toHaveValue('两数之和')
   await page.getByRole('button', { name: '载入测试 1', exact: true }).click()
   await expect(page.getByLabel('测试输入')).toHaveValue('10 20\n')
+  const preflight = page.waitForResponse(
+    (response) => response.request().method() === 'POST' && response.url().endsWith('/preflight'),
+  )
   await page.getByRole('button', { name: '启动预检' }).click()
-  await expect(page.getByText('预检服务尚未接入。', { exact: true })).toBeVisible()
+  const preflightResponse = await preflight
+  if (process.env.ASTRA_SERVER_PYTHON) {
+    expect(preflightResponse.status()).toBe(202)
+    await expect(page.getByText('预检状态：QUEUED')).toBeVisible()
+  } else {
+    // A standalone validation host deliberately does not implement B's routes.
+    expect(preflightResponse.status()).toBe(404)
+    await expect(page.getByRole('alert')).toBeVisible()
+  }
   await page.getByRole('link', { name: '我的课程', exact: true }).click()
   await page.getByRole('link', { name: course, exact: true }).click()
   await page.getByRole('link', { name: '管理题目' }).click()

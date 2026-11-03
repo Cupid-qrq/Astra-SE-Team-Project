@@ -10091,6 +10091,13 @@
             "items": {
               "$ref": "#/components/schemas/PreflightCaseStatus"
             }
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500
           }
         },
         "required": [
@@ -10099,7 +10106,8 @@
           "content_digest",
           "profile_hash",
           "state",
-          "cases"
+          "cases",
+          "summary"
         ],
         "additionalProperties": false
       },

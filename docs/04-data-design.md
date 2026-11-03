@@ -149,3 +149,6 @@ assignment.revision负责所有并发写检查；grade_epoch只在延期重开�
 测试包含空库 upgrade、上版库 upgrade、约束拒绝、双路径并发、快照对账及恢复抽样。不能用 SQLite 测试替代 PostgreSQL 锁和条件索引验证。
 
 每日备份数据库、配置及版本清单，独立介质保留30天。归档满180天并经教师确认方可逻辑清理；之后30天内淘汰可恢复副本。清理需先计算引用和 hold，包括间接引用的题目、模板及成绩来源；保留引用的版本不物理删除。源码、测试原字节和摘要在迁移/备份恢复前后必须一致。
+
+
+预检发布接线（b009）：`problem_versions(version_id,published_preflight_id)`以复合外键引用`preflight_runs(version_id,preflight_id)`，父表有对应唯一约束；不存在或跨版本的非空引用不得写入。历史NULL引用不回填，非空坏引用阻止升级并要求显式核对。发布前仍由服务端校验权限、完整点集合、相同摘要及全AC，外键不替代业务证据验证。有预检历史的草稿删除返回VERSION_IN_USE并保留历史。

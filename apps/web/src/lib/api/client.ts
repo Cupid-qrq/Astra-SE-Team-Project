@@ -237,6 +237,20 @@ export function createApiClient({
           params: { path: { id, language_key }, header: { 'X-CSRF-Token': csrf! } },
         }),
       ),
+    enqueuePreflight: (id: string, revision: number) =>
+      unwrap(
+        client.POST('/problem-versions/{id}/preflight', {
+          body: { expected_revision: revision },
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    preflight: (id: string) =>
+      unwrap(
+        client.GET('/preflights/{id}', {
+          params: { path: { id } },
+          headers: { 'X-Astra-Background': '1' },
+        }),
+      ),
     publishVersion: (id: string, body: components['schemas']['PublishVersion']) =>
       unwrap(
         client.POST('/problem-versions/{id}/publish', {

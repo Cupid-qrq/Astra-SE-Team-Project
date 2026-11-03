@@ -134,3 +134,22 @@ describe('客户端会话与错误边界', () => {
     }
   })
 })
+
+it('预检写请求带CSRF和revision，状态轮询明确使用后台请求头', async () => {
+  const requests: Request[] = []
+  const api = createApiClient({
+    baseUrl: 'http://localhost/api/v1',
+    fetch: async (request) => {
+      requests.push(request)
+      if (request.url.endsWith('/auth/session')) return Response.json(session('preflight-csrf'))
+      return Response.json({ preflight_id: 'job', state: 'QUEUED', content_digest: 'a'.repeat(64) })
+    },
+  })
+  await api.session()
+  await api.enqueuePreflight('version', 7)
+  await api.preflight('job')
+  expect(requests[1].method).toBe('POST')
+  expect(await requests[1].clone().json()).toEqual({ expected_revision: 7 })
+  expect(requests[1].headers.get('X-CSRF-Token')).toBe('preflight-csrf')
+  expect(requests[2].headers.get('X-Astra-Background')).toBe('1')
+})

@@ -1772,6 +1772,7 @@ export interface components {
             /** @enum {string} */
             state: "QUEUED" | "RUNNING" | "PASSED" | "FAILED";
             cases: components["schemas"]["PreflightCaseStatus"][];
+            summary: string | null;
         };
         PreflightRequest: {
             expected_revision: number;
