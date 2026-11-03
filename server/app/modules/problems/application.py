@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from hashlib import sha256
 from uuid import uuid4
 
@@ -20,9 +21,17 @@ from .ports import PreflightPort
 
 
 class Problems:
-    def __init__(self, repo: Repository, effects: Effects, preflight: PreflightPort | None = None):
+    def __init__(
+        self,
+        repo: Repository,
+        effects: Effects,
+        preflight: PreflightPort | None = None,
+        *,
+        draft_delete_guard: Callable[[Record, str], None] | None = None,
+    ):
         self.repo, self.effects, self.preflight = repo, effects, preflight
         self.courses = Courses(repo, effects)
+        self.draft_delete_guard = draft_delete_guard
 
     def problem(self, actor: Record, pid: str, *, write=False) -> Record:
         role(actor, ("TEACHER",))
@@ -248,6 +257,8 @@ class Problems:
     def delete(self, actor: Record, vid: str, body: Record) -> None:
         version = self.version(actor, vid, write=True)
         revision(version, body["expected_revision"])
+        if self.draft_delete_guard is not None:
+            self.draft_delete_guard(actor, vid)
         for table, key in [("testcases", "testcase_id"), ("reference_programs", "reference_id")]:
             for row in self.repo.rows(table, version_id=vid):
                 self.repo.remove(table, row[key])
@@ -381,6 +392,7 @@ class Problems:
         publishable(snapshot)
         if self.preflight is None:
             raise Fault(503, "PREFLIGHT_UNAVAILABLE", "预检服务尚未接入，暂时不能发布。", retry=5)
+        self.preflight.read(self.repo, actor, body["preflight_id"])
         verify_evidence(snapshot, self.preflight.evidence(self.repo, body["preflight_id"]))
         checksum, now = content_digest(snapshot), self.repo.now()
         self.repo.change(

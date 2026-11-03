@@ -117,7 +117,7 @@ def seed(engine, config_path, *, due_seconds=3600, profile=None, browser=False):
                 source_ref="synthetic",
                 checksum="a" * 64,
                 published_at=now,
-                published_preflight_id=str(uuid4()),
+                published_preflight_id=None,  # Legacy fixture, not fabricated execution evidence.
                 revision=1,
                 created_at=now,
                 updated_at=now,

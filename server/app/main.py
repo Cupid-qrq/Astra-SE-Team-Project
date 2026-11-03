@@ -140,7 +140,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b008":
+                if head != "b009":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -203,7 +203,12 @@ def create_app(
                         repo=repo,
                         identity=identity,
                         courses=Courses(repo, effects),
-                        problems=Problems(repo, effects, preflight),
+                        problems=Problems(
+                            repo,
+                            effects,
+                            preflight,
+                            draft_delete_guard=preflight.protect_draft_delete,
+                        ),
                         preflight=preflight,
                         assignments=Assignments(repo, effects),
                         hints=HintService(repo, hint_sources, hint_configuration),

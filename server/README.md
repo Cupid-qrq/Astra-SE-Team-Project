@@ -46,7 +46,7 @@ uv sync --locked --project server
 uv run --project server alembic -c server/alembic.ini upgrade head
 ```
 
-正式链为 `b001→b002→b003→b004→b005→b006→b007→b008`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭。
+正式链为 `b001→b002→b003→b004→b005→b006→b007→b008→b009`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本，第九版用同版本复合外键约束发布预检引用；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭；b009只允许撤回新增约束，不修改或删除历史数据。无效的既有非空发布引用将阻止升级，不自动伪造证据或回填历史。
 
 `app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
 

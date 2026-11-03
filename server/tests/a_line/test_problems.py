@@ -2,10 +2,11 @@ from copy import deepcopy
 from uuid import uuid4
 
 import pytest
-from app.modules.problems.application import Problems
-from app.modules.problems.domain import content_digest, profile_digest
 from astra_a.app import create_app
 from astra_a.storage import SqlRepository
+
+from app.modules.problems.application import Problems
+from app.modules.problems.domain import content_digest, profile_digest
 
 
 def profile():
@@ -79,6 +80,9 @@ class SyntheticPreflight:
 
     def __init__(self, evidence):
         self.value = evidence
+
+    def read(self, repo, actor, preflight_id):
+        return self.value if self.value["preflight_id"] == preflight_id else None
 
     def evidence(self, repo, preflight_id):
         return self.value if self.value["preflight_id"] == preflight_id else None

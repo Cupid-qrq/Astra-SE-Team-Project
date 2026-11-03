@@ -167,6 +167,25 @@ class TransactionalPreflight:
             503, "PREFLIGHT_STORAGE_UNAVAILABLE", "预检任务暂时不可用，请稍后重试。", retry=5
         )
 
+    def protect_draft_delete(self, actor: Record, version_id: str) -> None:
+        self._check(self.repo)
+        try:
+            self.repo.guard()
+            teacher = self._actor(actor)
+            Problems(self.repo, self.effects).version(teacher, version_id, write=True)
+            self.repo.get("problem_versions", version_id, lock=True)
+            if (
+                self.repo.connection.execute(
+                    select(runs.c.preflight_id).where(runs.c.version_id == version_id).limit(1)
+                ).first()
+                is not None
+            ):
+                raise Fault(409, "VERSION_IN_USE", "此草稿已有预检历史，请保留记录或创建新版本。")
+            return
+        except SQLAlchemyError:
+            pass
+        raise Fault(503, "PREFLIGHT_STORAGE_UNAVAILABLE", "预检记录暂时不可用。", retry=5)
+
     def evidence(self, repo: Repository, preflight_id: str) -> Record | None:
         self._check(repo)
         try:
