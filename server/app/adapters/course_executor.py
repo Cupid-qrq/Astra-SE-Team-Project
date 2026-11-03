@@ -158,7 +158,10 @@ class CourseExecutor:
             or len(stdin) > 65536
         ):
             raise ExecutionError("INVALID_EXECUTION_INPUT")
+        if not 0 < timeout <= 40:
+            raise ExecutionError("INVALID_EXECUTION_BUDGET")
         body = dict(
+            timeout_ms=max(1, int(timeout * 1000)),
             operation="execute",
             execution_id=identity,
             image=self.image,

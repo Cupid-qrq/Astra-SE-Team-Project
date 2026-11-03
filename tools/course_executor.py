@@ -25,6 +25,7 @@ class ExecutionRequest:
         self.language = value["language"]
         self.code = code
         self.stdin = stdin
+        self.timeout_ms = value.get("timeout_ms", 40000)
         self.fingerprint = hashlib.sha256(
             json.dumps(value, sort_keys=True, separators=(",", ":")).encode()
         ).hexdigest()
@@ -37,12 +38,17 @@ def validate_request(value):
     try:
         if (
             not isinstance(value, dict)
-            or set(value)
+            or set(value) - {"timeout_ms"}
             != {"operation", "execution_id", "request_hash", "image", "language", "code", "stdin"}
             or value["operation"] != "execute"
         ):
             raise ValueError
-        if any(not isinstance(value[k], str) for k in value):
+        if (
+            type(value.get("timeout_ms", 40000)) is not int
+            or not 1 <= value.get("timeout_ms", 40000) <= 40000
+        ):
+            raise ValueError
+        if any(not isinstance(value[k], str) for k in value if k != "timeout_ms"):
             raise ValueError
         if any(
             re.fullmatch(r"[0-9a-f]{64}", value[k]) is None

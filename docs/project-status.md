@@ -1,5 +1,9 @@
 # 当前项目状态
 
+## 2026-11-03 B预检真实Worker候选
+
+新分支feat/b/p1-worker-submissions复用PR6/7；已同步main fb10ccb及PR7冲突修复3f8bb47。执行接口阶段6588f33：oldali双语言正常、CE、RE、墙钟及CPU超限真实判定，幂等回放、持久取消fence和清理验证通过。b010候选增加独立调度锁/单槽租约及预检Worker，已在随机专用PG schema经SSH执行两语言四点，PASSED后题目发布成功，槽位FREE；控制器运行中SIGKILL后恢复清理及迟到拒绝也通过。剩余Worker回归与独立审查/完整检查按本批最终记录，未宣称整个I1或学生提交闭环完成。
+
 ## 2026-11-03 B预检分支同步最新主线
 
 远端main已推进到fb10ccb，包含A模型接入e2d04ec及容器PR#6。PR#7与main的文本冲突仅位于本文件，两侧阶段记录均保留；正式应用自动合并后同时保留A模型profile/预算装配与B预检目录/路由/发布保护。正式迁移仍为b009；下一阶段Worker草稿另在feat/b/p1-worker-submissions保存，未混入本PR。当前候选重新验证后更新PR#7，成员审批不代填。

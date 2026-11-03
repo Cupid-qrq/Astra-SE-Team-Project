@@ -46,7 +46,7 @@ uv sync --locked --project server
 uv run --project server alembic -c server/alembic.ini upgrade head
 ```
 
-正式链为 `b001→b002→b003→b004→b005→b006→b007→b008→b009`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本，第九版用同版本复合外键约束发布预检引用；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭；b009只允许撤回新增约束，不修改或删除历史数据。无效的既有非空发布引用将阻止升级，不自动伪造证据或回填历史。
+正式链为 `b001→b002→b003→b004→b005→b006→b007→b008→b009→b010`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本，第九版用同版本复合外键约束发布预检引用；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭；b009只允许撤回新增约束，不修改或删除历史数据。无效的既有非空发布引用将阻止升级，不自动伪造证据或回填历史。
 
 `app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
 
@@ -141,8 +141,21 @@ Worker 的 transport 只在外发许可事务提交后执行。`model_runtime.Ru
 
 发布先授权读取目标预检，再读取已授权私有快照核验证据：要求同版本、相同内容/profile摘要、完整点集合且全部AC。缺失或未授权预检返回404，不提前读其私有blob；未完成或旧摘要返回409。b009复合FK将发布引用绑定到同版本的预检，缺失/跨版本UUID均受数据库拒绝。旧数据非空坏引用会阻止升级，不自动伪造证据；旧NULL引用保持原样。
 
-草稿有任何预检历史时删除返回409 VERSION_IN_USE，并保留材料与任务；未引用草稿的原删除语义不变。正式组合通过Problems的可选draft_delete_guard回调接入，不让A独立验证工程依赖B表。就绪检查要求正式迁移头b009。
+草稿有任何预检历史时删除返回409 VERSION_IN_USE，并保留材料与任务；未引用草稿的原删除语义不变。正式组合通过Problems的可选draft_delete_guard回调接入，不让A独立验证工程依赖B表。就绪检查要求正式迁移头b010。
 
 教师页面使用真实传输，发起后在URL保存任务UUID和启动revision以支持刷新；URL不作为可信内容绑定。GET返回冻结version_revision、当前current_revision及服务端计算的matches_current；修订相同时普通轮询只投影状态，修订不同时仅在已授权教师上下文比较当前材料摘要，不返回私有内容，相同内容恢复后仍可复用原任务。前端按当前修订隔离缓存，校验失败后不展示缓存PASSED，只用服务端确认匹配的状态解锁发布。跨版本响应同样拒绝。A独立验证host不注册B路由，相关测试如实检查404，不冒充B实现。完整浏览器回归通过正式host验证受理与刷新。
 
 此阶段没有生产完成写入器、Worker、租约或执行槽；真实任务保持QUEUED，正式执行未启用，测试库合成终态不进入正常启动。已验证的课程基础容器环境在独立[PR#6](https://github.com/Cupid-qrq/Astra-SE-Team-Project/pull/6)，本分支不依赖该未合并PR。后续Worker需使用相同冻结profile并补执行、超时、清理及恢复，不能把本次受理接线当FR-07或I0完整验收。
+
+
+## 独立预检Worker（显式启动）
+
+b010添加调度锁、单槽execution_slots及预检租约epoch/owner/截止/current_execution。仅领取READY且未认领的预检，任一已发布活动作业处于截止前10分钟则暂停新预检。当前尚无学生队列，后续学生队列接入时必须保持普通/重评优先及NNNNR规则。
+
+部署端明确配置ASTRA_PROFILES_FILE，所有语言image_digest须与实际固定执行镜像一致。`uv run --project server python -m app.modules.judging.worker_cli --executor-host oldali --image sha256:<实际固定镜像> --enable-execution [--once]`运行独立进程。配置错误输出常量代码，程序不输出源码、隐藏输入/输出或原始执行异常；HTTP启动不自动开启Worker。SSH执行器部署见[课程容器说明](../infra/judge/course/README.md)。真实模型由独立A Worker处理，不共享执行槽。
+
+领取和执行身份先持久提交，再在事务外SSH执行；5秒续租，15秒失联进入恢复。每点写回匹配owner/epoch/current_execution；360秒整轮剩余预算发送至远端，不能临近截止重新开启完整预算。程序正常退出后按ASCII空白token比较；所有语言/样例/隐藏点全AC才能PASSED。CPU来自受控父cgroup计量，未知内存指标null。
+
+未知创建/调用失败保持QUARANTINED；恢复先递增epoch，事务外持久取消fence并清理，只有确认清理后才将运行点SE、后续点SKIPPED、预检FAILED并释放槽位。不能通过数据库直接改FREE绕开物理清理。b010仅在所有槽与任务从未使用租约时允许撤回新增结构；已有租约历史拒绝降级，按受审恢复处理。
+
+截至本批验证，专用随机测试库到oldali公开两语言四点预检→PASSED→真实发布已完成，运行中SIGKILL控制器后取消/清理/拒绝迟到创建亦已实测。学生提交/结果/成绩仍待后续批次，不能把预检Worker计作整个I1闭环。

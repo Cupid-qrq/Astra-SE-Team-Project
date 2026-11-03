@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import time
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -88,7 +89,11 @@ def run_args(request, volume):
 
 def execute(request):
     with engine():
-        return execute_safely(request, _execute, cleanup)
+        container._deadline = time.monotonic() + request.timeout_ms / 1000
+        try:
+            return execute_safely(request, _execute, cleanup)
+        finally:
+            container._deadline = None
 
 
 def _execute(request):

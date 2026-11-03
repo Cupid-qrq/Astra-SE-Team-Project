@@ -167,6 +167,13 @@ class ProtocolTests(unittest.TestCase):
         self.assertIn("--cgroup-parent=/astra-exec-" + "a" * 64, args)
         self.assertIn("--ulimit=cpu=4:4", args)
 
+    def test_explicit_round_budget_is_bounded_and_reaches_request(self):
+        value = executor.validate_request(dict(request(), timeout_ms=1200))
+        self.assertEqual(value.timeout_ms, 1200)
+        for budget in (0, True, 40001):
+            with self.assertRaises(ValueError):
+                executor.validate_request(dict(request(), timeout_ms=budget))
+
 
 def validate_request_for_test():
     return executor.validate_request(request())

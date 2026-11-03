@@ -86,3 +86,20 @@ def test_cancel_only_accepts_confirmed_cancelled_identity():
     assert not CourseExecutor(
         "oldali", IMAGE, transport=lambda *a: b'{"cleanup_confirmed":true}'
     ).cancel("a" * 64)
+
+
+def test_remaining_round_budget_is_sent_to_remote_controller():
+    from app.adapters.course_executor import CourseExecutor
+
+    requests = []
+
+    def transport(command, payload, timeout):
+        requests.append((json.loads(payload), timeout))
+        return (
+            b'{"phase":"RUN","diagnosis":null,"exit_code":0,"stdout":"","cleanup_confirmed":true}'
+        )
+
+    CourseExecutor("oldali", IMAGE, transport=transport).execute(
+        "a" * 64, "python3", b"pass", b"", timeout=1.2
+    )
+    assert requests[0][0]["timeout_ms"] == 1200
