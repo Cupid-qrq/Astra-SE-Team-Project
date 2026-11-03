@@ -46,7 +46,8 @@ export function CoursesPage() {
                 type="button"
                 key={value}
                 aria-pressed={filter === value}
-                title={`筛选显示${label}`}
+                data-tooltip={`筛选显示${label}`}
+                aria-description={`筛选显示${label}`}
                 onClick={() => setFilter(value)}
               >
                 {label}

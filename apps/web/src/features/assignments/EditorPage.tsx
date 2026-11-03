@@ -126,7 +126,8 @@ function EditorWorkspace({
       </header>
       <div className="editor-tabs" role="tablist" aria-label="编程工作区视图">
         <button
-          title="切换到题面与样例。"
+          data-tooltip="切换到题面与样例。"
+          aria-description="切换到题面与样例。"
           role="tab"
           aria-selected={tab === 'problem'}
           onClick={() => setTab('problem')}
@@ -134,7 +135,8 @@ function EditorWorkspace({
           题目
         </button>
         <button
-          title="切换到代码编辑区。"
+          data-tooltip="切换到代码编辑区。"
+          aria-description="切换到代码编辑区。"
           role="tab"
           aria-selected={tab === 'code'}
           onClick={() => setTab('code')}

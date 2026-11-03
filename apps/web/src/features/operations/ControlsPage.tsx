@@ -63,30 +63,32 @@ export function ControlsPage() {
               新提交 {config.data.submission_enabled ? '开启' : '暂停'} · 新评测派发{' '}
               {config.data.judge_enabled ? '开启' : '暂停'}
             </p>
-            <Button
-              disabled={!reason.trim()}
-              busy={action.isPending}
-              title={
-                reason.trim()
-                  ? '切换是否受理新的学生提交，已有任务继续处理。'
-                  : '请先填写上方控制操作理由。'
-              }
-              onClick={() => action.mutate('submission')}
-            >
-              切换新提交受理
-            </Button>
-            <Button
-              disabled={!reason.trim()}
-              busy={action.isPending}
-              title={
-                reason.trim()
-                  ? '切换新评测派发，已执行任务继续完成与清理。'
-                  : '请先填写上方控制操作理由。'
-              }
-              onClick={() => action.mutate('judge')}
-            >
-              切换新评测派发
-            </Button>
+            <div className="button-row">
+              <Button
+                disabled={!reason.trim()}
+                busy={action.isPending}
+                title={
+                  reason.trim()
+                    ? '切换是否受理新的学生提交，已有任务继续处理。'
+                    : '请先填写上方控制操作理由。'
+                }
+                onClick={() => action.mutate('submission')}
+              >
+                切换新提交受理
+              </Button>
+              <Button
+                disabled={!reason.trim()}
+                busy={action.isPending}
+                title={
+                  reason.trim()
+                    ? '切换新评测派发，已执行任务继续完成与清理。'
+                    : '请先填写上方控制操作理由。'
+                }
+                onClick={() => action.mutate('judge')}
+              >
+                切换新评测派发
+              </Button>
+            </div>
             <p>已执行任务继续完成与清理。</p>
           </>
         )}

@@ -154,7 +154,7 @@ it('从本人错题填入真实示例时清除外发同意，最近提示仅填�
   expect(screen.getByLabelText('来源提交编号')).toHaveValue(submission)
   expect(screen.getByRole('checkbox')).not.toBeChecked()
   expect(screen.getByRole('button', { name: '请求提示' })).toHaveAttribute(
-    'title',
+    'data-tooltip',
     '请先勾选本次外发同意。',
   )
   await userEvent.click(await screen.findByRole('button', { name: '填入最近提示编号' }))

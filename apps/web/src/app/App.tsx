@@ -1,3 +1,4 @@
+import { ButtonHints } from '../components/ui/ButtonHints'
 import { RetentionPage } from '../features/operations/RetentionPage'
 import { ControlsPage } from '../features/operations/ControlsPage'
 import { AdminPage } from '../features/operations/AdminPage'
@@ -192,48 +193,51 @@ function Workspace() {
 }
 export function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<Workspace />}>
-        <Route path="/account/password" element={<PasswordPage />} />
-        <Route path="/admin/operations" element={<AdminPage />} />
-        <Route path="/admin/operations/controls" element={<ControlsPage />} />
-        <Route path="/retention" element={<RetentionPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/assignments/:id/operations" element={<TeacherOperations />} />
-        <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
-        <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
-        <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
-        <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
-        <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
-        <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
-        <Route path="/admin/hint-templates" element={<TemplatesPage />} />
-        <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
-        <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
-        <Route path="/learning" element={<LearningPage />} />
-        <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/courses/:id" element={<CoursePage />} />
-        <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
-        <Route path="/assignments/:id" element={<AssignmentPage />} />
-        <Route path="/assignments/:id/grades" element={<GradePage />} />
-        <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
-        <Route path="/submissions/:id" element={<SubmissionPage />} />
-        <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
-        <Route path="/courses/:id/problems" element={<ProblemsPage />} />
-        <Route path="/teacher/problems/:id" element={<VersionsPage />} />
-        <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />
-        <Route path="/teacher/problem-versions/:id" element={<VersionPage />} />
-      </Route>
-      <Route path="/" element={<Navigate to="/courses" replace />} />
-      <Route
-        path="*"
-        element={
-          <main className="not-found">
-            <StatePanel kind="empty" title="页面不存在" description="请从课程入口继续。" />
-            <a href="/courses">返回我的课程</a>
-          </main>
-        }
-      />
-    </Routes>
+    <>
+      <ButtonHints />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<Workspace />}>
+          <Route path="/account/password" element={<PasswordPage />} />
+          <Route path="/admin/operations" element={<AdminPage />} />
+          <Route path="/admin/operations/controls" element={<ControlsPage />} />
+          <Route path="/retention" element={<RetentionPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/assignments/:id/operations" element={<TeacherOperations />} />
+          <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
+          <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
+          <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
+          <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
+          <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
+          <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
+          <Route path="/admin/hint-templates" element={<TemplatesPage />} />
+          <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
+          <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
+          <Route path="/learning" element={<LearningPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/courses/:id" element={<CoursePage />} />
+          <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
+          <Route path="/assignments/:id" element={<AssignmentPage />} />
+          <Route path="/assignments/:id/grades" element={<GradePage />} />
+          <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
+          <Route path="/submissions/:id" element={<SubmissionPage />} />
+          <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
+          <Route path="/courses/:id/problems" element={<ProblemsPage />} />
+          <Route path="/teacher/problems/:id" element={<VersionsPage />} />
+          <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />
+          <Route path="/teacher/problem-versions/:id" element={<VersionPage />} />
+        </Route>
+        <Route path="/" element={<Navigate to="/courses" replace />} />
+        <Route
+          path="*"
+          element={
+            <main className="not-found">
+              <StatePanel kind="empty" title="页面不存在" description="请从课程入口继续。" />
+              <a href="/courses">返回我的课程</a>
+            </main>
+          }
+        />
+      </Routes>
+    </>
   )
 }

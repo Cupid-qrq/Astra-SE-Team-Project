@@ -26,7 +26,8 @@ export function Button({
     <button
       {...props}
       type={type}
-      title={description}
+      data-tooltip={description}
+      aria-description={description}
       className={`button button--${variant} ${className}`}
       disabled={disabled || busy}
       aria-busy={busy}
