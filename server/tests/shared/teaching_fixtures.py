@@ -1,5 +1,6 @@
 """Synthetic teaching rows only. No code is compiled or executed."""
 
+import hashlib
 from datetime import timedelta
 from uuid import uuid4
 
@@ -27,6 +28,8 @@ def identity(repo):
 
 
 def seed(engine, config_path, *, due_seconds=3600, profile=None, browser=False):
+    if browser and profile is None:
+        raise ValueError("Browser fixture requires an explicit synthetic profile.")
     config = Config(str(config_path))
     with engine.begin() as conn:
         config.attributes["connection"] = conn
@@ -115,14 +118,16 @@ def seed(engine, config_path, *, due_seconds=3600, profile=None, browser=False):
                 tags=[],
                 profile=profile or {"languages": [{"language_key": "python3"}]},
                 source_ref="synthetic",
-                checksum="a" * 64,
-                published_at=now,
-                published_preflight_id=None,  # Legacy fixture, not fabricated execution evidence.
+                checksum=None if browser else "a" * 64,
+                published_at=None if browser else now,
+                published_preflight_id=None,  # Browser-only synthetic publication is linked below.
                 revision=1,
                 created_at=now,
                 updated_at=now,
             ),
         )
+        if browser:
+            _publish_synthetic_browser_version(repo, ids, profile, now)
         repo.add(
             "assignments",
             dict(
@@ -156,3 +161,92 @@ def seed(engine, config_path, *, due_seconds=3600, profile=None, browser=False):
         ids["token"], session = identity(repo).issue(ids["student"])
         ids["session"] = session["session_id"]
     return ids
+
+
+def _publish_synthetic_browser_version(repo, ids, profile, now):
+    """Only isolated test schemas: synthesize AC facts, never execute code.
+
+    A real application startup never imports or calls this fixture. Keeping the
+    full link lets browser assignment tests retain the production publication guard.
+    """
+    from app.adapters.judge_profiles import SnapshotCatalog
+    from app.modules.judging.domain import freeze_snapshot
+    from app.modules.problems.application import Problems
+
+    repo.add(
+        "testcases",
+        dict(
+            testcase_id=str(uuid4()),
+            version_id=ids["version"],
+            order=1,
+            input_blob=b"1",
+            answer_blob=b"1",
+            input_sha256=hashlib.sha256(b"1").hexdigest(),
+            answer_sha256=hashlib.sha256(b"1").hexdigest(),
+        ),
+    )
+    for language in profile["languages"]:
+        code = (
+            b"// SYNTHETIC BROWSER FIXTURE: never executed\n#include <iostream>\nint main(){int n;std::cin>>n;std::cout<<n;}"
+            if language["language_key"] == "cpp17"
+            else b"# SYNTHETIC BROWSER FIXTURE: never executed\nprint(input().strip())"
+        )
+        repo.add(
+            "reference_programs",
+            dict(
+                reference_id=str(uuid4()),
+                version_id=ids["version"],
+                language_key=language["language_key"],
+                code=code,
+                code_sha256=hashlib.sha256(code).hexdigest(),
+            ),
+        )
+    plan = freeze_snapshot(
+        Problems(repo, TransactionalEffects(repo, str(uuid4()))).snapshot(ids["version"]),
+        SnapshotCatalog([profile]),
+    )
+    pid = str(uuid4())
+    repo.add(
+        "preflight_runs",
+        dict(
+            preflight_id=pid,
+            version_id=ids["version"],
+            version_revision=1,
+            content_digest=plan.content_digest,
+            profile_hash=plan.profile_hash,
+            frozen_blob=plan.blob,
+            case_manifest=[
+                dict(language_key=language, case_kind=kind, case_order=order)
+                for language, kind, order in plan.cases
+            ],
+            state="QUEUED",
+            created_by=ids["teacher"],
+            created_at=now,
+            started_at=None,
+            finished_at=None,
+        ),
+    )
+    for language, kind, order in plan.cases:
+        repo.add(
+            "preflight_cases",
+            dict(
+                preflight_id=pid,
+                language_key=language,
+                case_kind=kind,
+                case_order=order,
+                state="FINISHED",
+                verdict="AC",
+                engine_meta={"fixture": "synthetic-browser-no-execution"},
+            ),
+        )
+    repo.change("preflight_runs", pid, state="PASSED", started_at=now, finished_at=now)
+    repo.add(
+        "preflight_jobs", dict(job_id=str(uuid4()), preflight_id=pid, state="DONE", ready_at=now)
+    )
+    repo.change(
+        "problem_versions",
+        ids["version"],
+        published_at=now,
+        checksum=plan.content_digest,
+        published_preflight_id=pid,
+    )
