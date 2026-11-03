@@ -191,6 +191,7 @@ def create_app(
             success = default_success
             request_id = request.state.request_id
             new_cookie: str | None = None
+            actor: Record | None = None
             failure = None
             try:
                 with UnitOfWork(database) as connection:

@@ -80,3 +80,20 @@ def test_submission_preserves_utf8_bytes_including_nul(environment):
         client.get("/api/v1/submissions/" + response.json()["submission_id"]).json()["code"]
         == "print(1)\x00"
     )
+
+
+def test_expired_session_submission_keeps_401_before_platform_evidence(environment):
+    _, ids, _, app = environment
+    client = login(app, "student")
+    client.cookies.clear()
+    response = client.post(
+        "/api/v1/submissions",
+        json=dict(
+            assignment_id=ids["assignment"],
+            problem_id=ids["problem"],
+            language_key="python3",
+            code="print(1)",
+        ),
+        headers={"Idempotency-Key": str(uuid4()), "X-Submission-Intent": "FORMAL"},
+    )
+    assert response.status_code == 401, response.text
