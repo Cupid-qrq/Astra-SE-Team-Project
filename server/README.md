@@ -46,7 +46,7 @@ uv sync --locked --project server
 uv run --project server alembic -c server/alembic.ini upgrade head
 ```
 
-正式链为 `b001→b002→b003→b004→b005→b006→b007→b008→b009→b010`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本，第九版用同版本复合外键约束发布预检引用；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭；b009只允许撤回新增约束，不修改或删除历史数据。无效的既有非空发布引用将阻止升级，不自动伪造证据或回填历史。
+正式链为 `b001→b002→b003→b004→b005→b006→b007→b008→b009→b010→b011→b012→b013→b014→b015→b016→b017`，使用 `alembic_version`。前四版是A已提交SQL的逐字节固定副本，第五版引入policy_guard、审计和Outbox，第六版由B线提供题目预检，第七版添加提示模板草稿和不可变发布版本，第八版引入提示任务、个人额度和双预算账本，第九版用同版本复合外键约束发布预检引用；升级不导入当前metadata，也不在应用启动时建表。A的独立链仍用于原验证，不在正式数据库运行。发现 `alembic_version_a` 时正式入口拒绝升级；不自动stamp或猜测既有结构。需要转移A验证数据时另做受审的数据迁移，不在这里原位改版本表。破坏性downgrade关闭；b009只允许撤回新增约束，不修改或删除历史数据。无效的既有非空发布引用将阻止升级，不自动伪造证据或回填历史。
 
 `app.shared.metadata` 汇总同一个A/B metadata对象，补齐A004已有但原metadata遗漏的帮助作者索引。正式迁移测试对照该对象检查表/列/外键/索引等Alembic支持的差异，并验证A快照字节不变。B业务表尚未进入，预检/成绩/attempt的跨线外键仍待各表落地时补齐。
 
@@ -115,7 +115,7 @@ uv run --project server uvicorn app.main:create_app --factory --app-dir server -
 
 ## A 固定帮助维护增量
 
-FR-19 维护已直接装配正式应用：本课教师与全局管理员分别管理各自目录，归档课程只读；列表、草稿、发布与管理用版本历史均经过服务端授权。`app.modules.learning.feedback` 复用既有表和不可变版本触发器，不新增迁移。发布只冻结保存过的草稿；目录、版本、revision、FEEDBACK 审计和 Outbox 同事务生效。当前正式应用注册44项教学方法加2项健康方法；后续模型/提示等13项设计方法保持未注册。
+FR-19 维护已直接装配正式应用：本课教师与全局管理员分别管理各自目录，归档课程只读；列表、草稿、发布与管理用版本历史均经过服务端授权。`app.modules.learning.feedback` 复用既有表和不可变版本触发器，不新增迁移。发布只冻结保存过的草稿；目录、版本、revision、FEEDBACK 审计和 Outbox 同事务生效。该阶段注册44项教学方法加2项健康方法；当前已接入后续提示、提交、成绩和管理路由，以实际注册契约检查为准。
 
 固定帮助发布不调用模型或执行器。B 后续终结 attempt 仍须调用 `Learning.resolve()` 并持久冻结 feedback_version_id，不能在读取旧结果时改查 active。适用边界及成员待审事项见[本批交接](../docs/reports/2026-11-02-a-versioned-help.md)。
 
@@ -141,7 +141,7 @@ Worker 的 transport 只在外发许可事务提交后执行。`model_runtime.Ru
 
 发布先授权读取目标预检，再读取已授权私有快照核验证据：要求同版本、相同内容/profile摘要、完整点集合且全部AC。缺失或未授权预检返回404，不提前读其私有blob；未完成或旧摘要返回409。b009复合FK将发布引用绑定到同版本的预检，缺失/跨版本UUID均受数据库拒绝。旧数据非空坏引用会阻止升级，不自动伪造证据；旧NULL引用保持原样。
 
-草稿有任何预检历史时删除返回409 VERSION_IN_USE，并保留材料与任务；未引用草稿的原删除语义不变。正式组合通过Problems的可选draft_delete_guard回调接入，不让A独立验证工程依赖B表。就绪检查要求正式迁移头b010。
+草稿有任何预检历史时删除返回409 VERSION_IN_USE，并保留材料与任务；未引用草稿的原删除语义不变。正式组合通过Problems的可选draft_delete_guard回调接入，不让A独立验证工程依赖B表。就绪检查要求正式迁移头b017。
 
 教师页面使用真实传输，发起后在URL保存任务UUID和启动revision以支持刷新；URL不作为可信内容绑定。GET返回冻结version_revision、当前current_revision及服务端计算的matches_current；修订相同时普通轮询只投影状态，修订不同时仅在已授权教师上下文比较当前材料摘要，不返回私有内容，相同内容恢复后仍可复用原任务。前端按当前修订隔离缓存，校验失败后不展示缓存PASSED，只用服务端确认匹配的状态解锁发布。跨版本响应同样拒绝。A独立验证host不注册B路由，相关测试如实检查404，不冒充B实现。完整浏览器回归通过正式host验证受理与刷新。
 
@@ -162,3 +162,9 @@ b010添加调度锁、单槽execution_slots及预检租约epoch/owner/截止/cur
 
 
 Worker启动将固定SSH命令（宿主、脚本、状态目录和镜像）的摘要绑定到scheduler_control。任何BUSY/QUARANTINED槽仍存在时拒绝切换该配置；应使用原配置完成恢复/清理后，再在FREE状态切换。不要删除旧控制器journal或取消墓碑来“解锁”；其留存清理将在维护批次处理，必须保证无旧租约/迟到调用可能后才能回收。执行器已确认真实程序退出时125/126/127按RE，不能与Podman客户端启动失败混淆；未知137只有得到CPU或OOM证据时作对应判定，否则保守SE。
+
+## A来源绑定交付（2026-11-03）
+
+更新至b017后，ai_hints.source_snapshot冻结来源submission、basis、attempt、effective_version及判定/帮助标识。接纳、派发、READY和读取核对同一来源；重评改变身份即阻断旧提示。旧NULL记录没有可验证来源，读取不返回正文或旧帮助，不自动重发；未知费用仍保留预占。无数据回填；有非空来源记录时禁止降级，须保留兼容代码或按备份恢复流程处理。
+
+正式应用默认装配SubmissionSources，Worker仍显式使用app.modules.submissions.sources:build_sources。HTTP DTO不变。用户确认后续运行环境联调由队友完成，本批A只交付已审代码、迁移与必要回归；模型继续关闭，模型质量/人类评分未追认通过。具体接入见[交接说明](../docs/a-integration-handoff.md)。
