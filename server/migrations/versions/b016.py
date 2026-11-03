@@ -13,4 +13,17 @@ def upgrade():
 
 
 def downgrade():
-    raise RuntimeError("Retention and access history must be retained.")
+    tables = (
+        "runtime_config_versions",
+        "emergency_grants",
+        "retention_confirmations",
+        "retention_plans",
+    )
+    connection = op.get_bind()
+    if any(
+        connection.exec_driver_sql('SELECT EXISTS(SELECT 1 FROM "' + table + '")').scalar_one()
+        for table in tables
+    ):
+        raise RuntimeError("Retention and access history must be retained.")
+    for table in tables:
+        op.drop_table(table)

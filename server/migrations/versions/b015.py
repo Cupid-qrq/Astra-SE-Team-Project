@@ -13,4 +13,21 @@ def upgrade():
 
 
 def downgrade():
-    raise RuntimeError("Operational history must be retained; use a reviewed forward migration.")
+    tables = (
+        "course_cleanup",
+        "course_holds",
+        "notifications",
+        "incident_requests",
+        "incident_assignments",
+        "fairness_incidents",
+    )
+    connection = op.get_bind()
+    if any(
+        connection.exec_driver_sql('SELECT EXISTS(SELECT 1 FROM "' + table + '")').scalar_one()
+        for table in tables
+    ):
+        raise RuntimeError(
+            "Operational history must be retained; use a reviewed forward migration."
+        )
+    for table in tables:
+        op.drop_table(table)
