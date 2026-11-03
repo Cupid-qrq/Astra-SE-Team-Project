@@ -49,12 +49,14 @@ export function ControlsPage() {
       <h1>运行控制与应急访问</h1>
       <TextArea
         label="控制操作理由"
+        hint="切换运行开关、申请或撤销授权前，请先填写操作理由。"
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         maxLength={500}
       />
       <section className="panel stack">
         <h2>运行开关</h2>
+        {!reason.trim() && <p className="field-hint">请先填写上方操作理由，填写后即可切换。</p>}
         {config.data && (
           <>
             <p>
@@ -82,6 +84,9 @@ export function ControlsPage() {
       </section>
       <section className="panel stack">
         <h2>限时应急授权</h2>
+        <p className="field-hint">
+          申请需填写操作理由、故障事件编号和该事件影响的课程编号；读取需填写授权编号和提交编号；撤销需填写授权编号及操作理由。
+        </p>
         <Field
           label="关联故障事件编号"
           value={incidentId}
