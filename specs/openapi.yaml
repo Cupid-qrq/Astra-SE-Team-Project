@@ -10098,6 +10098,17 @@
               "null"
             ],
             "maxLength": 500
+          },
+          "version_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "current_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "matches_current": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -10107,7 +10118,10 @@
           "profile_hash",
           "state",
           "cases",
-          "summary"
+          "summary",
+          "version_revision",
+          "current_revision",
+          "matches_current"
         ],
         "additionalProperties": false
       },

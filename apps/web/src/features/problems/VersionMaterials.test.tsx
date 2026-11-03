@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, expect, it, vi } from 'vitest'
 import { api } from '../../app/runtime'
 import { VersionMaterials } from './VersionMaterials'
-import { MemoryRouter, useLocation } from 'react-router-dom'
+import { MemoryRouter, useLocation, Link } from 'react-router-dom'
 import { teaching } from '../integrations/teaching'
 import type { components } from '../../lib/api/schema'
 
@@ -43,6 +43,9 @@ it('未保存的参考程序不能被语言切换或重新载入静默丢弃，�
 const versionId = '10000000-0000-4000-8000-000000000011'
 const jobId = '10000000-0000-4000-8000-000000000012'
 const detail = {
+  version_revision: 1,
+  current_revision: 1,
+  matches_current: true,
   summary: null,
   preflight_id: jobId,
   version_id: versionId,
@@ -54,7 +57,7 @@ const detail = {
 function Location() {
   return <output data-testid="search">{useLocation().search}</output>
 }
-function materials(search = '', revision = 1) {
+function materials(search = '', revision = 1, providedClient?: QueryClient) {
   vi.spyOn(api, 'testcases').mockResolvedValue({ items: [], next_cursor: null })
   vi.spyOn(api, 'references').mockResolvedValue({ items: [], next_cursor: null })
   const version = {
@@ -65,7 +68,9 @@ function materials(search = '', revision = 1) {
   return render(
     <MemoryRouter initialEntries={['/version' + search]}>
       <QueryClientProvider
-        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+        client={
+          providedClient || new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
       >
         <VersionMaterials
           version={version}
@@ -133,4 +138,111 @@ it('失败状态展示安全摘要且不能发布', async () => {
   materials('?preflight=' + jobId + '&preflightRevision=1')
   expect(await screen.findByText(/预检状态：FAILED/)).toHaveTextContent('WA')
   expect(screen.getByRole('button', { name: '发布题目版本' })).toBeDisabled()
+})
+
+it('篡改URL为当前修订也不能采用服务端判定不匹配的旧通过任务', async () => {
+  vi.spyOn(teaching.preflight, 'read').mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 2,
+    matches_current: false,
+  })
+  materials('?preflight=' + jobId + '&preflightRevision=2', 2)
+  expect(await screen.findByRole('alert')).toHaveTextContent('内容已变更')
+  expect(screen.queryByText('预检状态：PASSED')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '发布题目版本' })).toBeDisabled()
+})
+
+it('修订变化后不得复用新鲜缓存中的旧通过状态', async () => {
+  vi.spyOn(api, 'testcases').mockResolvedValue({ items: [], next_cursor: null })
+  vi.spyOn(api, 'references').mockResolvedValue({ items: [], next_cursor: null })
+  const read = vi.spyOn(teaching.preflight, 'read').mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 1,
+    matches_current: true,
+  })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: 15000 } },
+  })
+  const version = {
+    version_id: versionId,
+    published_at: null,
+    profile: { languages: [{ language_key: 'cpp17' }] },
+  } as components['schemas']['ProblemVersion']
+  function Root({ revision }: { revision: number }) {
+    return (
+      <MemoryRouter initialEntries={['/version?preflight=' + jobId + '&preflightRevision=1']}>
+        <QueryClientProvider client={client}>
+          <VersionMaterials
+            version={version}
+            revision={revision}
+            onRevision={() => {}}
+            reload={async () => {}}
+            unsaved={false}
+          />
+          <Link to={'/version?preflight=' + jobId + '&preflightRevision=2'}>打开新修订</Link>
+        </QueryClientProvider>
+      </MemoryRouter>
+    )
+  }
+  const view = render(<Root revision={1} />)
+  expect(await screen.findByText('预检状态：PASSED')).toBeVisible()
+  await userEvent.type(screen.getByLabelText('发布理由'), '核对全部材料并确认预检匹配后发布')
+  expect(screen.getByRole('button', { name: '发布题目版本' })).toBeEnabled()
+  read.mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 2,
+    matches_current: false,
+  })
+  view.rerender(<Root revision={2} />)
+  await userEvent.click(screen.getByRole('link', { name: '打开新修订' }))
+  expect(await screen.findByRole('alert')).toHaveTextContent('内容已变更')
+  expect(screen.queryByText('预检状态：PASSED')).not.toBeInTheDocument()
+})
+
+it('后台重新核对失败时不能继续展示缓存的通过状态', async () => {
+  const read = vi.spyOn(teaching.preflight, 'read').mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 1,
+    matches_current: true,
+  })
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: 15000 } },
+  })
+  materials('?preflight=' + jobId + '&preflightRevision=1', 1, client)
+  expect(await screen.findByText('预检状态：PASSED')).toBeVisible()
+  await userEvent.type(screen.getByLabelText('发布理由'), '核对全部材料并确认预检匹配后发布')
+  expect(screen.getByRole('button', { name: '发布题目版本' })).toBeEnabled()
+  read.mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 2,
+    matches_current: false,
+  })
+  await client.invalidateQueries({ queryKey: ['preflight'] })
+  expect(await screen.findByRole('alert')).toHaveTextContent('内容已变更')
+  expect(screen.queryByText('预检状态：PASSED')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '发布题目版本' })).toBeDisabled()
+})
+
+it('原任务修订较早但服务端确认当前内容相同则仍可使用通过证据', async () => {
+  vi.spyOn(teaching.preflight, 'read').mockResolvedValue({
+    ...detail,
+    state: 'PASSED',
+    version_revision: 1,
+    current_revision: 2,
+    matches_current: true,
+  })
+  materials('?preflight=' + jobId + '&preflightRevision=2', 2)
+  expect(await screen.findByText('预检状态：PASSED')).toBeVisible()
+  await userEvent.type(screen.getByLabelText('发布理由'), '核对全部材料并确认当前摘要相同后发布')
+  expect(screen.getByRole('button', { name: '发布题目版本' })).toBeEnabled()
 })

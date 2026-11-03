@@ -200,3 +200,32 @@ def test_failed_preflight_summary_is_derived_only_from_safe_case_verdict(environ
     assert result.status_code == 200, result.text
     assert "WA" in result.json()["summary"]
     assert "SECRET" not in result.text
+
+
+def test_server_binding_rejects_changed_content_and_preserves_same_content_dedup(environment):
+    engine, ids, snapshot, _, _ = environment
+    teacher, receipt = accepted(environment)
+    original = next(row["code"] for row in snapshot["references"] if row["language_key"] == "cpp17")
+    changed = teacher.put(
+        "/api/v1/problem-versions/" + ids["draft"] + "/references/cpp17",
+        json={"expected_revision": snapshot["revision"], "code": "changed material"},
+    )
+    assert changed.status_code == 200, changed.text
+    status = teacher.get("/api/v1/preflights/" + receipt["preflight_id"]).json()
+    assert status["version_revision"] == snapshot["revision"]
+    assert status["current_revision"] == changed.json()["revision"]
+    assert status["matches_current"] is False
+    restored = teacher.put(
+        "/api/v1/problem-versions/" + ids["draft"] + "/references/cpp17",
+        json={"expected_revision": changed.json()["revision"], "code": original},
+    )
+    assert restored.status_code == 200, restored.text
+    status = teacher.get("/api/v1/preflights/" + receipt["preflight_id"]).json()
+    assert status["current_revision"] == restored.json()["revision"]
+    assert status["matches_current"] is True
+    reused = request_preflight(
+        teacher, ids, snapshot, expected_revision=restored.json()["revision"]
+    )
+    assert reused.status_code == 202 and reused.json() == receipt
+    with engine.connect() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM preflight_runs")) == 1

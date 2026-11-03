@@ -12,6 +12,7 @@ from app.modules.identity.ports import Effects, Record, Repository
 from app.modules.judging.domain import freeze_snapshot
 from app.modules.judging.models import cases, runs
 from app.modules.problems.application import Problems
+from app.modules.problems.domain import content_digest
 from app.shared.judge import ExecutionError, uuid_value
 from app.shared.repository import SqlRepository
 
@@ -47,6 +48,7 @@ class TransactionalPreflight:
         columns = [
             runs.c.preflight_id,
             runs.c.version_id,
+            runs.c.version_revision,
             runs.c.content_digest,
             runs.c.profile_hash,
             runs.c.state,
@@ -159,7 +161,16 @@ class TransactionalPreflight:
             value = self._public_run(pid)
             if value is None:
                 raise Fault(404, "NOT_FOUND", "预检记录不存在或无权访问。")
-            Problems(self.repo, self.effects).version(teacher, value["version_id"])
+            problems = Problems(self.repo, self.effects)
+            current = problems.version(teacher, value["version_id"])
+            # Normal polling is projection-only. After a revision change, only the
+            # authorized teacher context compares material digests; nothing private is returned.
+            matches_current = current["revision"] == value["version_revision"]
+            if not matches_current:
+                matches_current = (
+                    content_digest(problems.snapshot(value["version_id"]))
+                    == value["content_digest"]
+                )
             rows = self._cases(pid)
             summary = None
             if value["state"] == "FAILED":
@@ -169,7 +180,13 @@ class TransactionalPreflight:
                     if failed is not None
                     else "预检未通过，暂无已完成的失败点。"
                 )
-            return {**value, "cases": rows, "summary": summary}
+            return {
+                **value,
+                "cases": rows,
+                "summary": summary,
+                "current_revision": current["revision"],
+                "matches_current": matches_current,
+            }
         except SQLAlchemyError:
             pass
         raise Fault(

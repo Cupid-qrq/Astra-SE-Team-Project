@@ -91,7 +91,7 @@ export function VersionMaterials({
   const activeJob =
     job?.revision === revision && job.result.preflight_id === activeId ? job.result : null
   const progress = useQuery({
-    queryKey: ['preflight', id, activeId],
+    queryKey: ['preflight', id, activeId, revision],
     queryFn: async () => {
       const value = await teaching.preflight.read(activeId!)
       if (value.version_id !== id || value.preflight_id !== activeId)
@@ -99,6 +99,12 @@ export function VersionMaterials({
           409,
           'PREFLIGHT_VERSION_MISMATCH',
           '预检记录与当前版本不匹配，请重新预检。',
+        )
+      if (value.current_revision !== revision || !value.matches_current)
+        throw new ApiError(
+          409,
+          'PREFLIGHT_CONTENT_MISMATCH',
+          '草稿内容已变更，请重新读取修订或启动预检。',
         )
       return value
     },
@@ -108,7 +114,13 @@ export function VersionMaterials({
         ? false
         : 2000,
   })
-  const result = progress.data || activeJob
+  const checkedProgress =
+    !progress.isError &&
+    progress.data?.current_revision === revision &&
+    progress.data.matches_current
+      ? progress.data
+      : undefined
+  const result = progress.isError ? undefined : checkedProgress || activeJob
   const publish = useMutation({
     mutationFn: () =>
       api.publishVersion(id, {
@@ -292,13 +304,13 @@ export function VersionMaterials({
             {dirty && <p>请先保存所有修改。</p>}
             {activeId && (
               <p role="status">
-                预检状态：{result?.state || '正在读取'}
-                {progress.data?.summary ? ` · ${progress.data.summary}` : ''}
+                预检状态：{result?.state || (progress.isError ? '不可用' : '正在读取')}
+                {checkedProgress?.summary ? ` · ${checkedProgress.summary}` : ''}
               </p>
             )}
-            {progress.data && (
+            {checkedProgress && (
               <ul aria-label="预检测试进度">
-                {progress.data.cases.map((item) => (
+                {checkedProgress.cases.map((item) => (
                   <li key={`${item.language_key}:${item.case_kind}:${item.case_order}`}>
                     {item.language_key} · {item.case_kind === 'SAMPLE' ? '样例' : '隐藏测试'}{' '}
                     {item.case_order}：{item.verdict || item.state}
@@ -321,7 +333,7 @@ export function VersionMaterials({
                 dirty ||
                 !activeId ||
                 progress.isError ||
-                result?.state !== 'PASSED' ||
+                checkedProgress?.state !== 'PASSED' ||
                 [...reason].length < 10
               }
             >

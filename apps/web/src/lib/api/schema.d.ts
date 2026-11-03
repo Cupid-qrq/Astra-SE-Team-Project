@@ -1773,6 +1773,9 @@ export interface components {
             state: "QUEUED" | "RUNNING" | "PASSED" | "FAILED";
             cases: components["schemas"]["PreflightCaseStatus"][];
             summary: string | null;
+            version_revision: number;
+            current_revision: number;
+            matches_current: boolean;
         };
         PreflightRequest: {
             expected_revision: number;
