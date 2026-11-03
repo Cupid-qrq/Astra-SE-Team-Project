@@ -84,6 +84,8 @@ class ModelReply:
     actual_cost_cny: Decimal | None
     usage: dict[str, int] | None = None
     provider_request_id: str | None = field(default=None, repr=False)
+    estimated_cost_cny: Decimal | None = None
+    provider_model: str | None = None
 
 
 class ModelTransport(Protocol):
@@ -108,6 +110,8 @@ class Candidate:
     actual_cost_cny: Decimal | None
     usage: dict[str, int] | None = None
     provider_request_id: str | None = field(default=None, repr=False)
+    estimated_cost_cny: Decimal | None = None
+    provider_model: str | None = None
 
 
 def _unique_fields(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -187,7 +191,17 @@ async def evaluate_candidate(
     request_id = reply.provider_request_id
     if not isinstance(request_id, str) or not re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", request_id):
         request_id = None
-    receipt = Candidate(None, None, billing, cost, usage or None, request_id)
+    estimate = reply.estimated_cost_cny
+    if not isinstance(estimate, Decimal) or not estimate.is_finite() or estimate < 0:
+        estimate = None
+    provider_model = reply.provider_model
+    if not isinstance(provider_model, str) or not re.fullmatch(
+        r"[A-Za-z0-9_.:@-]{1,120}", provider_model
+    ):
+        provider_model = None
+    receipt = Candidate(
+        None, None, billing, cost, usage or None, request_id, estimate, provider_model
+    )
     try:
         sections = _sections(reply.raw)
     except (ValueError, TypeError, RecursionError):

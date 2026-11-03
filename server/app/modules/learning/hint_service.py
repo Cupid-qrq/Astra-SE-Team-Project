@@ -32,9 +32,14 @@ class Permit:
 
 class HintService:
     def __init__(
-        self, repo: Repository, sources: Sources | None = None, configuration: str | None = None
+        self,
+        repo: Repository,
+        sources: Sources | None = None,
+        configuration: str | None = None,
+        project_budget_cny: Decimal | None = None,
     ):
         self.repo, self.sources, self.configuration = repo, sources, configuration
+        self.project_budget_cny = project_budget_cny
         self.policy, self.ledger = HintPolicy(repo, sources), HintLedger(repo)
 
     def _hint(self, hid: str) -> Record:
@@ -47,6 +52,17 @@ class HintService:
         model = self.repo.get("model_configs", self.configuration) if self.configuration else None
         if not model or not model["enabled"]:
             raise Fault(503, "MODEL_DISABLED", "尚未启用经过验证的模型配置。")
+        if self.project_budget_cny is not None:
+            account = self.repo.get("budget_accounts", "PROJECT", lock=True)
+            if (
+                account is None
+                or account["limit_amount"] > self.project_budget_cny
+                or account["settled_amount"]
+                + account["reserved_amount"]
+                + account["uncertain_amount"]
+                > account["limit_amount"]
+            ):
+                raise Fault(503, "MODEL_DISABLED", "模型部署预算尚未完成核对。")
         return model
 
     def create(self, actor: Record, body: Record) -> tuple[int, Record]:
