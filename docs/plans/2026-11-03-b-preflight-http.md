@@ -41,7 +41,7 @@ Interfaces: 发布仍消费PreflightPort.evidence完整匹配版本/内容/profi
 
 ## Task 3: 教师页面真实传输与刷新恢复
 
-Files: apps/web/src/features/integrations/teaching.ts、lib/api/client.ts、schema.d.ts；VersionMaterials.tsx及对应测试；apps/web/e2e-integration/preflight.spec.ts；适用正式测试harness、docs/project-status.md、server/README.md及阶段记录。
+Files: apps/web/src/features/integrations/teaching.ts、lib/api/client.ts、schema.d.ts；VersionMaterials.tsx及对应测试；apps/web/e2e-integration/preflight.spec.ts、既有templates.spec.ts的写入回执同步；适用正式测试harness、docs/project-status.md、server/README.md及阶段记录。
 
 Interfaces: 复用既有预检区域，无重设计。真实POST后显示QUEUED并通过背景GET轮询；只在URL保存任务UUID/revision以供同页刷新恢复，服务端每次鉴权；内容revision变化后旧任务不得解锁发布。提交服务继续保持原状。
 
