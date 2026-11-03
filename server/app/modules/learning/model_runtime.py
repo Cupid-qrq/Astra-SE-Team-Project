@@ -8,6 +8,7 @@ Usage-derived estimates are never treated as authoritative supplier charges.
 import json
 import os
 import re
+import sys
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -36,7 +37,7 @@ def conservative_tokens(messages: list[dict[str, str]]) -> int:
 
 
 def _user_environment(name: str) -> str | None:
-    if os.name != "nt":
+    if sys.platform != "win32":
         return None
     import winreg
 

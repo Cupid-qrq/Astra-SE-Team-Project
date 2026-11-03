@@ -202,3 +202,12 @@ def test_http_failure_exception_chain_does_not_retain_authorization(tmp_path):
     with pytest.raises(ValueError) as error:
         asyncio.run(adapter.generate(context, profile.frozen_model("t")))
     assert error.value.__context__ is None and error.value.__cause__ is None
+
+
+def test_non_windows_user_environment_never_loads_registry(monkeypatch):
+    import sys
+
+    from app.modules.learning.model_runtime import _user_environment
+
+    monkeypatch.setattr(sys, "platform", "linux")
+    assert _user_environment("ASTRA_TEST_ABSENT_REGISTRY_VALUE") is None

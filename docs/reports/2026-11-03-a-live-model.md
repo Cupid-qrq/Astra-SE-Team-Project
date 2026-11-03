@@ -41,6 +41,8 @@
 
 A页面检查：Chromium156.0.8078.4目标24项通过；WebKit27.2既有22项及公告专项2项通过，含1366×768和390×844。Firefox157在Windows报并行配置错误，未测页面。WebKit的原生Tab发现链接未通过，仅显式聚焦后Enter激活通过；没有把WebKit当作真实Safari或移动设备验收。具体步骤和证据见[A交接](../a-integration-handoff.md)。
 
+首次PR#8远端CI在Linux类型检查失败：`os.name`判断未使mypy排除Windows注册表API。已用`--platform linux`在本机复现4条错误，改为`sys.platform`显式判断并增加非Windows不访问注册表的失败回归；Linux目标72个源文件与28项模型配置/传输测试通过。Windows统一预检新增Linux目标类型检查，最终修订须再次通过完整预检和当前SHA的远端CI后才能合并。
+
 ## 运行与后续
 
 配置说明见[模型目录](../../specs/model/README.md)，学生/教师操作见[A用户指南](../a-user-guide.md)，B接线见[A交接](../a-integration-handoff.md)。默认示例enabled=false，环境变量仅引用密钥名称。缺少真实来源或未完成模型配置/预算初始化时继续返回不可用；没有绕过B评测发布门槛，也未自动启用收费后台进程。
