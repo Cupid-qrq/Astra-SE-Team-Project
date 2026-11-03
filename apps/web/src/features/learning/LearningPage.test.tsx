@@ -35,22 +35,20 @@ it('同页导航到另一来源提交时更新表单并要求重新同意', asyn
 
 it('重新核验错题失败后隐藏旧示例选项', async () => {
   const id = '10000000-0000-4000-8000-000000000001'
-  const review = vi
-    .spyOn(api, 'reviewItems')
-    .mockResolvedValue({
-      items: [
-        {
-          submission_id: id,
-          assignment_id: id,
-          problem_id: id,
-          title: '旧授权题目',
-          verdict: 'WA',
-          context: 'FORMAL',
-          accepted_at: '2026-01-01T00:00:00Z',
-        },
-      ],
-      next_cursor: null,
-    })
+  const review = vi.spyOn(api, 'reviewItems').mockResolvedValue({
+    items: [
+      {
+        submission_id: id,
+        assignment_id: id,
+        problem_id: id,
+        title: '旧授权题目',
+        verdict: 'WA',
+        context: 'FORMAL',
+        accepted_at: '2026-01-01T00:00:00Z',
+      },
+    ],
+    next_cursor: null,
+  })
   vi.spyOn(api, 'recommendations').mockResolvedValue({ items: [] })
   vi.spyOn(api, 'hintHistory').mockResolvedValue({ items: [], next_cursor: null })
   const client = new QueryClient({
