@@ -15,6 +15,7 @@ from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 
 import app.modules.assignments.models  # noqa: F401
 import app.modules.courses.models  # noqa: F401
+import app.modules.grades.models  # noqa: F401
 import app.modules.judging.models  # noqa: F401
 import app.modules.learning.models  # noqa: F401
 import app.modules.problems.models  # noqa: F401

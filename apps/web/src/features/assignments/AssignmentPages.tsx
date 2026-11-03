@@ -94,6 +94,10 @@ export function AssignmentPage() {
           description="开放后可以查看题目并开始编程。"
         />
       )}
+      <p>
+        <Link to={`/assignments/${id}/submissions`}>查看提交历史</Link> ·{' '}
+        <Link to={`/assignments/${id}/grades`}>查看作业成绩</Link>
+      </p>
       <ul className="resource-list">
         {value.items.map((item) => (
           <li key={item.problem_id}>

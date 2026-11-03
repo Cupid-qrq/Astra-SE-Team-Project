@@ -7140,6 +7140,391 @@
         ],
         "x-implementation": "implemented"
       }
+    },
+    "/assignments/{id}/grades": {
+      "get": {
+        "operationId": "getGrades",
+        "summary": "getGrades",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "STUDENT",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/grades/{id}": {
+      "get": {
+        "operationId": "getGradeSnapshot",
+        "summary": "getGradeSnapshot",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "STUDENT",
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeView"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
+    },
+    "/assignments/{id}/grades/publish": {
+      "post": {
+        "operationId": "publishGrades",
+        "summary": "publishGrades",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradePublished"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assignments/{id}/grades.csv": {
+      "get": {
+        "operationId": "exportGrades",
+        "summary": "exportGrades",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          },
+          {
+            "name": "grade_version",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
     }
   },
   "components": {
@@ -10942,6 +11327,142 @@
         "required": [
           "items",
           "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "GradeView": {
+        "type": "object",
+        "properties": {
+          "assignment_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "grade_version": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "assignment_revision": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "grade_epoch": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "PROVISIONAL",
+              "PUBLISHED",
+              "REJUDGING"
+            ]
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "students": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "student_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "READY",
+                    "PENDING"
+                  ]
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "problem_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "points": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "score": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "target_version_id": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "source_attempt_id": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "format": "uuid"
+                      }
+                    },
+                    "required": [
+                      "problem_id",
+                      "points",
+                      "score",
+                      "target_version_id",
+                      "source_attempt_id"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "student_id",
+                "total",
+                "state",
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "assignment_id",
+          "grade_version",
+          "assignment_revision",
+          "grade_epoch",
+          "state",
+          "published_at",
+          "students"
+        ],
+        "additionalProperties": false
+      },
+      "GradePublished": {
+        "type": "object",
+        "properties": {
+          "grade_version": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "grade_version",
+          "published_at"
         ],
         "additionalProperties": false
       }

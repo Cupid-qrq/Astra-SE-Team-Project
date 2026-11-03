@@ -99,7 +99,7 @@ describe('正式总契约', () => {
     )
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'implemented'),
-    ).toHaveLength(67)
+    ).toHaveLength(71)
     expect(total.paths['/problem-versions/{id}/preflight'].post).toMatchObject({
       operationId: 'enqueuePreflight',
       'x-owner': 'B祝祎帆',

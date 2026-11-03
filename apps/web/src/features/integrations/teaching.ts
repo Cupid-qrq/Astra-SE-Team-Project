@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { ApiError } from '../../lib/api/client'
+import { SubmissionResult } from '../submissions/SubmissionResult'
 import { api } from '../../app/runtime'
 import type { components } from '../../lib/api/schema'
 
@@ -29,16 +29,20 @@ export type TeachingIntegrations = {
   submissions: { send: (intent: Readonly<SubmissionIntent>) => Promise<SubmissionReceipt> }
   ResultPanel?: ComponentType<ResultProps>
 }
-const unavailable = (name: string): never => {
-  throw new ApiError(503, 'INTEGRATION_UNAVAILABLE', `${name}服务尚未接入。`)
-}
-// Preflight uses formal HTTP; submission/ResultPanel await their B implementation.
 export const teaching: TeachingIntegrations = {
   preflight: {
     enqueue: (id, revision) => api.enqueuePreflight(id, revision),
     read: (id) => api.preflight(id),
   },
-  submissions: { send: async () => unavailable('提交') },
+  submissions: {
+    send: ({ idempotency_key, intent, assignment_id, problem_id, language_key, code }) =>
+      api.sendSubmission(
+        { assignment_id, problem_id, language_key, code },
+        idempotency_key,
+        intent,
+      ),
+  },
+  ResultPanel: SubmissionResult,
 }
 export function configureTeachingIntegrations(value: TeachingIntegrations) {
   Object.assign(teaching, value)

@@ -1,3 +1,5 @@
+import { GradePage } from '../features/grades/GradePage'
+import { SubmissionPage, SubmissionHistoryPage } from '../features/submissions/SubmissionPages'
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
@@ -182,6 +184,9 @@ export function App() {
         <Route path="/courses/:id" element={<CoursePage />} />
         <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
         <Route path="/assignments/:id" element={<AssignmentPage />} />
+        <Route path="/assignments/:id/grades" element={<GradePage />} />
+        <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
+        <Route path="/submissions/:id" element={<SubmissionPage />} />
         <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
         <Route path="/courses/:id/problems" element={<ProblemsPage />} />
         <Route path="/teacher/problems/:id" element={<VersionsPage />} />

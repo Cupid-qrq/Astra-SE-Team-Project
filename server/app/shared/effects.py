@@ -52,6 +52,7 @@ class TransactionalEffects:
                     "PROBLEM": "problem",
                     "PREFLIGHT": "preflight",
                     "SUBMISSION": "submission",
+                    "GRADE": "assignment",
                     "ASSIGNMENT": "assignment",
                     "DEADLINE": "assignment",
                     "POLICY": "assignment",

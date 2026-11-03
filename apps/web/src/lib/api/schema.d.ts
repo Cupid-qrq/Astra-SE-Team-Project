@@ -1123,6 +1123,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/assignments/{id}/grades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGrades
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getGrades"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/grades/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getGradeSnapshot
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getGradeSnapshot"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{id}/grades/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * publishGrades
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["publishGrades"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/assignments/{id}/grades.csv": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * exportGrades
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["exportGrades"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1925,6 +2005,41 @@ export interface components {
         SubmissionAttemptPage: {
             items: components["schemas"]["SubmissionAttempt"][];
             next_cursor: string | null;
+        };
+        GradeView: {
+            /** Format: uuid */
+            assignment_id: string;
+            /** Format: uuid */
+            grade_version: string | null;
+            assignment_revision: number;
+            grade_epoch: number;
+            /** @enum {string} */
+            state: "PROVISIONAL" | "PUBLISHED" | "REJUDGING";
+            /** Format: date-time */
+            published_at: string | null;
+            students: {
+                /** Format: uuid */
+                student_id: string;
+                total: number;
+                /** @enum {string} */
+                state: "READY" | "PENDING";
+                items: {
+                    /** Format: uuid */
+                    problem_id: string;
+                    points: number;
+                    score: number;
+                    /** Format: uuid */
+                    target_version_id: string;
+                    /** Format: uuid */
+                    source_attempt_id: string | null;
+                }[];
+            }[];
+        };
+        GradePublished: {
+            /** Format: uuid */
+            grade_version: string;
+            /** Format: date-time */
+            published_at: string;
         };
     };
     responses: {
@@ -4723,6 +4838,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubmissionAttemptPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getGrades: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getGradeSnapshot: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradeView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    publishGrades: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublishCommand"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GradePublished"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    exportGrades: {
+        parameters: {
+            query: {
+                grade_version: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             400: components["responses"]["Error400"];

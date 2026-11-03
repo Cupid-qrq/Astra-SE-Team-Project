@@ -125,6 +125,50 @@ export function createApiClient({
     csrf = undefined
   }
   return {
+    sendSubmission: (
+      body: components['schemas']['SubmissionCreate'],
+      key: string,
+      intent: 'FORMAL' | 'PRACTICE',
+    ) =>
+      unwrap(
+        client.POST('/submissions', {
+          body,
+          params: { header: { 'Idempotency-Key': key, 'X-Submission-Intent': intent } },
+        }),
+      ),
+    submission: (id: string) =>
+      unwrap(
+        client.GET('/submissions/{id}', {
+          params: { path: { id } },
+          headers: { 'X-Astra-Background': '1' },
+        }),
+      ),
+    submissions: (
+      assignment_id: string,
+      problem_id?: string,
+      verdict?: 'AC' | 'WA' | 'CE' | 'TLE' | 'RE' | 'SE',
+      cursor?: string,
+    ) =>
+      unwrap(
+        client.GET('/submissions', {
+          params: { query: { assignment_id, problem_id, verdict, cursor } },
+        }),
+      ),
+    submissionAttempts: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/submissions/{id}/attempts', { params: { path: { id }, query: { cursor } } }),
+      ),
+    grades: (id: string) =>
+      unwrap(client.GET('/assignments/{id}/grades', { params: { path: { id } } })),
+    publishGrades: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(client.POST('/assignments/{id}/grades/publish', { params: { path: { id } }, body })),
+    exportGrades: (id: string, grade_version: string) =>
+      unwrap(
+        client.GET('/assignments/{id}/grades.csv', {
+          params: { path: { id }, query: { grade_version } },
+          parseAs: 'text',
+        }),
+      ),
     session,
     login,
     logout,

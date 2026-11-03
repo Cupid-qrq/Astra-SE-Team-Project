@@ -61,3 +61,10 @@ Files: apps/web/src/features/submissions/*、integrations/teaching.ts、runtime/
 - [ ] 单元失败用例、正式PG三视口浏览器、业务恢复检查通过后阶段提交。
 
 本批一次独立审查，修复重要项后完整入口及远端CI；后续Task4—6沿用上述既有范围，在开工前补齐具体文件，持续执行不再次索取开始许可。
+
+## Task 4: 成绩快照、发布与同版导出
+
+用户16:27授权减少重复测试、19:27前争取验收。Files: 新modules/grades/{models,application,api}.py、b013/SQL013、main、契约/客户端、GradePages及作业入口。复用AssignmentCoordinationPort接线，阶段专项仅保留计分/发布阻断/授权与一个浏览器主流程，最后整批完整检查。
+- [ ] 当前有效正式结果每题任一AC得该题全分，未终结/SE阻止发布；只计当前课程成员，截止和公平已决、revision正确才能冻结grade_versions/students/items，同事务审计通知。
+- [ ] 固定快照只读，学生仅本人，教师分页；grade_epoch变化显示暂定，历史快照保持；CSV由同一快照生成并转义公式。
+- [ ] 真实PG专项验证计分、未完成/SE/截止/公平拒绝、越权和历史一致；完成中文阶段提交。回退使用停入口/前向修复，已有快照不得破坏性downgrade。

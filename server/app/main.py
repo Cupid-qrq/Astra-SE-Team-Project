@@ -22,12 +22,14 @@ from starlette.exceptions import HTTPException
 from app.adapters.judge_profiles import SnapshotCatalog
 from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
+from app.api.grades import register as register_grades
 from app.api.lists import sql_list
 from app.api.preflights import register as register_preflights
 from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses
+from app.modules.grades.application import GradeCoordination, Grades
 from app.modules.identity.application import Identity
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
@@ -165,7 +167,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b012":
+                if head != "b013":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -238,7 +240,8 @@ def create_app(
                         submissions=Submissions(repo, effects),
                         headers=request.headers,
                         request_id=request_id,
-                        assignments=Assignments(repo, effects),
+                        assignments=Assignments(repo, effects, GradeCoordination()),
+                        grades=Grades(repo, effects),
                         hints=HintService(
                             repo,
                             hint_sources,
@@ -282,6 +285,12 @@ def create_app(
                     if success == 204
                     else JSONResponse(result, status_code=success)
                 )
+                if path.endswith(".csv"):
+                    response = Response(
+                        result,
+                        media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": 'attachment; filename="astra-grades.csv"'},
+                    )
                 if path == "/submissions" and method == "POST" and replayed:
                     response.headers["Idempotent-Replay"] = "true"
                 if new_cookie:
@@ -342,6 +351,7 @@ def create_app(
     register(add, settings.profiles)
     register_preflights(add)
     register_submissions(add)
+    register_grades(add)
 
     def export_openapi() -> Record:
         document = get_openapi(
