@@ -1,0 +1,8 @@
+# Official Alibaba Cloud Linux base, resolved on 2026-11-02.
+FROM alibaba-cloud-linux-3-registry.cn-hangzhou.cr.aliyuncs.com/alinux3/alinux3@sha256:fd25a109fcbd1ff33692ac32e1890c986fe7b4b656ab54a27a69aba04b8360c7
+RUN dnf -y --setopt=install_weak_deps=False --setopt=gpgcheck=True upgrade \
+    && dnf -y --setopt=install_weak_deps=False --setopt=gpgcheck=True install gcc-c++ python3 \
+    && dnf clean all
+WORKDIR /work
+ENV TMPDIR=/work PYTHONDONTWRITEBYTECODE=1
+USER 65534:65534
