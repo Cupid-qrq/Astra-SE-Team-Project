@@ -20,7 +20,7 @@
 
 ## Task 1: 正式预检接口与纯profile绑定
 
-Files: server/app/adapters/judge_profiles.py、app/modules/judging/domain.py、preflight.py、app/main.py、app/api/preflights.py；specs/openapi.yaml及实现登记；server/tests/shared/test_preflight_http.py、test_preflight_plan.py、server/tests/judge对应profile回归。
+Files: server/app/adapters/judge_profiles.py、app/modules/judging/domain.py、preflight.py、app/main.py、app/api/preflights.py；specs/openapi.yaml及实现登记；server/tests/shared/test_preflight_http.py、test_preflight_plan.py、test_api_contract.py、apps/web/src/lib/api/contract.test.ts、server/tests/judge对应profile回归。
 
 Interfaces: SnapshotCatalog只验证公开profile/BR-07且绑定完整摘要；RuntimeProfile仍要求真实正整数语言映射。POST /problem-versions/{id}/preflight(expected_revision)→202 receipt；GET /preflights/{id}→200安全明细；自动轮询遵守X-Astra-Background。
 
