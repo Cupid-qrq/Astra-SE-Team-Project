@@ -26,6 +26,10 @@ def request():
 
 
 class ProtocolTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        (ROOT / ".local").mkdir(exist_ok=True)
+
     def test_validated_request_decodes_private_fields_without_repr_leak(self):
         value = executor.validate_request(request())
         self.assertEqual(value.code, b"print(input())")
