@@ -23,6 +23,8 @@ class Courses:
         course = self.repo.get("courses", course_id, lock=write)
         require(course is not None, "NOT_FOUND", "课程不存在或无权访问。", 404)
         assert course
+        cleaned = getattr(self.repo, "course_is_cleaned", None)
+        require(cleaned is None or not cleaned(course_id), "NOT_FOUND", "课程已完成清理。", 404)
         allowed = (
             course["teacher_id"] == actor["user_id"]
             if actor["role"] == "TEACHER"

@@ -274,7 +274,7 @@ def test_missing_configuration_fails_startup(monkeypatch):
         create_app()
 
 
-def test_members_and_unavailable_coordination(http_env):
+def test_members_and_transactional_deadline_coordination(http_env):
     _, ids, _, app = http_env
     teacher = login(app)
     student = login(app, "student")
@@ -300,11 +300,13 @@ def test_members_and_unavailable_coordination(http_env):
         json={
             "expected_revision": revision,
             "new_due_at": "2031-01-01T00:00:00.000Z",
-            "reason": "Unavailable coordination must never fabricate success",
+            "reason": "已接通成绩公平协调后的统一延期",
         },
     )
-    assert result.status_code == 503, result.text
-    assert teacher.get("/api/v1/assignments/" + ids["assignment"]).json()["revision"] == revision
+    assert result.status_code == 200, result.text
+    updated = teacher.get("/api/v1/assignments/" + ids["assignment"]).json()
+    assert updated["revision"] == revision + 1
+    assert updated["due_at"] == "2031-01-01T00:00:00.000Z"
 
 
 def test_problem_without_versions_has_safe_title(http_env):

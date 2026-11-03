@@ -109,7 +109,13 @@ test('真实数据库：创建发布作业并进入学生编辑器，异常保�
   await page.getByRole('textbox', { name: '代码编辑器' }).fill('print(123)')
   await expect(page.getByText(/已保存于/)).toBeVisible()
   await page.getByRole('button', { name: '提交代码', exact: true }).click()
-  await expect(page.getByText('提交服务尚未接入。', { exact: true })).toBeVisible()
+  if (process.env.ASTRA_SERVER_PYTHON) {
+    await expect(page.getByRole('dialog', { name: '提交评测结果' })).toBeVisible()
+    await expect(page.getByText('等待评测', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: '关闭结果' }).click()
+  } else {
+    await expect(page.getByRole('alert')).toBeVisible()
+  }
   await expect(page.getByRole('textbox', { name: '代码编辑器' })).toHaveText('print(123)')
   await page.screenshot({ path: `../../.local/a-editor-${info.project.name}.png`, fullPage: true })
   await page.reload()

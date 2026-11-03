@@ -8,11 +8,11 @@ Push-Location -LiteralPath (Join-Path (Split-Path -Parent $PSScriptRoot) 'server
 try {
     & uv sync --locked
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff check app/shared app/adapters app/modules/judging app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py ../tools/verify_judge.py
+    & uv run --locked ruff check app/shared app/adapters app/modules/judging app/modules/submissions app/modules/grades app/modules/rejudge app/modules/operations app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py ../tools/verify_judge.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked ruff format --check app/shared app/adapters app/modules/judging app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py ../tools/verify_judge.py
+    & uv run --locked ruff format --check app/shared app/adapters app/modules/judging app/modules/submissions app/modules/grades app/modules/rejudge app/modules/operations app/api app/main.py tests/shared tests/judge migrations ../tools/check_api_contract.py ../tools/verify_judge.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    & uv run --locked mypy app/shared app/adapters app/modules/judging app/api app/main.py ../tools/verify_judge.py
+    & uv run --locked mypy app/shared app/adapters app/modules/judging app/modules/submissions app/modules/grades app/modules/rejudge app/modules/operations app/api app/main.py ../tools/verify_judge.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     & uv run --locked python ../tools/check_api_contract.py
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

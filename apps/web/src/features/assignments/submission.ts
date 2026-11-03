@@ -28,7 +28,7 @@ function attemptFrom(intent: SubmissionIntent, uncertain: boolean): SubmissionAt
         if (
           error instanceof ApiError &&
           error.status === 409 &&
-          error.code === 'SUBMISSION_INTENT_MISMATCH'
+          ['SUBMISSION_INTENT_MISMATCH', 'DEADLINE_PASSED'].includes(error.code)
         )
           attempt.uncertain = false
         else if (

@@ -37,3 +37,48 @@ Task3学生提交受理/幂等/正式性、队列结果与历史页面；Task4�
 - 任务领取与所有进度/完成/恢复写回必须检查同一租约及运行身份；网络在事务外。
 - 预检私密快照、学生源码只进入已授权执行上下文，不进日志、报告或模型。
 - 本分支集成依赖、迁移单head及A后续模型接口需最终核对，不虚构审批或绕过保护。
+
+## Task 3: 学生提交与结果闭环（2026-11-03追加）
+
+授权：用户要求继续完成全部v0.4工作、简化流程；实施B，成员评审A，代理批次独立审查单列。前两阶段已完成并推送PR9，fea64bf的完整本地/CI通过，主线d50b9e9；本阶段复用检出，新分支feat/b/p1-submission-results。
+
+### 3a 持久受理与不可变来源
+Files: server/app/modules/submissions/{models,application}.py、shared/metadata.py、新SQL011/b011、tests/shared/test_submissions.py及迁移head断言。
+Interface: Submissions.accept(actor, body, key, intent, request_id)返回receipt和replayed，调用者拥有UoW；先policy_guard、身份/已有幂等记录当前授权，再新作业admission取DB时刻。参数不接受user/mode/时间。一个事务持久submission/basis/cycle/attempt/job、容量/间隔、审计Outbox；原始源码/资格/回执不可修改。
+- [ ] RED：10路同键一次；异内容409；跨截止重放；停用/越权；3个人/100全局/5秒；意图不降级；副作用失败全部回滚；跨提交结果指针约束；原始内容不可变。
+- [ ] b011保存提交、原始及未来重评basis、周期/轮次/队列/容量；延迟复合外键保证归属；本阶段不冒称评测终态已运行。
+- [ ] `uv run --locked --project server pytest server/tests/shared/test_submissions.py`及迁移测试，预期真实PG通过。提交中文feat。迁移有业务数据时禁止破坏性downgrade，停止新入口后使用前向修复。
+
+### 3b Worker与安全结果API
+Files: submissions/{worker_store,worker,api,sources}.py，judging共享slot调度、main/worker_cli、OpenAPI/生成客户端，shared/HTTP测试。
+Interface: 共用单物理槽，先正常学生任务再预检；已持久identity再SSH，事务外执行/取消，epoch fencing。六判定/首错停，最多一次基础设施重试，15分钟cycle/360秒round，释放容量一次；冻结Learning.resolve引用，适配A反馈/提示/学习结果接口。查询与列表当前授权，无隐藏数据/token/stdout。
+- [ ] RED：并发claim、超时/失联/迟到、一次重试/周期不重置、回滚/清理失败隔离、权限/秘密字段检查；真实公开夹具经oldali闭环。
+- [ ] 修正接口契约并生成客户端；对应pytest通过后中文阶段提交。
+
+### 3c 学生页面与历史
+Files: apps/web/src/features/submissions/*、integrations/teaching.ts、runtime/路由接线及e2e-integration/submissions.spec.ts。
+- [ ] 复用公共组件，编辑器真实受理/轮询、结果抽屉/详情/历史/轮次；保留A原幂等快照恢复及代码保护，接固定帮助与学习页。
+- [ ] 单元失败用例、正式PG三视口浏览器、业务恢复检查通过后阶段提交。
+
+本批一次独立审查，修复重要项后完整入口及远端CI；后续Task4—6沿用上述既有范围，在开工前补齐具体文件，持续执行不再次索取开始许可。
+
+## Task 4: 成绩快照、发布与同版导出
+
+用户16:27授权减少重复测试、19:27前争取验收。Files: 新modules/grades/{models,application,api}.py、b013/SQL013、main、契约/客户端、GradePages及作业入口。复用AssignmentCoordinationPort接线，阶段专项仅保留计分/发布阻断/授权与一个浏览器主流程，最后整批完整检查。
+- [ ] 当前有效正式结果每题任一AC得该题全分，未终结/SE阻止发布；只计当前课程成员，截止和公平已决、revision正确才能冻结grade_versions/students/items，同事务审计通知。
+- [ ] 固定快照只读，学生仅本人，教师分页；grade_epoch变化显示暂定，历史快照保持；CSV由同一快照生成并转义公式。
+- [ ] 真实PG专项验证计分、未完成/SE/截止/公平拒绝、越权和历史一致；完成中文阶段提交。回退使用停入口/前向修复，已有快照不得破坏性downgrade。
+
+## Task 5: 全量重评、公平与管理
+
+Files: modules/rejudge、modules/operations、各自迁移/HTTP与统一管理页面，复用现有Worker和Grades。按v0.4简化页面为表单/列表，不增外部依赖。
+- [ ] 重评预览/创建冻结全部正式提交及语言摘要，容量分批进入REJUDGE队列，NNNNR/截止保护，非SE全终态才整批激活并重算可降分，取消与人工重试受revision保护。
+- [ ] 故障登记/恢复/教师裁决，统一延期公式与公平发布阻断，审计同事务；管理员账号/队列/重试/健康页面。
+- [ ] 归档/hold/清理预览确认，待处理重评/公平阻断，保留审计和历史。
+- [ ] 关键回归只验证整批降分/原子切换、权限与公平延期，最终统一检查。
+
+## Task 6: 通知、部署与恢复交付
+
+通知通过现有Outbox同事务生成、5秒独立Worker发送，界面20秒刷新。Files: operations/worker.py、tools/database_backup.py、tools/start_demo.ps1、infra/course-demo与最小部署手册。一次备份恢复到新数据库验证，禁止覆盖已有库。日备份与30天副本清单提供命令。
+
+2026-11-03自动审批拒绝了覆盖历史正文及临时禁用不可变触发器的物理擦除脚本，脚本未落盘且未执行。改为保留归档/到期预览/教师确认/hold/逻辑访问隔离，物理删除与可恢复副本淘汰需独立人工维护审批，尚未计完成。用户已收到确认请求，其余工作继续。

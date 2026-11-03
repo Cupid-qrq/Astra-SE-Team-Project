@@ -18,6 +18,16 @@ export default defineConfig(({ mode, command }) => ({
       : {}),
     proxy: { '/api': { target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8000' } },
   },
+  preview: process.env.ASTRA_DEMO_TLS
+    ? {
+        host: '127.0.0.1',
+        https: {
+          cert: readFileSync(`${process.env.ASTRA_DEMO_TLS}/cert.pem`),
+          key: readFileSync(`${process.env.ASTRA_DEMO_TLS}/key.pem`),
+        },
+        proxy: { '/api': { target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8021' } },
+      }
+    : {},
   test: {
     maxWorkers: 2,
     environment: 'jsdom',

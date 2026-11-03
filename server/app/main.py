@@ -22,11 +22,15 @@ from starlette.exceptions import HTTPException
 from app.adapters.judge_profiles import SnapshotCatalog
 from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
+from app.api.grades import register as register_grades
 from app.api.lists import sql_list
+from app.api.operations import register as register_operations
 from app.api.preflights import register as register_preflights
+from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses
+from app.modules.grades.application import GradeCoordination, Grades
 from app.modules.identity.application import Identity
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
@@ -35,7 +39,14 @@ from app.modules.learning.application import Learning
 from app.modules.learning.hint_service import HintService, Sources
 from app.modules.learning.model_runtime import RuntimeProfile
 from app.modules.learning.student import LearningResults, StudentLearning
+from app.modules.operations.application import Operations
+from app.modules.operations.controls import Controls
+from app.modules.operations.fairness import Fairness
+from app.modules.operations.retention import Retention
 from app.modules.problems.application import Problems
+from app.modules.rejudge.application import Rejudges
+from app.modules.submissions.application import Submissions
+from app.modules.submissions.sources import SubmissionSources
 from app.shared.config import Settings
 from app.shared.database import create_database_engine
 from app.shared.effects import TransactionalEffects
@@ -69,6 +80,9 @@ def create_app(
         contract.validate({"$ref": "#/components/schemas/Profile"}, profile)
 
     preflight_catalog = SnapshotCatalog(settings.profiles) if settings.profiles else None
+    submission_sources = SubmissionSources()
+    learning_results = learning_results or submission_sources
+    hint_sources = hint_sources or submission_sources
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
@@ -97,7 +111,15 @@ def create_app(
         except ValueError:
             request_id = str(uuid4())
         request.state.request_id = request_id
-        protected = ("Origin", "X-CSRF-Token", "X-Request-Id", "X-Astra-Background", "Content-Type")
+        protected = (
+            "Origin",
+            "X-CSRF-Token",
+            "X-Request-Id",
+            "X-Astra-Background",
+            "Content-Type",
+            "Idempotency-Key",
+            "X-Submission-Intent",
+        )
         if any(len(request.headers.getlist(name)) > 1 for name in protected):
             return error_response(Fault(400, "INVALID_REQUEST", "请求头不得重复。"), request_id)
         try:
@@ -151,7 +173,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b010":
+                if head != "b016":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -169,6 +191,7 @@ def create_app(
             success = default_success
             request_id = request.state.request_id
             new_cookie: str | None = None
+            actor: Record | None = None
             failure = None
             try:
                 with UnitOfWork(database) as connection:
@@ -221,14 +244,23 @@ def create_app(
                             draft_delete_guard=preflight.protect_draft_delete,
                         ),
                         preflight=preflight,
-                        assignments=Assignments(repo, effects),
+                        submissions=Submissions(repo, effects),
+                        headers=request.headers,
+                        request_id=request_id,
+                        assignments=Assignments(repo, effects, GradeCoordination()),
+                        grades=Grades(repo, effects),
+                        rejudges=Rejudges(repo, effects),
+                        operations=Operations(repo, effects),
+                        fairness=Fairness(repo, effects),
+                        controls=Controls(repo, effects),
+                        retention=Retention(repo, effects),
                         hints=HintService(
                             repo,
                             hint_sources,
                             hint_configuration,
                             model_profile.project_budget_cny if model_profile else None,
                         ),
-                        learning=Learning(repo, effects),
+                        learning=Learning(repo, effects, submission_sources),
                         actor=actor,
                         token=token,
                         body=body,
@@ -249,6 +281,8 @@ def create_app(
                             result, new_cookie = result
                         elif path == "/ai-hints" and method == "POST":
                             success, result = result
+                        if path == "/submissions" and method == "POST":
+                            result, replayed = result
                         contract.response(operation, success, result)
                     except Fault as error:
                         # A's failed-login ledger must commit; all other faults escape and roll back.
@@ -263,6 +297,14 @@ def create_app(
                     if success == 204
                     else JSONResponse(result, status_code=success)
                 )
+                if path.endswith(".csv"):
+                    response = Response(
+                        result,
+                        media_type="text/csv; charset=utf-8",
+                        headers={"Content-Disposition": 'attachment; filename="astra-grades.csv"'},
+                    )
+                if path == "/submissions" and method == "POST" and replayed:
+                    response.headers["Idempotent-Replay"] = "true"
                 if new_cookie:
                     response.set_cookie(
                         "astra_session",
@@ -279,6 +321,28 @@ def create_app(
                     )
                 return response
             except Fault as error:
+                if (
+                    path == "/submissions"
+                    and actor is not None
+                    and isinstance(body, dict)
+                    and method == "POST"
+                    and error.code in ("GLOBAL_CAPACITY", "JUDGE_UNAVAILABLE", "CLOCK_UNHEALTHY")
+                ):
+                    try:
+                        from app.modules.operations.fairness import note_platform_failure
+
+                        with UnitOfWork(database) as evidence_connection:
+                            evidence_repo = SqlRepository(evidence_connection)
+                            evidence_repo.guard()
+                            evidence_effects = TransactionalEffects(evidence_repo, request_id)
+                            Assignments(evidence_repo, evidence_effects).access(
+                                actor, body["assignment_id"]
+                            )
+                            note_platform_failure(
+                                evidence_repo, body["assignment_id"], error.code, request_id
+                            )
+                    except Exception:
+                        pass
                 return error_response(error, request_id)
 
             except (SQLAlchemyError, PoolTimeout):
@@ -313,6 +377,7 @@ def create_app(
             endpoint(method, path, handler, operation),
             methods=[method],
             response_model=None,
+            response_class=Response if path.endswith(".csv") else JSONResponse,
             status_code=next(int(k) for k in operation["responses"] if k.startswith("2")),
             operation_id=operation["operationId"],
             openapi_extra=deepcopy(operation),
@@ -320,6 +385,9 @@ def create_app(
 
     register(add, settings.profiles)
     register_preflights(add)
+    register_submissions(add)
+    register_grades(add)
+    register_operations(add)
 
     def export_openapi() -> Record:
         document = get_openapi(

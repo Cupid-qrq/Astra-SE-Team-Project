@@ -130,6 +130,8 @@ scheduler = Table(
     metadata,
     Column("control_id", Integer, primary_key=True),
     Column("executor_binding", String(64)),
+    Column("cursor", Integer, nullable=False, server_default=text("0")),
+    Column("previous_queue_mode", String(12), nullable=False, server_default=text("'EMPTY'")),
     CheckConstraint("control_id=1", name="singleton"),
 )
 slots = Table(
@@ -139,8 +141,12 @@ slots = Table(
     Column("state", String(16), nullable=False),
     Column("job_id", UUID(as_uuid=False), ForeignKey("preflight_jobs.job_id")),
     Column("lease_epoch", BigInteger, nullable=False, server_default=text("0")),
+    Column("submission_job_id", UUID(as_uuid=False), ForeignKey("queue_jobs.job_id"), unique=True),
     UniqueConstraint("job_id", name="uq_execution_slots_job_id"),
     CheckConstraint("state IN ('FREE','BUSY','QUARANTINED')", name="state"),
-    CheckConstraint("(state='FREE')=(job_id IS NULL)", name="binding"),
+    CheckConstraint(
+        "(state='FREE')=(job_id IS NULL AND submission_job_id IS NULL) AND NOT(job_id IS NOT NULL AND submission_job_id IS NOT NULL)",
+        name="binding",
+    ),
     CheckConstraint("lease_epoch>=0", name="epoch"),
 )

@@ -125,6 +125,192 @@ export function createApiClient({
     csrf = undefined
   }
   return {
+    sendSubmission: (
+      body: components['schemas']['SubmissionCreate'],
+      key: string,
+      intent: 'FORMAL' | 'PRACTICE',
+    ) =>
+      unwrap(
+        client.POST('/submissions', {
+          body,
+          params: { header: { 'Idempotency-Key': key, 'X-Submission-Intent': intent } },
+        }),
+      ),
+    submission: (id: string) =>
+      unwrap(
+        client.GET('/submissions/{id}', {
+          params: { path: { id } },
+          headers: { 'X-Astra-Background': '1' },
+        }),
+      ),
+    submissions: (
+      assignment_id: string,
+      problem_id?: string,
+      verdict?: 'AC' | 'WA' | 'CE' | 'TLE' | 'RE' | 'SE',
+      cursor?: string,
+    ) =>
+      unwrap(
+        client.GET('/submissions', {
+          params: { query: { assignment_id, problem_id, verdict, cursor } },
+        }),
+      ),
+    submissionAttempts: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/submissions/{id}/attempts', { params: { path: { id }, query: { cursor } } }),
+      ),
+    grades: (id: string, cursor?: string) =>
+      unwrap(
+        client.GET('/assignments/{id}/grades', { params: { path: { id }, query: { cursor } } }),
+      ),
+    publishGrades: (id: string, body: components['schemas']['PublishCommand']) =>
+      unwrap(client.POST('/assignments/{id}/grades/publish', { params: { path: { id } }, body })),
+    exportGrades: (id: string, grade_version: string) =>
+      unwrap(
+        client.GET('/assignments/{id}/grades.csv', {
+          params: { path: { id }, query: { grade_version } },
+          parseAs: 'text',
+        }),
+      ),
+    rejudgePreview: (
+      id: string,
+      body: { problem_id: string; new_version_id: string; expected_revision: number },
+    ) =>
+      unwrap(client.POST('/assignments/{id}/rejudge-preview', { params: { path: { id } }, body })),
+    createRejudge: (
+      id: string,
+      body: {
+        new_version_id: string
+        range_checksum: string
+        expected_revision: number
+        reason: string
+      },
+    ) => unwrap(client.POST('/assignments/{id}/rejudge', { params: { path: { id } }, body })),
+    rejudge: (id: string) =>
+      unwrap(
+        client.GET('/rejudge-batches/{id}', {
+          params: { path: { id } },
+          headers: { 'X-Astra-Background': '1' },
+        }),
+      ),
+    activateRejudge: (
+      id: string,
+      body: {
+        expected_batch_revision: number
+        expected_assignment_revision: number
+        reason: string
+      },
+    ) => unwrap(client.POST('/rejudge-batches/{id}/activate', { params: { path: { id } }, body })),
+    cancelRejudge: (id: string, body: { expected_revision: number; reason: string }) =>
+      unwrap(client.POST('/rejudge-batches/{id}/cancel', { params: { path: { id } }, body })),
+    retryRejudge: (id: string, body: { expected_revision: number; reason: string }) =>
+      unwrap(client.POST('/rejudge-batches/{id}/retry', { params: { path: { id } }, body })),
+    retrySubmission: (id: string, body: { expected_revision: number; reason: string }) =>
+      unwrap(client.POST('/submissions/{id}/retry', { params: { path: { id } }, body })),
+    adminHealth: () =>
+      unwrap(client.GET('/admin/health', { headers: { 'X-Astra-Background': '1' } })),
+    adminJobs: (cursor?: string) =>
+      unwrap(client.GET('/admin/jobs', { params: { query: { cursor } } })),
+    adminUsers: (cursor?: string) =>
+      unwrap(client.GET('/admin/users', { params: { query: { cursor } } })),
+    createUser: (body: components['schemas']['CreateUser']) =>
+      unwrap(client.POST('/admin/users', { body, params: { header: { 'X-CSRF-Token': csrf! } } })),
+    updateUser: (id: string, body: components['schemas']['UpdateUser']) =>
+      unwrap(
+        client.PATCH('/admin/users/{id}', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    resetUserPassword: (id: string, body: components['schemas']['ResetPassword']) =>
+      checked(
+        client.POST('/admin/users/{id}/reset-password', {
+          body,
+          params: { path: { id }, header: { 'X-CSRF-Token': csrf! } },
+        }),
+      ),
+    auditEvents: (cursor?: string) =>
+      unwrap(client.GET('/admin/audit-events', { params: { query: { cursor } } })),
+    incidents: (cursor?: string) =>
+      unwrap(client.GET('/incidents', { params: { query: { cursor } } })),
+    createIncident: (body: {
+      started_at: string
+      assignment_ids: string[]
+      reason_code: string
+      reason: string
+      evidence_refs: string[]
+      evidence_incomplete: boolean
+    }) => unwrap(client.POST('/admin/incidents', { body })),
+    recoverIncident: (
+      id: string,
+      body: { recovered_at: string; expected_revision: number; reason: string },
+    ) => unwrap(client.PATCH('/admin/incidents/{id}/recovery', { params: { path: { id } }, body })),
+    decideFairness: (
+      id: string,
+      body: {
+        incident_id: string
+        decision: 'EXTEND' | 'NO_IMPACT'
+        reason: string
+        expected_revision: number
+      },
+    ) =>
+      unwrap(
+        client.POST('/assignments/{id}/fairness-decisions', { params: { path: { id } }, body }),
+      ),
+    notifications: (cursor?: string) =>
+      unwrap(
+        client.GET('/notifications', {
+          params: { query: { cursor } },
+          headers: { 'X-Astra-Background': '1' },
+        }),
+      ),
+    markNotificationRead: (id: string) =>
+      unwrap(client.POST('/notifications/{id}/read', { params: { path: { id } } })),
+    archiveCourse: (id: string, body: { expected_revision: number; reason: string }) =>
+      unwrap(client.POST('/courses/{id}/archive', { params: { path: { id } }, body })),
+    previewRetention: (body: { course_id: string; reason: string }) =>
+      unwrap(client.POST('/admin/retention/previews', { body })),
+    retention: (id: string) =>
+      unwrap(client.GET('/admin/retention/{id}', { params: { path: { id } } })),
+    confirmRetention: (
+      id: string,
+      body: { object_digest: string; expected_revision: number; reason: string },
+    ) => unwrap(client.POST('/retention/{id}/confirm', { params: { path: { id } }, body })),
+    executeRetention: (
+      id: string,
+      body: {
+        object_digest: string
+        confirmation_id: string
+        expected_revision: number
+        reason: string
+      },
+    ) => unwrap(client.POST('/admin/retention/{id}/execute', { params: { path: { id } }, body })),
+    createHold: (body: { object_type: 'course'; object_id: string; reason: string }) =>
+      unwrap(client.POST('/admin/holds', { body })),
+    closeHold: (id: string, body: { expected_revision: number; reason: string }) =>
+      unwrap(client.POST('/admin/holds/{id}/close', { params: { path: { id } }, body })),
+    runtimeControl: () => unwrap(client.GET('/admin/runtime-config')),
+    updateRuntimeControl: (body: {
+      submission_enabled: boolean
+      judge_enabled: boolean
+      expected_revision: number
+      reason: string
+    }) => unwrap(client.PATCH('/admin/runtime-config', { body })),
+    grantEmergency: (body: {
+      incident_id: string
+      scope: { course_id: string }
+      expires_at: string
+      reason: string
+    }) => unwrap(client.POST('/admin/emergency-access', { body })),
+    revokeEmergency: (id: string, body: { reason: string }) =>
+      checked(
+        client.POST('/admin/emergency-access/{id}/revoke', { params: { path: { id } }, body }),
+      ),
+    emergencySubmission: (id: string, submission_id: string) =>
+      unwrap(
+        client.GET('/admin/emergency-access/{id}/submission', {
+          params: { path: { id }, query: { submission_id } },
+        }),
+      ),
     session,
     login,
     logout,

@@ -11,14 +11,17 @@ REVIEW = "/api/v1/review-items"
 RECOMMEND = "/api/v1/recommendations"
 
 
-def test_student_learning_without_results_returns_dependency_error(http_env):
+def test_student_learning_with_real_empty_results_returns_empty_pages(http_env):
     _, _, _, app = http_env
     client = login(app, "student")
     assert client.get("/api/v1/ai-hints").json() == {"items": [], "next_cursor": None}
     assert login(app, "teacher").get("/api/v1/ai-hints").status_code == 403
     for path in [REVIEW + "?context=FORMAL", RECOMMEND]:
         response = client.get(path)
-        assert response.status_code == 503 and response.json()["code"] == "INTEGRATION_UNAVAILABLE"
+        assert response.status_code == 200
+        assert response.json() == (
+            {"items": []} if path == RECOMMEND else {"items": [], "next_cursor": None}
+        )
         assert login(app, "teacher").get(path).status_code == 403
 
 
