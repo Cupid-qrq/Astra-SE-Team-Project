@@ -19,15 +19,18 @@ from sqlalchemy.exc import TimeoutError as PoolTimeout
 from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 
+from app.adapters.judge_profiles import SnapshotCatalog
 from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
 from app.api.lists import sql_list
+from app.api.preflights import register as register_preflights
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses
 from app.modules.identity.application import Identity
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
+from app.modules.judging.preflight import TransactionalPreflight
 from app.modules.learning.application import Learning
 from app.modules.learning.hint_service import HintService, Sources
 from app.modules.learning.model_runtime import RuntimeProfile
@@ -64,6 +67,8 @@ def create_app(
     contract, passwords = Contract.load(), ArgonPasswords()
     for profile in settings.profiles:
         contract.validate({"$ref": "#/components/schemas/Profile"}, profile)
+
+    preflight_catalog = SnapshotCatalog(settings.profiles) if settings.profiles else None
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
@@ -146,7 +151,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b008":
+                if head != "b009":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -204,11 +209,18 @@ def create_app(
                         sort_keys=True,
                     )
                     pager = Cursor(query, scope, configuration.session_secret)
+                    preflight = TransactionalPreflight(repo, preflight_catalog, effects)
                     context: Record = dict(
                         repo=repo,
                         identity=identity,
                         courses=Courses(repo, effects),
-                        problems=Problems(repo, effects),
+                        problems=Problems(
+                            repo,
+                            effects,
+                            preflight,
+                            draft_delete_guard=preflight.protect_draft_delete,
+                        ),
+                        preflight=preflight,
                         assignments=Assignments(repo, effects),
                         hints=HintService(
                             repo,
@@ -307,6 +319,7 @@ def create_app(
         )
 
     register(add, settings.profiles)
+    register_preflights(add)
 
     def export_openapi() -> Record:
         document = get_openapi(

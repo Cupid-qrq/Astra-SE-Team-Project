@@ -4,6 +4,7 @@ from sqlalchemy import (
     CheckConstraint,
     Column,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     LargeBinary,
@@ -15,6 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 
 from app.modules.identity.models import metadata
+from app.modules.problems.models import versions
 
 runs = Table(
     "preflight_runs",
@@ -33,6 +35,7 @@ runs = Table(
     Column("created_at", TIMESTAMP(timezone=True, precision=3), nullable=False),
     Column("started_at", TIMESTAMP(timezone=True, precision=3)),
     Column("finished_at", TIMESTAMP(timezone=True, precision=3)),
+    UniqueConstraint("version_id", "preflight_id", name="uq_preflight_version_run"),
     CheckConstraint("version_revision>0", name="revision"),
     CheckConstraint("content_digest ~ '^[0-9a-f]{64}$'", name="content_digest"),
     CheckConstraint("profile_hash ~ '^[0-9a-f]{64}$'", name="profile_hash"),
@@ -99,3 +102,14 @@ jobs = Table(
     CheckConstraint("state IN ('READY','DONE')", name="state"),
 )
 Index("ix_preflight_job_ready", jobs.c.state, jobs.c.ready_at, jobs.c.job_id)
+
+
+# Registered here to keep A's standalone model independent of B's optional composition.
+versions.append_constraint(
+    ForeignKeyConstraint(
+        ["version_id", "published_preflight_id"],
+        ["preflight_runs.version_id", "preflight_runs.preflight_id"],
+        name="fk_versions_published_preflight",
+        use_alter=True,
+    )
+)

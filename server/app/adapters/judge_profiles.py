@@ -34,14 +34,23 @@ class RuntimeLanguage:
 
 
 @dataclass(frozen=True)
-class RuntimeProfile:
+class SnapshotLanguage:
+    language_key: LanguageKey
+    version: str
+    image_digest: str
+    cpu_ms: int
+    wall_ms: int
+
+
+@dataclass(frozen=True)
+class ProfileSnapshot:
     profile_id: str
     profile_hash: str
-    languages: tuple[RuntimeLanguage, ...]
+    languages: tuple[SnapshotLanguage, ...]
     _public_json: str = field(repr=False)
 
     @classmethod
-    def from_public(cls, value: Mapping[str, Any], ids: Mapping[str, int]) -> "RuntimeProfile":
+    def from_public(cls, value: Mapping[str, Any]) -> "ProfileSnapshot":
         try:
             if set(value) != {*LIMITS, "comparison", "profile_id", "languages"}:
                 raise ValueError
@@ -77,8 +86,6 @@ class RuntimeProfile:
                     or (record["cpu_time_ms"], record["wall_time_ms"]) != (cpu, wall)
                 ):
                     raise ValueError
-                if type(ids[key]) is not int or ids[key] <= 0:
-                    raise ValueError
                 version = record["version"]
                 image = record["image_digest"]
                 if (
@@ -92,9 +99,7 @@ class RuntimeProfile:
                     or re.fullmatch(r"sha256:[0-9a-f]{64}", image) is None
                 ):
                     raise ValueError
-                languages.append(RuntimeLanguage(key, ids[key], version, image, cpu, wall))
-            if set(ids) != seen or len(set(ids.values())) != len(ids):
-                raise ValueError
+                languages.append(SnapshotLanguage(key, version, image, cpu, wall))
             public_json = json.dumps(
                 dict(value),
                 sort_keys=True,
@@ -104,6 +109,43 @@ class RuntimeProfile:
             )
             return cls(profile_id, profile_digest(dict(value)), tuple(languages), public_json)
         except (ValueError, KeyError, TypeError, AttributeError):
+            pass
+        raise ExecutionError("INVALID_EXECUTION_PROFILE")
+
+    def public_snapshot(self) -> dict[str, Any]:
+        return dict(json.loads(self._public_json))
+
+
+@dataclass(frozen=True)
+class RuntimeProfile:
+    profile_id: str
+    profile_hash: str
+    languages: tuple[RuntimeLanguage, ...]
+    _public_json: str = field(repr=False)
+
+    @classmethod
+    def from_public(cls, value: Mapping[str, Any], ids: Mapping[str, int]) -> "RuntimeProfile":
+        snapshot = ProfileSnapshot.from_public(value)
+        try:
+            if set(ids) != {item.language_key for item in snapshot.languages} or len(
+                set(ids.values())
+            ) != len(ids):
+                raise ValueError
+            if any(type(value) is not int or value <= 0 for value in ids.values()):
+                raise ValueError
+            languages = tuple(
+                RuntimeLanguage(
+                    item.language_key,
+                    ids[item.language_key],
+                    item.version,
+                    item.image_digest,
+                    item.cpu_ms,
+                    item.wall_ms,
+                )
+                for item in snapshot.languages
+            )
+            return cls(snapshot.profile_id, snapshot.profile_hash, languages, snapshot._public_json)
+        except (ValueError, KeyError, TypeError):
             pass
         raise ExecutionError("INVALID_EXECUTION_PROFILE")
 
@@ -132,6 +174,27 @@ class ProfileCatalog:
         return profile
 
     def bind(self, snapshot: Mapping[str, Any]) -> RuntimeProfile:
+        try:
+            profile = self.profiles.get(snapshot["profile_id"])
+            if profile is None or profile.profile_hash != profile_digest(dict(snapshot)):
+                raise ValueError
+            return profile
+        except (ValueError, TypeError, KeyError):
+            pass
+        raise ExecutionError("EXECUTION_PROFILE_NOT_ALLOWED")
+
+
+class SnapshotCatalog:
+    """Deployment-declared metadata for enqueueing; no engine ID or execution claim."""
+
+    def __init__(self, values: Sequence[Mapping[str, Any]]) -> None:
+        snapshots = [ProfileSnapshot.from_public(value) for value in values]
+        items = {value.profile_id: value for value in snapshots}
+        if not values or len(items) != len(values):
+            raise ExecutionError("INVALID_EXECUTION_CATALOG")
+        self.profiles: Mapping[str, ProfileSnapshot] = MappingProxyType(items)
+
+    def bind(self, snapshot: Mapping[str, Any]) -> ProfileSnapshot:
         try:
             profile = self.profiles.get(snapshot["profile_id"])
             if profile is None or profile.profile_hash != profile_digest(dict(snapshot)):

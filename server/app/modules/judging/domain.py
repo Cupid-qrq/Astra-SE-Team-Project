@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass, field
 
-from app.adapters.judge_profiles import ProfileCatalog
+from app.adapters.judge_profiles import ProfileCatalog, SnapshotCatalog
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Record
 from app.modules.problems.domain import (
@@ -29,7 +29,7 @@ class FrozenPreflight:
     blob: bytes = field(repr=False)
 
 
-def freeze_snapshot(snapshot: Record, catalog: ProfileCatalog) -> FrozenPreflight:
+def freeze_snapshot(snapshot: Record, catalog: ProfileCatalog | SnapshotCatalog) -> FrozenPreflight:
     fault = (409, "PREFLIGHT_INVALID", "预检内容不完整或运行环境不匹配，请核对后重试。")
     try:
         version_id = uuid_value(snapshot["version_id"])

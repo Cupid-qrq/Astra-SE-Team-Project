@@ -6,12 +6,13 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.adapters.judge_profiles import ProfileCatalog
+from app.adapters.judge_profiles import ProfileCatalog, SnapshotCatalog
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Effects, Record, Repository
 from app.modules.judging.domain import freeze_snapshot
 from app.modules.judging.models import cases, runs
 from app.modules.problems.application import Problems
+from app.modules.problems.domain import content_digest
 from app.shared.judge import ExecutionError, uuid_value
 from app.shared.repository import SqlRepository
 
@@ -25,7 +26,12 @@ def _uuid(value: str) -> str:
 
 
 class TransactionalPreflight:
-    def __init__(self, repo: SqlRepository, catalog: ProfileCatalog, effects: Effects) -> None:
+    def __init__(
+        self,
+        repo: SqlRepository,
+        catalog: ProfileCatalog | SnapshotCatalog | None,
+        effects: Effects,
+    ) -> None:
         self.repo, self.catalog, self.effects = repo, catalog, effects
 
     def _check(self, repo: Repository) -> None:
@@ -42,6 +48,7 @@ class TransactionalPreflight:
         columns = [
             runs.c.preflight_id,
             runs.c.version_id,
+            runs.c.version_revision,
             runs.c.content_digest,
             runs.c.profile_hash,
             runs.c.state,
@@ -77,6 +84,8 @@ class TransactionalPreflight:
             problems = Problems(self.repo, self.effects)
             problems.version(teacher, vid, write=True)
             self.repo.get("problem_versions", vid, lock=True)
+            if self.catalog is None:
+                raise Fault(503, "PREFLIGHT_UNAVAILABLE", "预检运行环境尚未配置。", retry=5)
             plan = freeze_snapshot(problems.snapshot(vid), self.catalog)
             query = select(runs.c.preflight_id, runs.c.state, runs.c.content_digest).where(
                 runs.c.version_id == vid,
@@ -152,13 +161,56 @@ class TransactionalPreflight:
             value = self._public_run(pid)
             if value is None:
                 raise Fault(404, "NOT_FOUND", "预检记录不存在或无权访问。")
-            Problems(self.repo, self.effects).version(teacher, value["version_id"])
-            return {**value, "cases": self._cases(pid)}
+            problems = Problems(self.repo, self.effects)
+            current = problems.version(teacher, value["version_id"])
+            # Normal polling is projection-only. After a revision change, only the
+            # authorized teacher context compares material digests; nothing private is returned.
+            matches_current = current["revision"] == value["version_revision"]
+            if not matches_current:
+                matches_current = (
+                    content_digest(problems.snapshot(value["version_id"]))
+                    == value["content_digest"]
+                )
+            rows = self._cases(pid)
+            summary = None
+            if value["state"] == "FAILED":
+                failed = next((row for row in rows if row["verdict"] not in (None, "AC")), None)
+                summary = (
+                    f"{failed['language_key']} {'样例' if failed['case_kind'] == 'SAMPLE' else '隐藏测试'} {failed['case_order']}：{failed['verdict']}"
+                    if failed is not None
+                    else "预检未通过，暂无已完成的失败点。"
+                )
+            return {
+                **value,
+                "cases": rows,
+                "summary": summary,
+                "current_revision": current["revision"],
+                "matches_current": matches_current,
+            }
         except SQLAlchemyError:
             pass
         raise Fault(
             503, "PREFLIGHT_STORAGE_UNAVAILABLE", "预检任务暂时不可用，请稍后重试。", retry=5
         )
+
+    def protect_draft_delete(self, actor: Record, version_id: str) -> None:
+        self._check(self.repo)
+        try:
+            self.repo.guard()
+            teacher = self._actor(actor)
+            Problems(self.repo, self.effects).version(teacher, version_id, write=True)
+            self.repo.get("problem_versions", version_id, lock=True)
+            if (
+                self.repo.connection.execute(
+                    select(runs.c.preflight_id).where(runs.c.version_id == version_id).limit(1)
+                ).first()
+                is not None
+            ):
+                raise Fault(409, "VERSION_IN_USE", "此草稿已有预检历史，请保留记录或创建新版本。")
+            return
+        except SQLAlchemyError:
+            pass
+        raise Fault(503, "PREFLIGHT_STORAGE_UNAVAILABLE", "预检记录暂时不可用。", retry=5)
 
     def evidence(self, repo: Repository, preflight_id: str) -> Record | None:
         self._check(repo)
@@ -168,6 +220,8 @@ class TransactionalPreflight:
             value = self._public_run(pid)
             if value is None or value["state"] != "PASSED":
                 return None
+            if self.catalog is None:
+                raise Fault(503, "PREFLIGHT_UNAVAILABLE", "预检运行环境尚未配置。", retry=5)
             rows = self._cases(pid)
             blob = self.repo.connection.execute(
                 select(runs.c.frozen_blob).where(runs.c.preflight_id == pid)

@@ -99,7 +99,22 @@ describe('正式总契约', () => {
     )
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'implemented'),
-    ).toHaveLength(61)
+    ).toHaveLength(63)
+    expect(total.paths['/problem-versions/{id}/preflight'].post).toMatchObject({
+      operationId: 'enqueuePreflight',
+      'x-owner': 'B祝祎帆',
+      'x-roles': ['TEACHER'],
+      'x-implementation': 'implemented',
+    })
+    expect(total.paths['/preflights/{id}'].get).toMatchObject({
+      operationId: 'getPreflight',
+      'x-owner': 'B祝祎帆',
+      'x-implementation': 'implemented',
+    })
+    expect(total.components.schemas.PreflightStatus.required).toEqual(
+      expect.arrayContaining(['version_revision', 'current_revision', 'matches_current']),
+    )
+    expect(total.components.schemas.PreflightStatus.properties.matches_current.type).toBe('boolean')
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'planned'),
     ).toHaveLength(0)

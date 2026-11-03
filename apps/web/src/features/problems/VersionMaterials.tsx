@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { ApiError } from '../../lib/api/client'
 import { api } from '../../app/runtime'
 import { Button } from '../../components/ui/Button'
 import { Field } from '../../components/ui/Field'
@@ -23,6 +25,7 @@ export function VersionMaterials({
   unsaved: boolean
 }) {
   const id = version.version_id
+  const [search, setSearch] = useSearchParams()
   const readOnly = !!version.published_at
   const [order, setOrder] = useState(1)
   const [input, setInput] = useState('')
@@ -75,22 +78,54 @@ export function VersionMaterials({
   })
   const start = useMutation({
     mutationFn: (r: number) => teaching.preflight.enqueue(id, r),
-    onSuccess: (value, r) => setJob({ result: value, revision: r }),
   })
-  const activeJob = job?.revision === revision ? job.result : null
+  const pointer = search.get('preflight') || ''
+  const pointerRevision = Number(search.get('preflightRevision'))
+  const activeId =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(pointer) &&
+    Number.isSafeInteger(pointerRevision) &&
+    pointerRevision > 0 &&
+    pointerRevision === revision
+      ? pointer.toLowerCase()
+      : null
+  const activeJob =
+    job?.revision === revision && job.result.preflight_id === activeId ? job.result : null
   const progress = useQuery({
-    queryKey: ['preflight', activeJob?.preflight_id],
-    queryFn: () => teaching.preflight.read(activeJob!.preflight_id),
-    enabled: !!activeJob,
+    queryKey: ['preflight', id, activeId, revision],
+    queryFn: async () => {
+      const value = await teaching.preflight.read(activeId!)
+      if (value.version_id !== id || value.preflight_id !== activeId)
+        throw new ApiError(
+          409,
+          'PREFLIGHT_VERSION_MISMATCH',
+          '预检记录与当前版本不匹配，请重新预检。',
+        )
+      if (value.current_revision !== revision || !value.matches_current)
+        throw new ApiError(
+          409,
+          'PREFLIGHT_CONTENT_MISMATCH',
+          '草稿内容已变更，请重新读取修订或启动预检。',
+        )
+      return value
+    },
+    enabled: !!activeId,
     refetchInterval: (query) =>
-      ['PASSED', 'FAILED'].includes(query.state.data?.state || '') ? false : 2000,
+      query.state.error || ['PASSED', 'FAILED'].includes(query.state.data?.state || '')
+        ? false
+        : 2000,
   })
-  const result = progress.data || activeJob
+  const checkedProgress =
+    !progress.isError &&
+    progress.data?.current_revision === revision &&
+    progress.data.matches_current
+      ? progress.data
+      : undefined
+  const result = progress.isError ? undefined : checkedProgress || activeJob
   const publish = useMutation({
     mutationFn: () =>
       api.publishVersion(id, {
         expected_revision: revision,
-        preflight_id: activeJob!.preflight_id,
+        preflight_id: activeId!,
         reason,
       }),
     onSuccess: () => {
@@ -249,15 +284,39 @@ export function VersionMaterials({
           <section className="management-panel">
             <h2>预检与发布</h2>
             <p>预检必须通过全部语言、公开样例和隐藏测试。修改内容后需要重新预检。</p>
-            <Button onClick={() => start.mutate(revision)} busy={start.isPending} disabled={dirty}>
+            <Button
+              onClick={() =>
+                start.mutate(revision, {
+                  onSuccess: (value, r) => {
+                    setJob({ result: value, revision: r })
+                    const next = new URLSearchParams(search)
+                    next.set('preflight', value.preflight_id)
+                    next.set('preflightRevision', String(r))
+                    setSearch(next, { replace: true })
+                  },
+                })
+              }
+              busy={start.isPending}
+              disabled={dirty}
+            >
               启动预检
             </Button>
             {dirty && <p>请先保存所有修改。</p>}
-            {activeJob && (
+            {activeId && (
               <p role="status">
-                预检状态：{result?.state}
-                {result?.summary ? ` · ${result.summary}` : ''}
+                预检状态：{result?.state || (progress.isError ? '不可用' : '正在读取')}
+                {checkedProgress?.summary ? ` · ${checkedProgress.summary}` : ''}
               </p>
+            )}
+            {checkedProgress && (
+              <ul aria-label="预检测试进度">
+                {checkedProgress.cases.map((item) => (
+                  <li key={`${item.language_key}:${item.case_kind}:${item.case_order}`}>
+                    {item.language_key} · {item.case_kind === 'SAMPLE' ? '样例' : '隐藏测试'}{' '}
+                    {item.case_order}：{item.verdict || item.state}
+                  </li>
+                ))}
+              </ul>
             )}
             <Field
               label="发布理由"
@@ -271,7 +330,11 @@ export function VersionMaterials({
               variant="secondary"
               onClick={() => setConfirm(true)}
               disabled={
-                dirty || !activeJob || result?.state !== 'PASSED' || [...reason].length < 10
+                dirty ||
+                !activeId ||
+                progress.isError ||
+                checkedProgress?.state !== 'PASSED' ||
+                [...reason].length < 10
               }
             >
               发布题目版本
@@ -292,6 +355,8 @@ export function VersionMaterials({
                   saveReference.reset()
                   removeCase.reset()
                   publish.reset()
+                  start.reset()
+                  if (activeId) void progress.refetch()
                   setReloadError('')
                 } catch (e) {
                   setReloadError((e as Error).message)
