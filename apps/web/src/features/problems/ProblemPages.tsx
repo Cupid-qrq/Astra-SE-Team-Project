@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useState, type FormEvent } from 'react'
 import { api } from '../../app/runtime'
@@ -16,6 +16,10 @@ type Content = Pick<
   Schema['CreateVersion'],
   'title' | 'statement' | 'samples' | 'tags' | 'profile' | 'source_ref'
 >
+function editableContent(value: Content): Content {
+  const { title, statement, samples, tags, profile, source_ref } = value
+  return { title, statement, samples, tags, profile, source_ref }
+}
 export function ProblemsPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
@@ -127,6 +131,7 @@ export function CreateVersionPage() {
   const { id = '' } = useParams()
   const [search] = useSearchParams()
   const base = search.get('base')
+  const [draft, setDraft] = useState<Content | null>(null)
   const profiles = useQuery({ queryKey: ['profiles'], queryFn: api.profiles })
   const original = useQuery({
     queryKey: ['version', base],
@@ -172,7 +177,8 @@ export function CreateVersionPage() {
       </Link>
       <h1>{base ? '复制新版本' : '新建题目草稿'}</h1>
       <ProblemForm
-        initial={
+        value={
+          draft ||
           original.data || {
             title: '',
             statement: '',
@@ -183,6 +189,7 @@ export function CreateVersionPage() {
           }
         }
         profiles={profiles.data.items}
+        onEdit={setDraft}
         onSave={(c) => create.mutate(c)}
         busy={create.isPending}
         error={create.error?.message}
@@ -194,7 +201,7 @@ export function VersionPage() {
   const { id = '' } = useParams()
   const query = useQuery({ queryKey: ['version', id], queryFn: () => api.version(id) })
   if (query.isPending) return <StatePanel kind="loading" title="正在读取题目…" />
-  if (query.isError)
+  if (query.isError && !query.data)
     return (
       <StatePanel
         kind="error"
@@ -203,7 +210,13 @@ export function VersionPage() {
         onRetry={() => void query.refetch()}
       />
     )
-  return <VersionWorkspace key={id} version={query.data} reload={() => query.refetch()} />
+  return (
+    <VersionWorkspace
+      key={id}
+      version={query.data}
+      reload={() => query.refetch({ throwOnError: true })}
+    />
+  )
 }
 function VersionWorkspace({
   version,
@@ -212,16 +225,26 @@ function VersionWorkspace({
   version: Schema['ProblemVersion']
   reload: () => Promise<unknown>
 }) {
-  const [revision, setRevision] = useState(version.revision)
-  const [saved, setSaved] = useState(true)
+  const [materialRevision, setRevision] = useState(version.revision)
+  const revision = Math.max(materialRevision, version.revision)
+  const [draft, setDraft] = useState<Content | null>(null)
+  const saved = draft === null
+  const cache = useQueryClient()
   const [reloadError, setReloadError] = useState('')
   const mutation = useMutation({
     mutationFn: (content: Content) =>
       api.updateVersion(version.version_id, { ...content, expected_revision: revision }),
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       setRevision(result.revision)
-      setSaved(true)
-      void reload()
+      try {
+        await cache.cancelQueries({ queryKey: ['version', version.version_id] })
+        const latest = await api.version(version.version_id)
+        cache.setQueryData(['version', version.version_id], latest)
+        setDraft(null)
+        setReloadError('')
+      } catch {
+        setReloadError('题面已保存，但重新读取失败；输入仍保留，请重新读取并核对。')
+      }
     },
   })
   return (
@@ -241,16 +264,17 @@ function VersionWorkspace({
         </Link>
       </header>
       <ProblemForm
-        initial={version}
+        value={draft || version}
         profiles={[version.profile]}
         onSave={(c) => mutation.mutate(c)}
-        onEdit={() => setSaved(false)}
+        onEdit={setDraft}
         busy={mutation.isPending}
         error={mutation.error?.message}
         readOnly={!!version.published_at || mutation.isPending}
       />
       {saved && <p role="status">题面已保存。</p>}
-      {mutation.error && (
+      {!saved && <p role="status">题面修改尚未保存。重新读取会保留输入，请核对当前修订后保存。</p>}
+      {(mutation.error || reloadError) && (
         <Button
           variant="secondary"
           onClick={async () => {
@@ -259,6 +283,7 @@ function VersionWorkspace({
               setRevision(latest.revision)
               await reload()
               mutation.reset()
+              setReloadError('')
             } catch (e) {
               setReloadError((e as Error).message)
             }
@@ -279,7 +304,7 @@ function VersionWorkspace({
   )
 }
 function ProblemForm({
-  initial,
+  value,
   profiles,
   onSave,
   onEdit,
@@ -287,23 +312,21 @@ function ProblemForm({
   error,
   readOnly = false,
 }: {
-  initial: Content
+  value: Content
   profiles: Schema['Profile'][]
   onSave: (c: Content) => void
-  onEdit?: () => void
+  onEdit: (content: Content) => void
   busy: boolean
   error?: string
   readOnly?: boolean
 }) {
-  const [value, setValue] = useState(initial)
   const [preview, setPreview] = useState(false)
   function update<K extends keyof Content>(key: K, next: Content[K]) {
-    setValue((v) => ({ ...v, [key]: next }))
-    onEdit?.()
+    onEdit({ ...editableContent(value), [key]: next })
   }
   function submit(event: FormEvent) {
     event.preventDefault()
-    onSave(value)
+    onSave(editableContent(value))
   }
   return (
     <form className="management-panel" onSubmit={submit}>
