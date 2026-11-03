@@ -13,6 +13,8 @@ pwsh -File tools/stop_demo.ps1
 
 演示账号为`teacher_demo`、`student_demo`、`admin_demo`，本机公开演示密码为`AstraDemo2026!`。这组凭据仅用于独立演示库，外部部署应通过本地环境设置新密码。数据库和会话密钥由本机随机生成，未提交仓库。账号初始化脚本只接受空的`*_demo`数据库，已有账号时拒绝覆盖。
 
+完整逐角色演示、现成数据和实际编号见[完整演示步骤清单](course-demo-walkthrough.md)。本机可打开 `https://localhost:4176/demo-guide.html` 使用带复制按钮的浏览器版。
+
 ## 建议验收顺序
 
 1. 学生进入“开放作业”，使用Python提交`print(sum(map(int,input().split())))`到“两数之和”，查看正式性、实际结果、详情、源码和历史。C++17亦可提交单文件程序。
