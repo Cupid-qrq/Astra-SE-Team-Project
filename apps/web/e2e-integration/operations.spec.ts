@@ -16,12 +16,12 @@ function fixture(file: string, args: string[] = []) {
   )
 }
 
-async function login(page: Page, role: string) {
+async function login(page: Page, role: string, account = `${role}_a`) {
   if (await page.getByRole('button', { name: '退出登录', exact: true }).count()) {
     await page.getByRole('button', { name: '退出登录', exact: true }).click()
   }
   await page.goto('/login')
-  await page.getByLabel('账号', { exact: true }).fill(`${role}_a`)
+  await page.getByLabel('账号', { exact: true }).fill(account)
   await page.getByLabel('密码', { exact: true }).fill('ExamplePassword123!')
   await page.getByRole('button', { name: '登录', exact: true }).click()
   await expect(page.getByRole('button', { name: '退出登录', exact: true })).toBeVisible()
@@ -47,7 +47,7 @@ test('正式成绩发布理由校验与管理员登录入口（执行替身）',
       fullPage: true,
     })
   }
-  await login(page, 'student')
+  await login(page, 'student', ids.student_login)
   const session = await (await page.request.get('/api/v1/auth/session')).json()
   const submission = await page.request.post('/api/v1/submissions', {
     data: {
@@ -95,7 +95,7 @@ test('正式成绩发布理由校验与管理员登录入口（执行替身）',
   await page.getByRole('button', { name: '创建账号', exact: true }).click()
   await expect(page.getByText('操作已完成。', { exact: true })).toBeVisible()
   await screenshot('admin-accounts')
-  await login(page, 'student')
+  await login(page, 'student', ids.student_login)
   await page.goto(`/assignments/${ids.assignment}/grades`)
   await expect(page.getByRole('heading', { name: '总分 100', exact: true })).toBeVisible()
   await expect(page.getByRole('button', { name: '发布成绩', exact: true })).toHaveCount(0)
