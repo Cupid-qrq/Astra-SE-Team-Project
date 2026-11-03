@@ -348,8 +348,6 @@ export function VersionMaterials({
               variant="quiet"
               onClick={async () => {
                 try {
-                  const latest = await api.version(id)
-                  onRevision(latest.revision)
                   await reload()
                   saveCase.reset()
                   saveReference.reset()

@@ -8,12 +8,12 @@
 
 ## Task 1：题面与服务器修订保持一致
 
-Files：`apps/web/src/features/problems/ProblemPages.tsx`、新增`ProblemPages.test.tsx`、`apps/web/e2e-integration/problems.spec.ts`。
+Files：`apps/web/src/features/problems/ProblemPages.tsx`、`VersionMaterials.tsx`、新增`ProblemPages.test.tsx`、`apps/web/e2e-integration/problems.spec.ts`。
 
 接口：继续使用`GET/PATCH /problem-versions/{id}`和既有`VersionMaterials`回调。表单提交仅六项内容字段及expected_revision；服务器元数据不得混入请求。无本地修改时读取最新题面，有修改时保留输入并禁止预检，保存成功后以返回内容为准。材料修订不能静默把旧题面当作已保存。
 
-- [ ] 先添加失败用例：外部修订重读后显示新题面；本地编辑跨重读保留并阻止预检；现有版本编辑/复制只提交内容白名单。
-- [ ] 最小修复共享表单状态，保持页面样式、API和B文件不变。
+- [x] 先添加失败用例：外部修订重读后显示新题面；本地编辑跨重读保留并阻止预检；现有版本编辑/复制只提交内容白名单。
+- [x] 最小修复共享表单状态，保持页面样式和API不变；独立审查后另补一次成功/下一次断网的回归，移除题面及材料冲突恢复中提前推进revision的重复读取。
 - [ ] `pnpm test`、类型/lint/构建及正式浏览器双标签场景通过。浏览器插件未提供，使用仓库Playwright；保存截图、控制台及桌面/窄屏证据。
 
 ## Task 2：当前状态与可执行验收交接

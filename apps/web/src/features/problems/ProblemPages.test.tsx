@@ -4,7 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import { api } from '../../app/runtime'
+import { ApiError } from '../../lib/api/client'
 import type { components } from '../../lib/api/schema'
+import { teaching } from '../integrations/teaching'
 import { CreateVersionPage, VersionPage } from './ProblemPages'
 
 afterEach(() => vi.restoreAllMocks())
@@ -120,4 +122,24 @@ it('复制版本只提交可编辑内容与明确的来源ID，不携带旧版�
     'tags',
     'title',
   ])
+})
+
+it('预检冲突重读以一次成功读取同步题面和修订，避免第二次断网留下错配', async () => {
+  setup()
+  await screen.findByLabelText('题目标题')
+  vi.spyOn(teaching.preflight, 'enqueue').mockRejectedValue(
+    new ApiError(409, 'REVISION_CONFLICT', '修订已变化'),
+  )
+  await userEvent.click(screen.getByRole('button', { name: '启动预检' }))
+  await screen.findByText('修订已变化')
+  vi.mocked(api.version)
+    .mockResolvedValueOnce({ ...version, revision: 2, title: '已重读的新题面' })
+    .mockRejectedValue(new Error('后续请求断网'))
+  await userEvent.click(
+    screen.getByRole('button', { name: '重新读取修订，保留测试和参考程序输入' }),
+  )
+  await waitFor(() => expect(screen.getByLabelText('题目标题')).toHaveValue('已重读的新题面'))
+  expect(screen.getByText('草稿 · 修订 2')).toBeVisible()
+  expect(screen.queryByText('后续请求断网')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '启动预检' })).toBeEnabled()
 })

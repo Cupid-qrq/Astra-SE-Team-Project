@@ -279,8 +279,6 @@ function VersionWorkspace({
           variant="secondary"
           onClick={async () => {
             try {
-              const latest = await api.version(version.version_id)
-              setRevision(latest.revision)
               await reload()
               mutation.reset()
               setReloadError('')
