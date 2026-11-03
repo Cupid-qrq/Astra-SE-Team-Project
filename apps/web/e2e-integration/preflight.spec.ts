@@ -1,3 +1,4 @@
+import { openCourse } from './course-navigation'
 import { expect, test } from '@playwright/test'
 import path from 'node:path'
 
@@ -28,7 +29,8 @@ test('正式预检：数据库任务刷新恢复，未知指针报错，修改�
   const course = `预检-${crypto.randomUUID().slice(0, 8)}`
   await page.getByLabel('新课程名称').fill(course)
   await page.getByRole('button', { name: '创建课程' }).click()
-  await page.getByRole('link', { name: course, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, course)
   await page.getByRole('link', { name: '管理题目' }).click()
   await page.getByRole('button', { name: '新建题目' }).click()
   await page.getByLabel('题目标题').fill('预检持久化示例')
