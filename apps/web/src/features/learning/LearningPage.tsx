@@ -135,7 +135,11 @@ function StudentLearning({
         )}
       </section>
       <div id="learning-hints">
-        <HintWorkspace ownerId={ownerId} submissionId={source} />
+        <HintWorkspace
+          ownerId={ownerId}
+          submissionId={source}
+          examples={review.isSuccess ? review.data.pages.flatMap((page) => page.items) : []}
+        />
       </div>
     </div>
   )

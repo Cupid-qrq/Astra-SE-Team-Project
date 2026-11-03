@@ -107,6 +107,7 @@ export function ConfirmDialog({
             type="button"
             className="button button--secondary"
             disabled={busy}
+            title={busy ? '正在处理，请稍候。' : '关闭确认框并取消本次操作。'}
             onClick={onCancel}
           >
             取消

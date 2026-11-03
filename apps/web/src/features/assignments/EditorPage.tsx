@@ -125,10 +125,20 @@ function EditorWorkspace({
         </span>
       </header>
       <div className="editor-tabs" role="tablist" aria-label="编程工作区视图">
-        <button role="tab" aria-selected={tab === 'problem'} onClick={() => setTab('problem')}>
+        <button
+          title="切换到题面与样例。"
+          role="tab"
+          aria-selected={tab === 'problem'}
+          onClick={() => setTab('problem')}
+        >
           题目
         </button>
-        <button role="tab" aria-selected={tab === 'code'} onClick={() => setTab('code')}>
+        <button
+          title="切换到代码编辑区。"
+          role="tab"
+          aria-selected={tab === 'code'}
+          onClick={() => setTab('code')}
+        >
           代码
         </button>
       </div>

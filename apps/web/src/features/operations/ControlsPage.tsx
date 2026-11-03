@@ -66,6 +66,11 @@ export function ControlsPage() {
             <Button
               disabled={!reason.trim()}
               busy={action.isPending}
+              title={
+                reason.trim()
+                  ? '切换是否受理新的学生提交，已有任务继续处理。'
+                  : '请先填写上方控制操作理由。'
+              }
               onClick={() => action.mutate('submission')}
             >
               切换新提交受理
@@ -73,6 +78,11 @@ export function ControlsPage() {
             <Button
               disabled={!reason.trim()}
               busy={action.isPending}
+              title={
+                reason.trim()
+                  ? '切换新评测派发，已执行任务继续完成与清理。'
+                  : '请先填写上方控制操作理由。'
+              }
               onClick={() => action.mutate('judge')}
             >
               切换新评测派发
@@ -89,23 +99,31 @@ export function ControlsPage() {
         </p>
         <Field
           label="关联故障事件编号"
+          hint="从平台管理的故障事件列表复制实际事件编号。"
           value={incidentId}
           onChange={(e) => setIncidentId(e.target.value)}
         />
         <Field
           label="事件影响课程编号"
+          hint="填写该事件所影响课程的实际编号，可从课程页面地址获取。"
           value={courseId}
           onChange={(e) => setCourseId(e.target.value)}
         />
         <Button
           disabled={!reason.trim() || !incidentId || !courseId}
           busy={action.isPending}
+          title={
+            !reason.trim() || !incidentId || !courseId
+              ? '请填写操作理由、故障事件编号和事件影响课程编号。'
+              : '申请本人30分钟应急读取权限，每次读取均记录审计。'
+          }
           onClick={() => action.mutate('grant')}
         >
           申请本人30分钟课程授权
         </Button>
         <Field
           label="应急授权编号"
+          hint="申请成功后自动填入，也可填写本人已有且有效的授权编号。"
           value={grantId}
           onChange={(e) => {
             setGrantId(e.target.value)
@@ -114,6 +132,7 @@ export function ControlsPage() {
         />
         <Field
           label="需读取的提交编号"
+          hint="从本次授权课程的提交记录复制实际编号。"
           value={submissionId}
           onChange={(e) => {
             setSubmissionId(e.target.value)
@@ -123,6 +142,11 @@ export function ControlsPage() {
         <Button
           disabled={!grantId || !submissionId}
           busy={action.isPending}
+          title={
+            !grantId || !submissionId
+              ? '请填写本人有效授权编号和目标提交编号。'
+              : '核对授权范围并读取提交源码，同时记录审计。'
+          }
           onClick={() => action.mutate('read')}
         >
           审计并读取授权提交
@@ -130,6 +154,11 @@ export function ControlsPage() {
         <Button
           disabled={!grantId || !reason.trim()}
           busy={action.isPending}
+          title={
+            !grantId || !reason.trim()
+              ? '请填写本人授权编号和操作理由。'
+              : '立即撤销本人这份应急授权。'
+          }
           onClick={() => action.mutate('revoke')}
         >
           撤销本人授权
