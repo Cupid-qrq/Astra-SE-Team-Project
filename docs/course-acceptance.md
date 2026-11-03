@@ -9,7 +9,7 @@ pwsh -File tools/start_demo.ps1
 pwsh -File tools/stop_demo.ps1
 ```
 
-启动读取工作区忽略目录`.local/course-demo/application.json`。本机地址为`https://localhost:4176`，API监听`127.0.0.1:8021`，评测通过已核验SSH别名oldali的受限Podman运行。证书为七天本地演示证书，首次浏览器访问需确认本机证书。进程清单和日志在同一私有目录，停止脚本仅停止匹配PID与启动时间的演示进程。
+启动会保持现有Ubuntu WSL实例运行，并在数据库查询成功后启动业务进程；停止时最后关闭该保持进程。启动读取工作区忽略目录`.local/course-demo/application.json`。本机地址为`https://localhost:4176`，API监听`127.0.0.1:8021`，评测通过已核验SSH别名oldali的受限Podman运行。证书为七天本地演示证书，首次浏览器访问需确认本机证书。进程清单和日志在同一私有目录，停止脚本仅停止匹配PID与启动时间的演示进程。
 
 演示账号为`teacher_demo`、`student_demo`、`admin_demo`，本机公开演示密码为`AstraDemo2026!`。这组凭据仅用于独立演示库，外部部署应通过本地环境设置新密码。数据库和会话密钥由本机随机生成，未提交仓库。账号初始化脚本只接受空的`*_demo`数据库，已有账号时拒绝覆盖。
 
