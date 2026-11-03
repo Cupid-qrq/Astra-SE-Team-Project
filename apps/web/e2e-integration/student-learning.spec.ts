@@ -1,14 +1,15 @@
 import { expect, test, type Page } from '@playwright/test'
 
-async function openLearning(page: Page) {
+async function openLearning(page: Page, account = 'student_a') {
   await page.goto('/login')
-  await page.getByLabel('账号', { exact: true }).fill('student_a')
+  await page.getByLabel('账号', { exact: true }).fill(account)
   await page.getByLabel('密码', { exact: true }).fill('ExamplePassword123!')
   await page.getByRole('button', { name: '登录', exact: true }).click()
   await page.getByRole('link', { name: '我的学习', exact: true }).click()
 }
 test('个人学习显示已连接来源的空态或独立环境的依赖状态', async ({ page }) => {
-  await openLearning(page)
+  // Other flows deliberately create wrong submissions; this account stays empty.
+  await openLearning(page, process.env.ASTRA_SERVER_PYTHON ? 'student_learning' : 'student_a')
   if (process.env.ASTRA_SERVER_PYTHON) {
     await expect(page.getByText('此类别暂无待复习的错题。')).toBeVisible()
     await expect(page.getByText('暂无符合条件的练习')).toBeVisible()

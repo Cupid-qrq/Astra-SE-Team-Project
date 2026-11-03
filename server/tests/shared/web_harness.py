@@ -119,6 +119,26 @@ def main():
                     "display_name": "teacher_b",
                 },
             )
+            student = repo.required("users", ids["student"])
+            learning_student = "10000000-0000-4000-8000-000000000005"
+            repo.add(
+                "users",
+                {
+                    **student,
+                    "user_id": learning_student,
+                    "login_name": "student_learning",
+                    "display_name": "student_learning",
+                },
+            )
+            repo.add(
+                "course_members",
+                dict(
+                    course_id=ids["course"],
+                    user_id=learning_student,
+                    status="ACTIVE",
+                    joined_at=repo.now(),
+                ),
+            )
             seed_global_feedback(repo, ids["admin"])
         tls()
         app = create_app(

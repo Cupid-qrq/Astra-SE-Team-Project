@@ -39,7 +39,18 @@ def main():
                 repo.change("assignments", assignment_id, due_at=now - timedelta(minutes=5))
                 return
             teacher = "10000000-0000-4000-8000-000000000001"
-            student = "10000000-0000-4000-8000-000000000003"
+            original_student = repo.required("users", "10000000-0000-4000-8000-000000000003")
+            student = str(uuid4())
+            student_login = "operations_" + UUID(student).hex[:20]
+            repo.add(
+                "users",
+                {
+                    **original_student,
+                    "user_id": student,
+                    "login_name": student_login,
+                    "display_name": "管理联调学生",
+                },
+            )
             original_course = repo.rows("courses", title="编辑器测试课程")[0]
             original_problem = repo.rows("problems", owner_course_id=original_course["course_id"])[
                 0
@@ -52,6 +63,7 @@ def main():
             ]
             ids = {key: str(uuid4()) for key in ("course", "problem", "version", "assignment")}
             ids["teacher"] = teacher
+            ids["student_login"] = student_login
             repo.add(
                 "courses",
                 {
