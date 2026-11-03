@@ -1,3 +1,4 @@
+import { openCourse } from './course-navigation'
 import { expect, test } from '@playwright/test'
 
 test('真实数据库：教师建课、改名、成员停用和恢复', async ({ page }) => {
@@ -8,7 +9,8 @@ test('真实数据库：教师建课、改名、成员停用和恢复', async ({
   const title = `程序设计-${crypto.randomUUID().slice(0, 8)}`
   await page.getByLabel('新课程名称').fill(title)
   await page.getByRole('button', { name: '创建课程', exact: true }).click()
-  await page.getByRole('link', { name: title, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, title)
   await page.getByLabel('课程名称', { exact: true }).fill(title + '修订')
   await page.getByRole('button', { name: '保存名称' }).click()
   await expect(page.getByRole('heading', { name: title + '修订', exact: true })).toBeVisible()

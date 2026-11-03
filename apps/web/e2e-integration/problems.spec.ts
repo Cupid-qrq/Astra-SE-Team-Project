@@ -1,3 +1,4 @@
+import { openCourse } from './course-navigation'
 import { expect, test } from '@playwright/test'
 
 test('真实数据库：创建题目草稿、配对测试、参考程序与重进恢复', async ({ page }) => {
@@ -8,7 +9,8 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
   const course = `题库-${crypto.randomUUID().slice(0, 8)}`
   await page.getByLabel('新课程名称').fill(course)
   await page.getByRole('button', { name: '创建课程' }).click()
-  await page.getByRole('link', { name: course, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, course)
   await page.getByRole('link', { name: '管理题目' }).click()
   await page.getByRole('button', { name: '新建题目' }).click()
   await page.getByLabel('题目标题').fill('两数之和')
@@ -60,7 +62,7 @@ test('真实数据库：创建题目草稿、配对测试、参考程序与重�
     await expect(page.getByRole('alert')).toBeVisible()
   }
   await page.getByRole('link', { name: '我的课程', exact: true }).click()
-  await page.getByRole('link', { name: course, exact: true }).click()
+  await openCourse(page, course)
   await page.getByRole('link', { name: '管理题目' }).click()
   await page.getByRole('button', { name: '调整练习开放策略' }).click()
   await expect(page.getByLabel('题目家族编号')).not.toHaveValue('')

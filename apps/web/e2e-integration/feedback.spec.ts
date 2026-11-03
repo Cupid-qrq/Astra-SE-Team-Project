@@ -1,3 +1,4 @@
+import { openCourse } from './course-navigation'
 import { expect, test, type Page } from '@playwright/test'
 
 async function login(page: Page, name: string) {
@@ -15,7 +16,8 @@ test('真实数据库：课程帮助草稿、预览、发布与冻结历史', as
   const title = `帮助维护-${crypto.randomUUID().slice(0, 8)}`
   await page.getByLabel('新课程名称').fill(title)
   await page.getByRole('button', { name: '创建课程', exact: true }).click()
-  await page.getByRole('link', { name: title, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, title)
   await page.getByRole('link', { name: '管理固定帮助', exact: true }).click()
   await page.getByRole('button', { name: '新建固定帮助', exact: true }).click()
   await page.getByLabel('帮助标题', { exact: true }).fill('边界检查第一版')
@@ -72,7 +74,8 @@ test('真实会话失效：重新登录后恢复新建帮助正文与选项', as
   const title = `会话恢复-${crypto.randomUUID().slice(0, 8)}`
   await page.getByLabel('新课程名称').fill(title)
   await page.getByRole('button', { name: '创建课程', exact: true }).click()
-  await page.getByRole('link', { name: title, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, title)
   await page.getByRole('link', { name: '管理固定帮助', exact: true }).click()
   const returnUrl = page.url()
   await page.getByRole('button', { name: '新建固定帮助', exact: true }).click()

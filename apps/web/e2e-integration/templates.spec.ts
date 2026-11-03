@@ -1,3 +1,4 @@
+import { openCourse } from './course-navigation'
 import { expect, test, type Page } from '@playwright/test'
 async function login(page: Page, account: string) {
   await page.goto('/login')
@@ -35,7 +36,8 @@ test('课程模板从草稿到冻结历史，刷新后可恢复修改', async ({
   const title = '提示模板-' + crypto.randomUUID().slice(0, 8)
   await page.getByLabel('新课程名称').fill(title)
   await page.getByRole('button', { name: '创建课程', exact: true }).click()
-  await page.getByRole('link', { name: title, exact: true }).click()
+  await expect(page.getByText('课程已创建。', { exact: true })).toBeVisible()
+  await openCourse(page, title)
   await page.getByRole('link', { name: '管理提示模板' }).click()
   await page.getByRole('button', { name: '新建提示模板' }).click()
   await page.getByLabel('模板正文').fill('第一版：阅读 {question}')

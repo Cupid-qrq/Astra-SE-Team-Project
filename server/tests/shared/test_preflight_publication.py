@@ -271,7 +271,7 @@ def test_b009_upgrade_preserves_preflight_history_and_has_reversible_constraints
     with engine.begin() as conn:
         cfg.attributes["connection"] = conn
         command.upgrade(cfg, "head")
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b009"
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b010"
         assert (
             bytes(
                 conn.scalar(

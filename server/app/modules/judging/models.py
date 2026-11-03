@@ -1,6 +1,7 @@
 """Preflight facts; physical execution slots and leases arrive with the Worker."""
 
 from sqlalchemy import (
+    BigInteger,
     CheckConstraint,
     Column,
     ForeignKey,
@@ -98,6 +99,15 @@ jobs = Table(
     ),
     Column("state", String(10), nullable=False),
     Column("ready_at", TIMESTAMP(timezone=True, precision=3), nullable=False),
+    Column("lease_epoch", BigInteger, nullable=False, server_default=text("0")),
+    Column("lease_until", TIMESTAMP(timezone=True, precision=3)),
+    Column("deadline", TIMESTAMP(timezone=True, precision=3)),
+    Column("claimed_by", UUID(as_uuid=False)),
+    Column("current_execution", String(64)),
+    CheckConstraint("lease_epoch>=0", name="epoch"),
+    CheckConstraint(
+        "current_execution IS NULL OR current_execution ~ '^[0-9a-f]{64}$'", name="execution"
+    ),
     UniqueConstraint("preflight_id"),
     CheckConstraint("state IN ('READY','DONE')", name="state"),
 )
@@ -112,4 +122,25 @@ versions.append_constraint(
         name="fk_versions_published_preflight",
         use_alter=True,
     )
+)
+
+
+scheduler = Table(
+    "scheduler_control",
+    metadata,
+    Column("control_id", Integer, primary_key=True),
+    Column("executor_binding", String(64)),
+    CheckConstraint("control_id=1", name="singleton"),
+)
+slots = Table(
+    "execution_slots",
+    metadata,
+    Column("slot_id", Integer, primary_key=True),
+    Column("state", String(16), nullable=False),
+    Column("job_id", UUID(as_uuid=False), ForeignKey("preflight_jobs.job_id")),
+    Column("lease_epoch", BigInteger, nullable=False, server_default=text("0")),
+    UniqueConstraint("job_id", name="uq_execution_slots_job_id"),
+    CheckConstraint("state IN ('FREE','BUSY','QUARANTINED')", name="state"),
+    CheckConstraint("(state='FREE')=(job_id IS NULL)", name="binding"),
+    CheckConstraint("lease_epoch>=0", name="epoch"),
 )
