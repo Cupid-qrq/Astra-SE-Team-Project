@@ -147,7 +147,11 @@ def diagnose(phase, exit_code, wall_timeout, overflow, oom_killed, cpu_exceeded)
         return "TLE"
     if overflow or oom_killed:
         return "RE" if phase == "run" else "SE"
-    if exit_code in (125, 126, 127, 137) or exit_code is None:
+    if (
+        exit_code == 137
+        or exit_code is None
+        or (phase == "compile" and exit_code in (125, 126, 127))
+    ):
         return "SE"
     if exit_code == 0:
         return None

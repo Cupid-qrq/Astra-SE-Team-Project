@@ -154,8 +154,11 @@ b010添加调度锁、单槽execution_slots及预检租约epoch/owner/截止/cur
 
 部署端明确配置ASTRA_PROFILES_FILE，所有语言image_digest须与实际固定执行镜像一致。`uv run --project server python -m app.modules.judging.worker_cli --executor-host oldali --image sha256:<实际固定镜像> --enable-execution [--once]`运行独立进程。配置错误输出常量代码，程序不输出源码、隐藏输入/输出或原始执行异常；HTTP启动不自动开启Worker。SSH执行器部署见[课程容器说明](../infra/judge/course/README.md)。真实模型由独立A Worker处理，不共享执行槽。
 
-领取和执行身份先持久提交，再在事务外SSH执行；5秒续租，15秒失联进入恢复。每点写回匹配owner/epoch/current_execution；360秒整轮剩余预算发送至远端，不能临近截止重新开启完整预算。程序正常退出后按ASCII空白token比较；所有语言/样例/隐藏点全AC才能PASSED。CPU来自受控父cgroup计量，未知内存指标null。
+领取和执行身份先持久提交，再在事务外SSH执行；5秒续租，15秒失联进入恢复。每点写回匹配owner/epoch/current_execution；360秒整轮剩余预算发送至远端，不能临近截止重新开启完整预算。程序正常退出后按ASCII空白token比较；首个非AC在同事务保留失败点、后续QUEUED点标SKIPPED并终结FAILED；只有所有语言/样例/隐藏点全AC才能PASSED。CPU来自受控父cgroup计量，未知内存指标null。
 
 未知创建/调用失败保持QUARANTINED；恢复先递增epoch，事务外持久取消fence并清理，只有确认清理后才将运行点SE、后续点SKIPPED、预检FAILED并释放槽位。不能通过数据库直接改FREE绕开物理清理。b010仅在所有槽与任务从未使用租约时允许撤回新增结构；已有租约历史拒绝降级，按受审恢复处理。
 
 截至本批验证，专用随机测试库到oldali公开两语言四点预检→PASSED→真实发布已完成，运行中SIGKILL控制器后取消/清理/拒绝迟到创建亦已实测。学生提交/结果/成绩仍待后续批次，不能把预检Worker计作整个I1闭环。
+
+
+Worker启动将固定SSH命令（宿主、脚本、状态目录和镜像）的摘要绑定到scheduler_control。任何BUSY/QUARANTINED槽仍存在时拒绝切换该配置；应使用原配置完成恢复/清理后，再在FREE状态切换。不要删除旧控制器journal或取消墓碑来“解锁”；其留存清理将在维护批次处理，必须保证无旧租约/迟到调用可能后才能回收。执行器已确认真实程序退出时125/126/127按RE，不能与Podman客户端启动失败混淆；未知137只有得到CPU或OOM证据时作对应判定，否则保守SE。

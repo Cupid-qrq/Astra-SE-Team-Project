@@ -2,7 +2,7 @@
 
 ## 2026-11-03 B预检真实Worker候选
 
-新分支feat/b/p1-worker-submissions复用PR6/7；已同步main fb10ccb及PR7冲突修复3f8bb47。执行接口阶段6588f33：oldali双语言正常、CE、RE、墙钟及CPU超限真实判定，幂等回放、持久取消fence和清理验证通过。b010候选增加独立调度锁/单槽租约及预检Worker，已在随机专用PG schema经SSH执行两语言四点，PASSED后题目发布成功，槽位FREE；控制器运行中SIGKILL后恢复清理及迟到拒绝也通过。剩余Worker回归与独立审查/完整检查按本批最终记录，未宣称整个I1或学生提交闭环完成。
+新分支feat/b/p1-worker-submissions复用PR6/7；已同步main fb10ccb及PR7冲突修复3f8bb47。执行接口阶段6588f33：oldali双语言正常、CE、RE、墙钟及CPU超限真实判定，幂等回放、持久取消fence和清理验证通过。b010候选增加独立调度锁/单槽租约及预检Worker，已在随机专用PG schema经SSH执行两语言四点，PASSED后题目发布成功，槽位FREE；控制器运行中SIGKILL后恢复清理及迟到拒绝也通过。一次独立代理审查发现退出码及首错停止两项Important，均经RED→GREEN修复，另补占槽期间执行端配置绑定；72项受影响组合回归通过，真实双语言125/126/127均RE且清理确认。完整检查和推送按本批最终记录，未宣称整个I1或学生提交闭环完成。
 
 ## 2026-11-03 B预检分支同步最新主线
 

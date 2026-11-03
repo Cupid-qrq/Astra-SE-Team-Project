@@ -113,5 +113,7 @@ class PreflightWorker:
             )
             if not self.store.record_case(claim, key, verdict, result.cpu_ms, result.memory_bytes):
                 raise ExecutionError("WORKER_LEASE_LOST")
+            if verdict != "AC":
+                return
         if not self.store.complete(claim):
             raise ExecutionError("WORKER_COMPLETION_REJECTED")

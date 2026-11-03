@@ -219,3 +219,65 @@ def test_recovery_cancels_before_freeing_physical_slot(task):
     assert not store.record_case(claim, ("cpp17", "SAMPLE", 1), "AC", 0, None)
     with engine.connect() as conn:
         assert conn.scalar(text("SELECT state FROM execution_slots WHERE slot_id=1")) == "FREE"
+
+
+@pytest.mark.parametrize("diagnosis", ["CE", "WA", "TLE", "RE", "SE"])
+def test_first_non_ac_atomically_stops_later_points_and_releases_clean_slot(task, diagnosis):
+    from app.modules.judging.worker import PreflightWorker
+    from app.modules.judging.worker_store import WorkerStore
+
+    engine, _, snapshot, _ = task
+    calls = []
+
+    class Executor:
+        def __init__(self, image):
+            self.image = image
+
+        def execute(self, identity, language, code, stdin, timeout=40):
+            calls.append(identity)
+            return ExecutionResult(
+                "COMPILE" if diagnosis == "CE" else "RUN",
+                None if diagnosis == "WA" else diagnosis,
+                0 if diagnosis == "WA" else 1,
+                b"wrong public output",
+                1,
+                None,
+            )
+
+        def cancel(self, identity):
+            return True
+
+    worker = PreflightWorker(
+        WorkerStore(engine),
+        catalog(snapshot),
+        {
+            row["language_key"]: Executor(row["image_digest"])
+            for row in snapshot["profile"]["languages"]
+        },
+    )
+    assert worker.run_once()
+    assert len(calls) == 1
+    with engine.connect() as conn:
+        assert conn.scalar(text("SELECT count(*) FROM preflight_cases WHERE state='FINISHED'")) == 1
+        assert conn.scalar(text("SELECT count(*) FROM preflight_cases WHERE state='SKIPPED'")) == 3
+        assert conn.scalar(text("SELECT state FROM preflight_runs")) == "FAILED"
+        assert conn.scalar(text("SELECT state FROM preflight_jobs")) == "DONE"
+        assert conn.scalar(text("SELECT state FROM execution_slots WHERE slot_id=1")) == "FREE"
+
+
+def test_controller_configuration_cannot_change_while_old_slot_is_owned(task):
+    from app.modules.judging.worker_store import WorkerStore
+
+    engine, _, _, _ = task
+    store = WorkerStore(engine)
+    store.bind_executor("a" * 64)
+    store.bind_executor("a" * 64)
+    claim = store.claim()
+    with pytest.raises(ValueError, match="EXECUTOR_BINDING"):
+        store.bind_executor("b" * 64)
+    store.quarantine(claim)
+    with pytest.raises(ValueError, match="EXECUTOR_BINDING"):
+        store.bind_executor("b" * 64)
+    recovery = store.recover_claim()
+    assert store.finish_recovery(recovery, True)
+    store.bind_executor("b" * 64)

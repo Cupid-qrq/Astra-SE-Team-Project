@@ -9,7 +9,7 @@ from uuid import uuid4
 from sqlalchemy import select, text
 from sqlalchemy.engine import Engine
 
-from app.modules.judging.models import jobs, scheduler, slots
+from app.modules.judging.models import cases, jobs, scheduler, slots
 from app.shared.effects import TransactionalEffects
 from app.shared.repository import SqlRepository
 from app.shared.uow import UnitOfWork
@@ -53,6 +53,25 @@ class WorkerStore:
             bytes(run["frozen_blob"]),
             job["current_execution"],
         )
+
+    def bind_executor(self, fingerprint: str) -> None:
+        from app.shared.judge import sha_value
+
+        sha_value(fingerprint)
+        with UnitOfWork(self.engine) as conn:
+            repo = SqlRepository(conn)
+            slot = self._lock(repo)
+            previous = conn.scalar(
+                select(scheduler.c.executor_binding).where(scheduler.c.control_id == 1)
+            )
+            if previous != fingerprint:
+                if slot["state"] != "FREE":
+                    raise ValueError("EXECUTOR_BINDING_BUSY")
+                conn.execute(
+                    scheduler.update()
+                    .where(scheduler.c.control_id == 1)
+                    .values(executor_binding=fingerprint)
+                )
 
     def claim(self) -> Claim | None:
         with UnitOfWork(self.engine) as conn:
@@ -184,6 +203,13 @@ class WorkerStore:
                 engine_meta={"cpu_ms": cpu_ms, "memory_bytes": memory_bytes},
             )
             repo.change("preflight_jobs", claim.job_id, current_execution=None)
+            if verdict != "AC":
+                conn.execute(
+                    cases.update()
+                    .where(cases.c.preflight_id == claim.preflight_id, cases.c.state == "QUEUED")
+                    .values(state="SKIPPED")
+                )
+                self._finish(repo, claim, False)
             return True
 
     def complete(self, claim: Claim) -> bool:

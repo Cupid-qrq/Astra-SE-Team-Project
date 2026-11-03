@@ -5,8 +5,8 @@ ALTER TABLE preflight_jobs ADD COLUMN claimed_by uuid;
 ALTER TABLE preflight_jobs ADD COLUMN current_execution varchar(64);
 ALTER TABLE preflight_jobs ADD CONSTRAINT ck_preflight_jobs_epoch CHECK(lease_epoch>=0);
 ALTER TABLE preflight_jobs ADD CONSTRAINT ck_preflight_jobs_execution CHECK(current_execution IS NULL OR current_execution ~ '^[0-9a-f]{64}$');
-CREATE TABLE scheduler_control (control_id integer PRIMARY KEY, CONSTRAINT ck_scheduler_control_singleton CHECK(control_id=1));
-INSERT INTO scheduler_control VALUES(1);
+CREATE TABLE scheduler_control (control_id integer PRIMARY KEY, executor_binding varchar(64), CONSTRAINT ck_scheduler_control_singleton CHECK(control_id=1));
+INSERT INTO scheduler_control(control_id) VALUES(1);
 CREATE TABLE execution_slots (
  slot_id integer PRIMARY KEY,
  state varchar(16) NOT NULL,

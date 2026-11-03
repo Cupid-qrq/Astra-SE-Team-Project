@@ -1,6 +1,8 @@
 """Explicit standalone preflight Worker. Application startup never starts it."""
 
 import argparse
+import hashlib
+import json
 import signal
 import threading
 
@@ -41,9 +43,11 @@ def main() -> int:
         ):
             raise ValueError("Profile image mismatch")
         engine = create_database_engine(settings.database_url)
-        worker = PreflightWorker(
-            WorkerStore(engine), catalog, {language: executor for language in languages}
+        store = WorkerStore(engine)
+        store.bind_executor(
+            hashlib.sha256(json.dumps(executor.command, separators=(",", ":")).encode()).hexdigest()
         )
+        worker = PreflightWorker(store, catalog, {language: executor for language in languages})
         stop = threading.Event()
         signal.signal(signal.SIGTERM, lambda *unused: stop.set())
         signal.signal(signal.SIGINT, lambda *unused: stop.set())

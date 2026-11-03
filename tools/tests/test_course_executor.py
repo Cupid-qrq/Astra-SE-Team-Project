@@ -174,6 +174,11 @@ class ProtocolTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 executor.validate_request(dict(request(), timeout_ms=budget))
 
+    def test_actual_program_cli_reserved_exit_codes_are_runtime_errors(self):
+        for code in (125, 126, 127):
+            with self.subTest(code=code):
+                self.assertEqual(executor.diagnose("run", code, False, False, False, None), "RE")
+
 
 def validate_request_for_test():
     return executor.validate_request(request())

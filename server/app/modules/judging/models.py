@@ -129,6 +129,7 @@ scheduler = Table(
     "scheduler_control",
     metadata,
     Column("control_id", Integer, primary_key=True),
+    Column("executor_binding", String(64)),
     CheckConstraint("control_id=1", name="singleton"),
 )
 slots = Table(
