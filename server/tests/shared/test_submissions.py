@@ -189,3 +189,30 @@ def test_disabled_account_cannot_replay(lesson):
     with pytest.raises(Fault) as error:
         accept(lesson, key)
     assert error.value.status == 403
+
+
+def test_clock_skew_stops_new_formal_but_allows_replay_and_practice(lesson, monkeypatch):
+    from datetime import UTC, datetime, timedelta
+
+    import app.modules.submissions.application as module
+
+    key = str(uuid4())
+    accept(lesson, key)
+
+    class SkewedClock:
+        @staticmethod
+        def now(zone):
+            return datetime.now(UTC) + timedelta(seconds=6)
+
+    monkeypatch.setattr(module, "datetime", SkewedClock, raising=False)
+    assert accept(lesson, key)[1]
+    with pytest.raises(Fault) as error:
+        accept(lesson, str(uuid4()))
+    assert error.value.code == "CLOCK_UNHEALTHY"
+    with lesson[0].begin() as conn:
+        conn.execute(
+            text(
+                "UPDATE admission_users SET last_accepted_at=clock_timestamp()-interval '6 seconds'"
+            )
+        )
+    assert accept(lesson, str(uuid4()), intent="PRACTICE")[0]["mode"] == "PRACTICE"

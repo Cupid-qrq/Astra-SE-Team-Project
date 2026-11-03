@@ -1059,6 +1059,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listSubmissions
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listSubmissions"];
+        put?: never;
+        /**
+         * createSubmission
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["createSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submissions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getSubmission
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getSubmission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/submissions/{id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listSubmissionAttempts
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["listSubmissionAttempts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1779,6 +1843,88 @@ export interface components {
         };
         PreflightRequest: {
             expected_revision: number;
+        };
+        SubmissionReceipt: {
+            /** Format: uuid */
+            submission_id: string;
+            /** Format: date-time */
+            accepted_at: string;
+            /** @enum {string} */
+            mode: "FORMAL" | "PRACTICE";
+            /** @constant */
+            state: "QUEUED";
+            /** Format: uuid */
+            request_id: string;
+        };
+        SubmissionCreate: {
+            /** Format: uuid */
+            assignment_id: string;
+            /** Format: uuid */
+            problem_id: string;
+            /** @enum {string} */
+            language_key: "cpp17" | "python3";
+            code: string;
+        };
+        SubmissionView: {
+            /** Format: uuid */
+            submission_id: string;
+            /** Format: uuid */
+            assignment_id: string;
+            /** Format: uuid */
+            problem_id: string;
+            /** Format: uuid */
+            original_version_id: string;
+            /** Format: uuid */
+            effective_version_id: string;
+            /** Format: uuid */
+            result_basis_id: string;
+            /** Format: uuid */
+            attempt_id: string;
+            generation: number;
+            code: string;
+            /** @enum {string} */
+            language_key: "cpp17" | "python3";
+            /** Format: date-time */
+            accepted_at: string;
+            /** @enum {string} */
+            mode: "FORMAL" | "PRACTICE";
+            /** @enum {string} */
+            state: "QUEUED" | "RUNNING" | "RETRY_WAIT" | "FINISHED";
+            /** @enum {string|null} */
+            verdict: null | "AC" | "WA" | "CE" | "TLE" | "RE" | "SE";
+            reason_code: string | null;
+            time_ms: number | null;
+            memory_bytes: number | null;
+            case_results: {
+                order: number;
+                /** @enum {string} */
+                verdict: "AC" | "WA" | "CE" | "TLE" | "RE" | "SE" | "SKIPPED";
+                cpu_ms: number | null;
+                memory_bytes: number | null;
+            }[];
+            /** Format: uuid */
+            feedback_version_id: string | null;
+            revision: number;
+        };
+        SubmissionAttempt: {
+            /** Format: uuid */
+            attempt_id: string;
+            generation: number;
+            /** @enum {string} */
+            state: "QUEUED" | "RUNNING" | "RETRY_WAIT" | "FINISHED";
+            /** @enum {string|null} */
+            verdict: null | "AC" | "WA" | "CE" | "TLE" | "RE" | "SE";
+            reason_code: string | null;
+            time_ms: number | null;
+            memory_bytes: number | null;
+        };
+        SubmissionPage: {
+            items: components["schemas"]["SubmissionView"][];
+            next_cursor: string | null;
+        };
+        SubmissionAttemptPage: {
+            items: components["schemas"]["SubmissionAttempt"][];
+            next_cursor: string | null;
         };
     };
     responses: {
@@ -4423,6 +4569,160 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PreflightStatus"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listSubmissions: {
+        parameters: {
+            query: {
+                assignment_id: string;
+                problem_id?: string;
+                verdict?: "AC" | "WA" | "CE" | "TLE" | "RE" | "SE";
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    createSubmission: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+                "X-Submission-Intent": "FORMAL" | "PRACTICE";
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmissionCreate"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    "Idempotent-Replay"?: "true";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionReceipt"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getSubmission: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listSubmissionAttempts: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmissionAttemptPage"];
                 };
             };
             400: components["responses"]["Error400"];

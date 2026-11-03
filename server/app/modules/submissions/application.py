@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import select
@@ -13,7 +13,7 @@ from app.modules.identity.ports import Record
 from app.shared.effects import TransactionalEffects
 from app.shared.repository import SqlRepository
 
-from .models import submissions
+from .models import attempts, bases, case_results, submissions
 
 
 class Submissions:
@@ -53,6 +53,12 @@ class Submissions:
             user, body["assignment_id"], body["problem_id"], body["language_key"], intent
         )
         now = admission["accepted_at"]
+        require(
+            intent != "FORMAL" or abs((now - datetime.now(UTC)).total_seconds()) <= 5,
+            "CLOCK_UNHEALTHY",
+            "平台时钟正在校准，请稍后重试正式提交。",
+            503,
+        )
         capacity = self.repo.get("capacity_control", 1, lock=True)
         assert capacity is not None
         require(
@@ -169,6 +175,118 @@ class Submissions:
         self.repo.change("capacity_control", 1, pending_count=capacity["pending_count"] + 1)
         self.effects.record(self.repo, user["user_id"], "SUBMISSION_ACCEPTED", sid)
         return dict(receipt, request_id=request_id), False
+
+    def detail(self, actor: Record, submission_id: str) -> Record:
+        user = self.repo.get("users", actor.get("user_id"))
+        require(
+            user is not None
+            and user["status"] == "ACTIVE"
+            and user["role"] in ("STUDENT", "TEACHER"),
+            "FORBIDDEN",
+            "当前账号无权读取提交。",
+            403,
+        )
+        row = self.repo.get("submissions", submission_id)
+        require(row is not None, "NOT_FOUND", "提交不存在或无权访问。", 404)
+        assert row is not None and user is not None
+        require(
+            user["role"] == "TEACHER" or row["user_id"] == user["user_id"],
+            "NOT_FOUND",
+            "提交不存在或无权访问。",
+            404,
+        )
+        self.assignments.access(user, row["assignment_id"])
+        basis = self.repo.get("result_bases", row["active_basis_id"])
+        assert basis is not None
+        attempt = self.repo.get("attempts", basis["current_attempt_id"])
+        assert attempt is not None
+        points = self.repo.connection.execute(
+            select(
+                case_results.c.order,
+                case_results.c.verdict,
+                case_results.c.cpu_ms,
+                case_results.c.memory_bytes,
+            )
+            .where(case_results.c.attempt_id == attempt["attempt_id"])
+            .order_by(case_results.c.order)
+        ).mappings()
+        return dict(
+            submission_id=row["submission_id"],
+            assignment_id=row["assignment_id"],
+            problem_id=row["problem_id"],
+            original_version_id=row["version_id"],
+            effective_version_id=basis["target_version_id"],
+            result_basis_id=basis["basis_id"],
+            attempt_id=attempt["attempt_id"],
+            generation=attempt["generation"],
+            code=row["code"].decode("utf-8"),
+            language_key=row["language_key"],
+            accepted_at=utc(row["accepted_at"]),
+            mode=row["mode"],
+            state=basis["processing_state"],
+            verdict=attempt["verdict"],
+            reason_code=attempt["reason_code"],
+            time_ms=attempt["time_ms"],
+            memory_bytes=attempt["memory_bytes"],
+            case_results=[dict(r) for r in points],
+            feedback_version_id=attempt["feedback_version_id"],
+            revision=row["revision"],
+        )
+
+    def history(self, actor: Record, query: Record, pager) -> Record:
+        user = self.repo.get("users", actor.get("user_id"))
+        require(
+            user is not None
+            and user["status"] == "ACTIVE"
+            and user["role"] in ("STUDENT", "TEACHER"),
+            "FORBIDDEN",
+            "当前账号无权读取提交。",
+            403,
+        )
+        assert user is not None
+        assignment_id = query["assignment_id"]
+        self.assignments.access(user, assignment_id)
+        statement = (
+            select(submissions.c.submission_id)
+            .join(bases, bases.c.basis_id == submissions.c.active_basis_id)
+            .join(attempts, attempts.c.attempt_id == bases.c.current_attempt_id)
+            .where(submissions.c.assignment_id == assignment_id)
+        )
+        if user["role"] == "STUDENT":
+            statement = statement.where(submissions.c.user_id == user["user_id"])
+        for name in ("problem_id", "verdict"):
+            if name in query:
+                column = submissions.c.problem_id if name == "problem_id" else attempts.c.verdict
+                statement = statement.where(column == query[name])
+        if pager.after is not None:
+            statement = statement.where(submissions.c.submission_id > pager.after)
+        ids = self.repo.connection.execute(
+            statement.order_by(submissions.c.submission_id).limit(pager.limit + 1)
+        ).scalars()
+        rows = [self.detail(user, sid) for sid in ids]
+        return pager.finish(rows, "submission_id")
+
+    def rounds(self, actor: Record, submission_id: str, pager) -> Record:
+        self.detail(actor, submission_id)
+        columns = [
+            attempts.c[name]
+            for name in (
+                "attempt_id",
+                "generation",
+                "state",
+                "verdict",
+                "reason_code",
+                "time_ms",
+                "memory_bytes",
+            )
+        ]
+        statement = select(*columns).where(attempts.c.submission_id == submission_id)
+        if pager.after is not None:
+            statement = statement.where(attempts.c.attempt_id > pager.after)
+        rows = self.repo.connection.execute(
+            statement.order_by(attempts.c.attempt_id).limit(pager.limit + 1)
+        ).mappings()
+        return pager.finish([dict(row) for row in rows], "attempt_id")
 
     @staticmethod
     def _validate(body, key, intent):

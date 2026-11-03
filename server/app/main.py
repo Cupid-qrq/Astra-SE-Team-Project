@@ -24,6 +24,7 @@ from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
 from app.api.lists import sql_list
 from app.api.preflights import register as register_preflights
+from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
 from app.modules.courses.application import Courses
@@ -36,6 +37,8 @@ from app.modules.learning.hint_service import HintService, Sources
 from app.modules.learning.model_runtime import RuntimeProfile
 from app.modules.learning.student import LearningResults, StudentLearning
 from app.modules.problems.application import Problems
+from app.modules.submissions.application import Submissions
+from app.modules.submissions.sources import SubmissionSources
 from app.shared.config import Settings
 from app.shared.database import create_database_engine
 from app.shared.effects import TransactionalEffects
@@ -69,6 +72,9 @@ def create_app(
         contract.validate({"$ref": "#/components/schemas/Profile"}, profile)
 
     preflight_catalog = SnapshotCatalog(settings.profiles) if settings.profiles else None
+    submission_sources = SubmissionSources()
+    learning_results = learning_results or submission_sources
+    hint_sources = hint_sources or submission_sources
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
@@ -97,7 +103,15 @@ def create_app(
         except ValueError:
             request_id = str(uuid4())
         request.state.request_id = request_id
-        protected = ("Origin", "X-CSRF-Token", "X-Request-Id", "X-Astra-Background", "Content-Type")
+        protected = (
+            "Origin",
+            "X-CSRF-Token",
+            "X-Request-Id",
+            "X-Astra-Background",
+            "Content-Type",
+            "Idempotency-Key",
+            "X-Submission-Intent",
+        )
         if any(len(request.headers.getlist(name)) > 1 for name in protected):
             return error_response(Fault(400, "INVALID_REQUEST", "请求头不得重复。"), request_id)
         try:
@@ -151,7 +165,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b011":
+                if head != "b012":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -221,6 +235,9 @@ def create_app(
                             draft_delete_guard=preflight.protect_draft_delete,
                         ),
                         preflight=preflight,
+                        submissions=Submissions(repo, effects),
+                        headers=request.headers,
+                        request_id=request_id,
                         assignments=Assignments(repo, effects),
                         hints=HintService(
                             repo,
@@ -228,7 +245,7 @@ def create_app(
                             hint_configuration,
                             model_profile.project_budget_cny if model_profile else None,
                         ),
-                        learning=Learning(repo, effects),
+                        learning=Learning(repo, effects, submission_sources),
                         actor=actor,
                         token=token,
                         body=body,
@@ -249,6 +266,8 @@ def create_app(
                             result, new_cookie = result
                         elif path == "/ai-hints" and method == "POST":
                             success, result = result
+                        if path == "/submissions" and method == "POST":
+                            result, replayed = result
                         contract.response(operation, success, result)
                     except Fault as error:
                         # A's failed-login ledger must commit; all other faults escape and roll back.
@@ -263,6 +282,8 @@ def create_app(
                     if success == 204
                     else JSONResponse(result, status_code=success)
                 )
+                if path == "/submissions" and method == "POST" and replayed:
+                    response.headers["Idempotent-Replay"] = "true"
                 if new_cookie:
                     response.set_cookie(
                         "astra_session",
@@ -320,6 +341,7 @@ def create_app(
 
     register(add, settings.profiles)
     register_preflights(add)
+    register_submissions(add)
 
     def export_openapi() -> Record:
         document = get_openapi(

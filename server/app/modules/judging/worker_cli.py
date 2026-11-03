@@ -10,6 +10,8 @@ from app.adapters.course_executor import CourseExecutor
 from app.adapters.judge_profiles import SnapshotCatalog
 from app.modules.judging.worker import PreflightWorker
 from app.modules.judging.worker_store import WorkerStore
+from app.modules.submissions.worker import SubmissionWorker
+from app.modules.submissions.worker_store import SubmissionStore
 from app.shared.config import Settings
 from app.shared.database import create_database_engine
 
@@ -48,12 +50,15 @@ def main() -> int:
             hashlib.sha256(json.dumps(executor.command, separators=(",", ":")).encode()).hexdigest()
         )
         worker = PreflightWorker(store, catalog, {language: executor for language in languages})
+        student_worker = SubmissionWorker(
+            SubmissionStore(engine), catalog, {language: executor for language in languages}
+        )
         stop = threading.Event()
         signal.signal(signal.SIGTERM, lambda *unused: stop.set())
         signal.signal(signal.SIGINT, lambda *unused: stop.set())
         while not stop.is_set():
-            recovered = worker.recover_once()
-            worked = False if recovered else worker.run_once()
+            recovered = student_worker.recover_once() or worker.recover_once()
+            worked = False if recovered else (student_worker.run_once() or worker.run_once())
             if args.once:
                 return 0
             stop.wait(1 if worked or recovered else 2)
