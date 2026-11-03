@@ -68,7 +68,9 @@ def test_management_http_emergency_scope_runtime_and_fairness(http_env):
     recovered = admin.patch(
         "/api/v1/admin/incidents/" + iid + "/recovery",
         json=dict(
-            recovered_at=admin.get("/api/v1/admin/health").json()["server_time"], expected_revision=1, reason="恢复完成"
+            recovered_at=admin.get("/api/v1/admin/health").json()["server_time"],
+            expected_revision=1,
+            reason="恢复完成",
         ),
     )
     assert recovered.status_code == 200, recovered.text
