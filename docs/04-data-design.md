@@ -107,7 +107,7 @@ assignment.revision负责所有并发写检查；grade_epoch只在延期重开�
 | template_versions | version_id PK、template_id FK、version_no、body、allowed_placeholders、schema_version、author_id FK、published_at、checksum | UQ(template_id,version_no)；固定安全框架不由正文覆盖 |
 | model_configs | config_id PK、provider、model_id、version_label、base_url、price_snapshot、token_caps、terms_review_ref、verified_at、enabled | 不含密钥；URL 来自部署白名单；版本不可原位覆盖；初始 enabled=false |
 | policy_guard | guard_id PK、revision | 单行授权变更串行点；策略写与提示授权检查共用，持锁时不调用网络 |
-| ai_hints | hint_id PK、user_id FK、submission_id FK、request_key、request_digest、question、accepted_date、status、reason_code?、template_version_id FK、model_config_id FK、accepted_policy_digest、dispatch_policy_digest?、authorized_at?、consented_at?、sections?、usage?、safety_flags、created_at | UQ(user_id,request_key)；用户仅一个 PENDING，条件唯一索引；来源属于本人；跨日仍记原 accepted_date |
+| ai_hints | hint_id PK、user_id FK、submission_id FK、request_key、request_digest、question、accepted_date、status、reason_code?、template_version_id FK、model_config_id FK、source_snapshot?、accepted_policy_digest、dispatch_policy_digest?、authorized_at?、consented_at?、sections?、usage?、safety_flags、created_at | UQ(user_id,request_key)；用户仅一个 PENDING，条件唯一索引；来源属于本人；跨日仍记原 accepted_date |
 | hint_jobs | job_id PK、hint_id FK、state、queued_at、started_at?、deadline_at、lease_epoch | hint_id UQ；等待10秒/执行20秒分别计时；与评测 Worker 分离 |
 | hint_feedback | hint_id PK/FK、user_id FK、rating、comment、updated_at | rating 三值；本人 READY 提示；单条可修订 |
 | quota_ledger | user_id FK、accepted_date、ready、reserved | PK(user_id,accepted_date)；非负且 ready+reserved≤20 |
@@ -152,3 +152,7 @@ assignment.revision负责所有并发写检查；grade_epoch只在延期重开�
 
 
 预检发布接线（b009）：`problem_versions(version_id,published_preflight_id)`以复合外键引用`preflight_runs(version_id,preflight_id)`，父表有对应唯一约束；不存在或跨版本的非空引用不得写入。历史NULL引用不回填，非空坏引用阻止升级并要求显式核对。发布前仍由服务端校验权限、完整点集合、相同摘要及全AC，外键不替代业务证据验证。有预检历史的草稿删除返回VERSION_IN_USE并保留历史。
+
+### 提示来源冻结（b017 / A验证a007）
+
+source_snapshot为JSONB，仅保存submission/student/course/problem、state/verdict、feedback_version_id及result_basis_id/attempt_id/effective_version_id，不保存源码或诊断。新提示接纳前必须具备全部来源身份；派发、READY和读取与当前来源比较，换轮/换版本即阻断旧内容。历史NULL不回填、不外发，读取保持BLOCKED且不返回旧fallback；不修改既有计费账本。已存在非空快照时禁止降级删除追溯列。

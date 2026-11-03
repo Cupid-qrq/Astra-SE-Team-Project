@@ -44,16 +44,16 @@ def user(repo, name="teacher"):
 
 def test_single_head_upgrade_preserves_data(database):
     config = Config(str(Path(__file__).parents[2] / "alembic.ini"))
-    assert ScriptDirectory.from_config(config).get_heads() == ["b016"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["b017"]
     with database.begin() as conn:
         config.attributes["connection"] = conn
         command.upgrade(config, "b001")
         repo = SqlRepository(conn)
         key = user(repo)
-        for revision in ["b002", "b003", "b004", "head", "head"]:
+        for revision in ["b002", "b003", "b004", "b016", "head", "head"]:
             command.upgrade(config, revision)
             assert repo.get("users", key)["display_name"] == "teacher"
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b016"
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "b017"
         assert conn.scalar(text("SELECT to_regclass('alembic_version_a')")) is None
 
 

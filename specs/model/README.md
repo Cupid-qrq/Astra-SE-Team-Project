@@ -2,6 +2,8 @@
 
 当前适用v0.4。用户于2026-11-03提供deepseek-flash、官方接口、用户环境变量DeepSeek_API及本轮20元预算。`runtime.example.json`是本轮运行配置，默认关闭；旧`config.example.json`及其schema仍是P0离线检查夹具。以下早期说明保留其日期语境，不能当作当前配置。验证见[本批报告](../../docs/reports/2026-11-03-a-live-model.md)。
 
+来源接线已随B主线接入，A收尾迁移b017冻结提交的basis/attempt/effective_version身份，重评变更或旧NULL来源均阻断旧提示，不自动重发或释放未知费用。来源修复不代表模型质量已通过，配置仍关闭；队友环境升级与联调步骤见[A交接](../../docs/a-integration-handoff.md#6-给队友的本批接入步骤)。本轮收尾没有新增收费调用。
+
 ## 本轮独立模型回归
 
 在仓库根目录用server虚拟环境运行，默认只冻结合成样例而不联网：

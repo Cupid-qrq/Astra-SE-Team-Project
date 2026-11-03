@@ -56,6 +56,9 @@ def setup_job(http_env, profile):
                 "FINISHED",
                 "WA",
                 feedback,
+                "basis",
+                "attempt",
+                "version",
             )
 
         def hint_context(self, repo, source):

@@ -56,7 +56,14 @@ export function SubmissionContent({ submissionId }: { submissionId: string }) {
   })
   const feedback = useQuery({
     queryKey: ['submission-feedback', submissionId, result.data?.attempt_id],
-    queryFn: () => api.submissionFeedback(submissionId),
+    queryFn: async () => {
+      const value = await api.submissionFeedback(submissionId)
+      if (value.feedback_version_id !== result.data?.feedback_version_id) {
+        void result.refetch()
+        throw new Error('评测轮次已更新，正在重新核对结果，请稍后重试帮助。')
+      }
+      return value
+    },
     enabled: !!result.data?.feedback_version_id && result.data.state === 'FINISHED',
   })
   if (result.isPending) return <StatePanel kind="loading" title="正在读取结果…" />
@@ -75,10 +82,19 @@ export function SubmissionContent({ submissionId }: { submissionId: string }) {
       <FixedHelp
         state={result.data.state}
         verdict={result.data.verdict}
-        value={feedback.data}
+        value={
+          feedback.data?.feedback_version_id === result.data.feedback_version_id
+            ? feedback.data
+            : undefined
+        }
         loading={feedback.isFetching}
         error={feedback.error?.message}
       />
+      {feedback.isError && (
+        <Button onClick={() => void feedback.refetch()} busy={feedback.isFetching}>
+          重新读取本轮帮助
+        </Button>
+      )}
       <Link to={`/submissions/${submissionId}`}>查看提交详情与轮次</Link>
     </>
   )
