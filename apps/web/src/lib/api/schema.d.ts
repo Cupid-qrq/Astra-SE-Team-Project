@@ -1019,6 +1019,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/problem-versions/{id}/preflight": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 受理独立题目预检
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        post: operations["enqueuePreflight"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/preflights/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 读取授权题目预检状态
+         * @description 依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。
+         */
+        get: operations["getPreflight"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1703,6 +1743,38 @@ export interface components {
         HintHistoryPage: {
             items: components["schemas"]["HintHistoryItem"][];
             next_cursor: string | null;
+        };
+        PreflightReceipt: {
+            /** Format: uuid */
+            preflight_id: string;
+            /** @enum {string} */
+            state: "QUEUED" | "RUNNING" | "PASSED" | "FAILED";
+            content_digest: string;
+        };
+        PreflightCaseStatus: {
+            /** @enum {string} */
+            language_key: "cpp17" | "python3";
+            /** @enum {string} */
+            case_kind: "SAMPLE" | "HIDDEN";
+            case_order: number;
+            /** @enum {string} */
+            state: "QUEUED" | "RUNNING" | "FINISHED" | "SKIPPED";
+            /** @enum {string|null} */
+            verdict: "AC" | "WA" | "CE" | "TLE" | "RE" | "SE" | null;
+        };
+        PreflightStatus: {
+            /** Format: uuid */
+            preflight_id: string;
+            /** Format: uuid */
+            version_id: string;
+            content_digest: string;
+            profile_hash: string;
+            /** @enum {string} */
+            state: "QUEUED" | "RUNNING" | "PASSED" | "FAILED";
+            cases: components["schemas"]["PreflightCaseStatus"][];
+        };
+        PreflightRequest: {
+            expected_revision: number;
         };
     };
     responses: {
@@ -4270,6 +4342,83 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TemplateVersionSummaryPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    enqueuePreflight: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreflightRequest"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            202: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreflightReceipt"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getPreflight: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreflightStatus"];
                 };
             };
             400: components["responses"]["Error400"];

@@ -82,3 +82,31 @@ def test_plan_rejects_incomplete_or_unsafe_snapshot_without_chain(kind):
         freeze_snapshot(snapshot, allowed)
     assert "SECRET" not in str(error.value)
     assert error.value.__context__ is None and error.value.__cause__ is None
+
+
+def test_public_snapshot_catalog_binds_without_inventing_execution_ids():
+    from app.adapters.judge_profiles import SnapshotCatalog
+
+    snapshot = sample_snapshot()
+    public = SnapshotCatalog([snapshot["profile"]])
+    bound = public.bind(snapshot["profile"])
+    assert bound.profile_hash == profile_digest(snapshot["profile"])
+    assert all(not hasattr(language, "language_id") for language in bound.languages)
+    assert freeze_snapshot(snapshot, public) == freeze_snapshot(snapshot, catalog(snapshot))
+    snapshot["profile"]["languages"][0]["version"] = "CHANGED"
+    from app.shared.judge import ExecutionError
+
+    with pytest.raises(ExecutionError):
+        public.bind(snapshot["profile"])
+
+
+@pytest.mark.parametrize(
+    "change", [{"memory_bytes": 1}, {"run_entities": 2}, {"compile_timeout_ms": 1}]
+)
+def test_public_snapshot_catalog_requires_exact_business_limits(change):
+    from app.adapters.judge_profiles import SnapshotCatalog
+    from app.shared.judge import ExecutionError
+
+    value = sample_snapshot()["profile"] | change
+    with pytest.raises(ExecutionError):
+        SnapshotCatalog([value])

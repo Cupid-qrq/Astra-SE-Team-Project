@@ -6,7 +6,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.adapters.judge_profiles import ProfileCatalog
+from app.adapters.judge_profiles import ProfileCatalog, SnapshotCatalog
 from app.modules.identity.domain import Fault
 from app.modules.identity.ports import Effects, Record, Repository
 from app.modules.judging.domain import freeze_snapshot
@@ -25,7 +25,12 @@ def _uuid(value: str) -> str:
 
 
 class TransactionalPreflight:
-    def __init__(self, repo: SqlRepository, catalog: ProfileCatalog, effects: Effects) -> None:
+    def __init__(
+        self,
+        repo: SqlRepository,
+        catalog: ProfileCatalog | SnapshotCatalog | None,
+        effects: Effects,
+    ) -> None:
         self.repo, self.catalog, self.effects = repo, catalog, effects
 
     def _check(self, repo: Repository) -> None:
@@ -77,6 +82,8 @@ class TransactionalPreflight:
             problems = Problems(self.repo, self.effects)
             problems.version(teacher, vid, write=True)
             self.repo.get("problem_versions", vid, lock=True)
+            if self.catalog is None:
+                raise Fault(503, "PREFLIGHT_UNAVAILABLE", "预检运行环境尚未配置。", retry=5)
             plan = freeze_snapshot(problems.snapshot(vid), self.catalog)
             query = select(runs.c.preflight_id, runs.c.state, runs.c.content_digest).where(
                 runs.c.version_id == vid,
@@ -168,6 +175,8 @@ class TransactionalPreflight:
             value = self._public_run(pid)
             if value is None or value["state"] != "PASSED":
                 return None
+            if self.catalog is None:
+                raise Fault(503, "PREFLIGHT_UNAVAILABLE", "预检运行环境尚未配置。", retry=5)
             rows = self._cases(pid)
             blob = self.repo.connection.execute(
                 select(runs.c.frozen_blob).where(runs.c.preflight_id == pid)

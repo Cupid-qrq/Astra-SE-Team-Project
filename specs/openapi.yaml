@@ -6491,6 +6491,209 @@
         ],
         "x-implementation": "implemented"
       }
+    },
+    "/problem-versions/{id}/preflight": {
+      "post": {
+        "operationId": "enqueuePreflight",
+        "summary": "受理独立题目预检",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 512
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "description": "Browser supplies Origin automatically; server MUST validate it for all writes including login."
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreflightReceipt"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreflightRequest"
+              }
+            }
+          }
+        },
+        "x-implementation": "implemented"
+      }
+    },
+    "/preflights/{id}": {
+      "get": {
+        "operationId": "getPreflight",
+        "summary": "读取授权题目预检状态",
+        "description": "依 docs/03-api-contract.md 验证身份和对象归属；服务端裁定权限、时间和 revision。字段字节上限另按 docs/01-requirements.md 校验。",
+        "x-owner": "B祝祎帆",
+        "x-roles": [
+          "TEACHER"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "X-Astra-Background",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "const": "1"
+            },
+            "description": "Automatic GET poll: authenticate normally without renewing the idle session window."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功；仅返回当前身份可见字段",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string",
+                  "format": "uuid"
+                }
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreflightStatus"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "429": {
+            "$ref": "#/components/responses/Error429"
+          },
+          "503": {
+            "$ref": "#/components/responses/Error503"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "x-implementation": "implemented"
+      }
     }
   },
   "components": {
@@ -9768,6 +9971,150 @@
           "items",
           "next_cursor"
         ]
+      },
+      "PreflightReceipt": {
+        "type": "object",
+        "properties": {
+          "preflight_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "PASSED",
+              "FAILED"
+            ]
+          },
+          "content_digest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "preflight_id",
+          "state",
+          "content_digest"
+        ],
+        "additionalProperties": false
+      },
+      "PreflightCaseStatus": {
+        "type": "object",
+        "properties": {
+          "language_key": {
+            "type": "string",
+            "enum": [
+              "cpp17",
+              "python3"
+            ]
+          },
+          "case_kind": {
+            "type": "string",
+            "enum": [
+              "SAMPLE",
+              "HIDDEN"
+            ]
+          },
+          "case_order": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "FINISHED",
+              "SKIPPED"
+            ]
+          },
+          "verdict": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "AC",
+              "WA",
+              "CE",
+              "TLE",
+              "RE",
+              "SE",
+              null
+            ]
+          }
+        },
+        "required": [
+          "language_key",
+          "case_kind",
+          "case_order",
+          "state",
+          "verdict"
+        ],
+        "additionalProperties": false
+      },
+      "PreflightStatus": {
+        "type": "object",
+        "properties": {
+          "preflight_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "content_digest": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "profile_hash": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "PASSED",
+              "FAILED"
+            ]
+          },
+          "cases": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 26,
+            "items": {
+              "$ref": "#/components/schemas/PreflightCaseStatus"
+            }
+          }
+        },
+        "required": [
+          "preflight_id",
+          "version_id",
+          "content_digest",
+          "profile_hash",
+          "state",
+          "cases"
+        ],
+        "additionalProperties": false
+      },
+      "PreflightRequest": {
+        "type": "object",
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "expected_revision"
+        ],
+        "additionalProperties": false
       }
     },
     "responses": {
