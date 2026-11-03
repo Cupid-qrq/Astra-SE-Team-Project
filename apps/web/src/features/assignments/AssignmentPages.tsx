@@ -66,6 +66,19 @@ export function AssignmentPage() {
           }
         </span>
       </header>
+      {(value.fairness_review !== 'NONE' || value.fairness_notice?.trim()) && (
+        <section className="panel stack" aria-label="公平与作业公告">
+          <h2>公平与作业公告</h2>
+          {value.fairness_review !== 'NONE' && (
+            <p role="status">
+              {value.fairness_review === 'PENDING' ? '公平复核中' : '公平复核已处理'}
+            </p>
+          )}
+          {value.fairness_notice?.trim() && (
+            <p className="template-text">{value.fairness_notice}</p>
+          )}
+        </section>
+      )}
       {teacher && value.state === 'DRAFT' && (
         <AssignmentForm
           key={id}

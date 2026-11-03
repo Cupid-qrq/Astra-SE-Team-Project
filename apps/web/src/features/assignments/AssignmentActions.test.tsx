@@ -8,6 +8,70 @@ import { AssignmentPage } from './AssignmentPages'
 import type { components } from '../../lib/api/schema'
 
 afterEach(() => vi.restoreAllMocks())
+
+async function openStudentAssignment(
+  fairness_review: components['schemas']['AssignmentView']['fairness_review'],
+  fairness_notice: string | null,
+) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  client.setQueryData(sessionKey, {
+    authenticated: true,
+    user: { role: 'STUDENT', user_id: 'student' },
+  })
+  vi.spyOn(api, 'assignment').mockResolvedValue({
+    assignment_id: 'a',
+    course_id: 'c',
+    title: '学生作业',
+    state: 'OPEN',
+    revision: 1,
+    items: [],
+    open_at: '2026-01-01T00:00:00.000Z',
+    due_at: '2026-12-01T00:00:00.000Z',
+    server_time: '2026-11-03T00:00:00.000Z',
+    ai_policy: 'DISABLED',
+    grade_state: 'PROVISIONAL',
+    fairness_review,
+    fairness_notice,
+  })
+  render(
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={['/assignments/a']}>
+        <Routes>
+          <Route path="/assignments/:id" element={<AssignmentPage />} />
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  )
+  await screen.findByRole('heading', { name: '学生作业' })
+}
+
+it('公平复核等待时即使尚无公告，也向学生显示当前状态', async () => {
+  await openStudentAssignment('PENDING', null)
+  expect(screen.getByRole('region', { name: '公平与作业公告' })).toHaveTextContent('公平复核中')
+  expect(screen.queryByText('公平复核已处理')).not.toBeInTheDocument()
+})
+
+it('显示已处理状态和服务端公告，公告中的HTML仅作为文本', async () => {
+  const notice = '已统一延期至明日。<img src=x onerror=alert(1)>'
+  await openStudentAssignment('RESOLVED', notice)
+  const announcement = screen.getByRole('region', { name: '公平与作业公告' })
+  expect(announcement).toHaveTextContent('公平复核已处理')
+  expect(announcement).toHaveTextContent(notice)
+  expect(announcement.querySelector('img')).toBeNull()
+})
+
+it('没有公平事件和公告时不显示空公告区域', async () => {
+  await openStudentAssignment('NONE', '   ')
+  expect(screen.queryByRole('region', { name: '公平与作业公告' })).not.toBeInTheDocument()
+})
+
+it('无复核事件时仍显示服务端提供的作业公告，不推断复核结果', async () => {
+  await openStudentAssignment('NONE', '请同学核对新的截止时间。')
+  const announcement = screen.getByRole('region', { name: '公平与作业公告' })
+  expect(announcement).toHaveTextContent('请同学核对新的截止时间。')
+  expect(announcement.querySelector('[role="status"]')).toBeNull()
+})
+
 it('确认框固定打开时的修订和参数，后台更新不能绕过冲突检查', async () => {
   const value = {
     assignment_id: 'a',

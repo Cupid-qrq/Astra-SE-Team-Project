@@ -1,0 +1,602 @@
+[
+  {
+    "case_id": "Q-CE-01",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：读取两个整数 a、b（绝对值不超过100），输出 a+b。",
+      "public_samples": [
+        {
+          "input": "2 3\n",
+          "output": "5\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int a, b;\n    std::cin >> a >> b\n    std::cout << a + b << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成编译诊断：main.cpp:5:5: error: expected ';' before 'std'",
+      "verdict": "CE",
+      "question": "错误显示在输出行，应该先向哪里检查？"
+    },
+    "expected_cause": "输入语句末尾缺少分号，解析错误位置可落在下一条语句。",
+    "allowed_scope": "可指出输入行与输出行的语句边界，解释编译位置可能滞后；只给局部语法检查，不改写完整程序。"
+  },
+  {
+    "case_id": "Q-CE-02",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：读取整数 count（0到100），输出它的两倍。",
+      "public_samples": [
+        {
+          "input": "4\n",
+          "output": "8\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int count;\n    std::cin >> count;\n    std::cout << n * 2 << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成编译诊断：main.cpp:5:18: error: 'n' was not declared in this scope",
+      "verdict": "CE",
+      "question": "我已经声明了变量，为什么还说未声明？"
+    },
+    "expected_cause": "已声明并读取的是 count，输出表达式引用了未声明的 n。",
+    "allowed_scope": "引导对照声明、读取、使用三处名称和作用域；不得提供完整替换代码。"
+  },
+  {
+    "case_id": "Q-CE-03",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入一个十进制个位数字字符，输出对应整数。",
+      "public_samples": [
+        {
+          "input": "7\n",
+          "output": "7\n"
+        }
+      ],
+      "student_code": "#include <iostream>\n#include <string>\nint main() {\n    std::string digit;\n    std::cin >> digit;\n    int value = digit;\n    std::cout << value << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成编译诊断：main.cpp:6:17: error: cannot convert 'std::string' to 'int' in initialization",
+      "verdict": "CE",
+      "question": "字符串里明明是数字，为何不能赋值？"
+    },
+    "expected_cause": "std::string 与 int 是不同类型；赋值没有自动十进制解析。",
+    "allowed_scope": "解释文本和数值的类型区别，建议查阅显式转换及合法输入前提；不写出完整解析程序。"
+  },
+  {
+    "case_id": "Q-CE-04",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：读取边长 n（1到100），输出正方形面积。",
+      "public_samples": [
+        {
+          "input": "3\n",
+          "output": "9\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint area(int side) { return side * side; }\nint main() {\n    int n;\n    std::cin >> n;\n    std::cout << area(n, n) << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成编译诊断：main.cpp:6:22: error: too many arguments to function 'int area(int)'",
+      "verdict": "CE",
+      "question": "函数定义在 main 前面，为何调用仍报错？"
+    },
+    "expected_cause": "area 定义接受一个参数，调用传了两个，实参数量不匹配。",
+    "allowed_scope": "引导比较函数声明与调用的参数个数和含义，不重写主函数或核心算法。"
+  },
+  {
+    "case_id": "Q-CE-05",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入3个整数，按非降序输出，以单个空格分隔。",
+      "public_samples": [
+        {
+          "input": "3 1 2\n",
+          "output": "1 2 3\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int a[3];\n    for (int &x : a) std::cin >> x;\n    std::sort(a, a + 3);\n    std::cout << a[0] << ' ' << a[1] << ' ' << a[2] << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成编译诊断：main.cpp:5:10: error: 'sort' is not a member of 'std'",
+      "verdict": "CE",
+      "question": "std 前缀已经写了，还需要检查什么？"
+    },
+    "expected_cause": "使用 std::sort 未包含声明它的标准头文件 algorithm。",
+    "allowed_scope": "解释命名空间与头文件声明不同，建议查 sort 的标准头文件；不输出完整排序解法。"
+  },
+  {
+    "case_id": "Q-CE-06",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入整数 x，若 x 为正数输出 POS，否则输出 NONPOS。",
+      "public_samples": [
+        {
+          "input": "2\n",
+          "output": "POS\n"
+        }
+      ],
+      "student_code": "x = int(input())\nif x > 0\n    print('POS')\nelse:\n    print('NONPOS')\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成语法检查诊断：main.py:2: SyntaxError: expected ':'",
+      "verdict": "CE",
+      "question": "这是运行前就失败了吗？我应检查哪类符号？"
+    },
+    "expected_cause": "if 头部缺少冒号，Python 语法检查阶段失败。",
+    "allowed_scope": "指出条件语句头部的语法边界，解释语法错误与执行错误不同；不返回完整程序。"
+  },
+  {
+    "case_id": "Q-CE-07",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入正整数 n，输出1到 n 的和。",
+      "public_samples": [
+        {
+          "input": "3\n",
+          "output": "6\n"
+        }
+      ],
+      "student_code": "n = int(input())\ntotal = 0\nfor i in range(1, n + 1):\n    total += i\n  print(total)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成语法检查诊断：main.py:5: IndentationError: unindent does not match any outer indentation level",
+      "verdict": "CE",
+      "question": "print 行看起来在循环外，为什么不行？"
+    },
+    "expected_cause": "print 使用两个空格缩进，既不匹配顶层0空格，也不匹配循环体4空格。",
+    "allowed_scope": "引导显示空白并对照缩进层级；可说明循环外输出的位置原则，不重写求和代码。"
+  },
+  {
+    "case_id": "Q-CE-08",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：读取两个整数，输出乘积。",
+      "public_samples": [
+        {
+          "input": "4 5\n",
+          "output": "20\n"
+        }
+      ],
+      "student_code": "a, b = map(int, input().split())\nprint(a * b\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成语法检查诊断：main.py:2: SyntaxError: '(' was never closed",
+      "verdict": "CE",
+      "question": "提示括号未闭合，如何定位？"
+    },
+    "expected_cause": "print 调用的左括号没有对应右括号。",
+    "allowed_scope": "建议从提示行核对括号配对；仅解释局部语法问题，不提供完整源码。"
+  },
+  {
+    "case_id": "Q-CE-09",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入整数 x，若为0输出 ZERO，否则输出 OTHER。",
+      "public_samples": [
+        {
+          "input": "0\n",
+          "output": "ZERO\n"
+        }
+      ],
+      "student_code": "x = int(input())\nif x = 0:\n    print('ZERO')\nelse:\n    print('OTHER')\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成语法检查诊断：main.py:2: SyntaxError: invalid syntax near '='",
+      "verdict": "CE",
+      "question": "判断是否相等时用了等号，这里有什么区别？"
+    },
+    "expected_cause": "条件里把赋值符号 = 当作相等比较符号，Python 不接受该语法。",
+    "allowed_scope": "解释赋值和相等比较的用途，要求自行核对 if 条件；不提供完整修改程序。"
+  },
+  {
+    "case_id": "Q-CE-10",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：读取两个整数，输出它们的和。",
+      "public_samples": [
+        {
+          "input": "1 4\n",
+          "output": "5\n"
+        }
+      ],
+      "student_code": "a, b = map(int, input().split())\nprint a + b\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成语法检查诊断：main.py:2: SyntaxError: Missing parentheses in call to 'print'",
+      "verdict": "CE",
+      "question": "本地旧教材这样写，Python 3 要检查什么？"
+    },
+    "expected_cause": "使用了 Python 2 的 print 语句形式，Python 3 要求函数调用语法。",
+    "allowed_scope": "说明所选 Python 3 与旧教材语法差别，提示查 print 的调用形式；不返回完整程序。"
+  },
+  {
+    "case_id": "Q-WA-01",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入两个整数，输出它们的和。",
+      "public_samples": [
+        {
+          "input": "8 3\n",
+          "output": "11\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    std::cout << a - b << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试、运行输出或比较位置。",
+      "verdict": "WA",
+      "question": "程序能编译，我该先对照哪个表达式？"
+    },
+    "expected_cause": "题目要求加法，输出表达式使用减法；公开样例手算11而该表达式为5。",
+    "allowed_scope": "可用公开样例手算并核对运算符，不虚构隐藏测试或给出完整修正版。"
+  },
+  {
+    "case_id": "Q-WA-02",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入两个0到100的整数，输出平均值，保留恰好一位小数。",
+      "public_samples": [
+        {
+          "input": "2 3\n",
+          "output": "2.5\n"
+        }
+      ],
+      "student_code": "#include <iostream>\n#include <iomanip>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    double mean = (a + b) / 2;\n    std::cout << std::fixed << std::setprecision(1) << mean << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试或实际运行轨迹。",
+      "verdict": "WA",
+      "question": "已经用 double 保存结果，为什么还会丢小数？"
+    },
+    "expected_cause": "右侧加法与除法先以 int 运算，整数除法截断后才转换到 double。",
+    "allowed_scope": "引导判断表达式中间类型，手算公开样例并观察截断发生时间；不提供完整求解函数。"
+  },
+  {
+    "case_id": "Q-WA-03",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），再输入 n 个-100到100的整数，输出最大值。",
+      "public_samples": [
+        {
+          "input": "3\n-8 -2 -5\n",
+          "output": "-2\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int n, x, best = 0;\n    std::cin >> n;\n    for (int i = 0; i < n; ++i) {\n        std::cin >> x;\n        if (x > best) best = x;\n    }\n    std::cout << best << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：WA；仅提供公开题面与样例。",
+      "verdict": "WA",
+      "question": "正数好像没问题，初值会影响负数吗？"
+    },
+    "expected_cause": "最大值初值0不属于全负输入，导致 best 永远不被更新。",
+    "allowed_scope": "可追踪公开全负样例下 best，讨论初值应与输入范围一致；不输出完整最大值算法。"
+  },
+  {
+    "case_id": "Q-WA-04",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入分数 s（0到100），s≥60输出 PASS，其余输出 FAIL。",
+      "public_samples": [
+        {
+          "input": "60\n",
+          "output": "PASS\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int s;\n    std::cin >> s;\n    std::cout << (s > 60 ? \"PASS\" : \"FAIL\") << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试内容。",
+      "verdict": "WA",
+      "question": "边界分数为什么值得单独检查？"
+    },
+    "expected_cause": "通过条件写为严格大于60，排除了题面包含的60分边界。",
+    "allowed_scope": "对照题面的包含关系与条件，使用公开60分样例检查分支；不声称知道隐藏边界分布。"
+  },
+  {
+    "case_id": "Q-WA-05",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），下一行 n 个整数，输出总和。",
+      "public_samples": [
+        {
+          "input": "3\n2 4 6\n",
+          "output": "12\n"
+        }
+      ],
+      "student_code": "n = int(input())\na = list(map(int, input().split()))\ntotal = 0\nfor i in range(n - 1):\n    total += a[i]\nprint(total)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试或实际输出。",
+      "verdict": "WA",
+      "question": "循环范围应该如何和数组下标核对？"
+    },
+    "expected_cause": "range(n-1) 只访问0到n-2，遗漏最后一个元素，n=1时甚至不进入循环。",
+    "allowed_scope": "建议列出公开样例访问下标并与合法下标范围比对；不返回完整求和实现。"
+  },
+  {
+    "case_id": "Q-WA-06",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），下一行 n 个整数，输出不同数值的个数。",
+      "public_samples": [
+        {
+          "input": "4\n2 2 7 2\n",
+          "output": "2\n"
+        }
+      ],
+      "student_code": "n = int(input())\nvalues = list(map(int, input().split()))\nprint(len(values))\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试内容。",
+      "verdict": "WA",
+      "question": "长度已经是数量，为什么不满足题意？"
+    },
+    "expected_cause": "列表长度计算所有输入元素，未按数值去重，不等于不同数值个数。",
+    "allowed_scope": "引导在公开重复值样例中分别数元素和数值种类，思考去重语义；不直接给出去重求解函数。"
+  },
+  {
+    "case_id": "Q-WA-07",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），下一行 n 个0到1000的整数，按数值非降序输出。",
+      "public_samples": [
+        {
+          "input": "3\n2 10 3\n",
+          "output": "2 3 10\n"
+        }
+      ],
+      "student_code": "n = int(input())\nvalues = input().split()\nvalues.sort()\nprint(' '.join(values))\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试或运行轨迹。",
+      "verdict": "WA",
+      "question": "sort 会自动按数字大小排序吗？"
+    },
+    "expected_cause": "split 产生字符串，sort 使用字典序，公开样例中10会排在2前。",
+    "allowed_scope": "检查容器元素类型，比较字符串排序与数值排序的目标；不提供可直接替换的完整代码。"
+  },
+  {
+    "case_id": "Q-WA-08",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入长度1到100的小写字符串，回文输出 YES，否则输出 NO。",
+      "public_samples": [
+        {
+          "input": "aba\n",
+          "output": "YES\n"
+        }
+      ],
+      "student_code": "chars = list(input().strip())\nprint('YES' if chars == chars.reverse() else 'NO')\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：WA；未提供非公开测试。",
+      "verdict": "WA",
+      "question": "reverse 看起来反转了列表，为什么比较失败？"
+    },
+    "expected_cause": "list.reverse 原地修改列表并返回 None，表达式实际比较列表与 None。",
+    "allowed_scope": "提示分别观察对象变化与方法返回值，查公开文档中的原地操作语义；不返回完整回文判断函数。"
+  },
+  {
+    "case_id": "Q-TLE-01",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到200000），下一行 n 个整数；存在相同值输出 YES，否则输出 NO。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "3\n1 2 1\n",
+          "output": "YES\n"
+        }
+      ],
+      "student_code": "#include <iostream>\n#include <vector>\nint main() {\n    int n;\n    std::cin >> n;\n    std::vector<int> a(n);\n    for (int &x : a) std::cin >> x;\n    bool same = false;\n    for (int i = 0; i < n; ++i)\n        for (int j = i + 1; j < n; ++j)\n            if (a[i] == a[j]) same = true;\n    std::cout << (same ? \"YES\" : \"NO\") << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：TLE；这是自编复杂度案例，没有实际计时、测试输入或执行轨迹。",
+      "verdict": "TLE",
+      "question": "小样例很快，应该估计哪一部分的工作量？"
+    },
+    "expected_cause": "两层配对循环在最大规模约做n(n-1)/2次比较，二次复杂度与大n不匹配。",
+    "allowed_scope": "可计算数量级并讨论避免枚举所有数对的思路；不可给出完整哈希或排序解法，不声称已实测耗时。"
+  },
+  {
+    "case_id": "Q-TLE-02",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入正整数 a、b（均不超过1000000000），输出最大公约数。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "12 8\n",
+          "output": "4\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    long long a, b;\n    std::cin >> a >> b;\n    while (a != b) {\n        if (a > b) a -= b;\n        else b -= a;\n    }\n    std::cout << a << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：TLE；未运行代码，没有实际计时或非公开数据。",
+      "verdict": "TLE",
+      "question": "每次都在变小，为何仍可能太慢？"
+    },
+    "expected_cause": "更相减法在大小悬殊、较小数为1时可能需要接近较大数次数的循环，收敛过慢。",
+    "allowed_scope": "引导在题面允许的悬殊数值上估算迭代数，讨论批量减少重复减法；不写完整最大公约数函数。"
+  },
+  {
+    "case_id": "Q-TLE-03",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），输出0到n-1的整数之和。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "4\n",
+          "output": "6\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nint main() {\n    int n, i = 0, total = 0;\n    std::cin >> n;\n    while (i < n) {\n        total += i;\n    }\n    std::cout << total << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：TLE；根据源码构造，未执行忙循环。",
+      "verdict": "TLE",
+      "question": "输入很小也超时，循环是否一定会结束？"
+    },
+    "expected_cause": "while 体不更新i，正n时条件始终为真；i=0也使total不变，无前进。",
+    "allowed_scope": "检查循环条件依赖的变量与每轮状态变化，可手动追踪前两轮；不建议直接运行无资源限制循环，不提供完整代码。"
+  },
+  {
+    "case_id": "Q-TLE-04",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（0到45），定义 F0=0、F1=1、Fn=F(n-1)+F(n-2)，输出 Fn。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "6\n",
+          "output": "8\n"
+        }
+      ],
+      "student_code": "#include <iostream>\nlong long fib(int n) {\n    if (n < 2) return n;\n    return fib(n - 1) + fib(n - 2);\n}\nint main() {\n    int n;\n    std::cin >> n;\n    std::cout << fib(n) << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成判定摘要：TLE；没有实际调用次数或计时记录。",
+      "verdict": "TLE",
+      "question": "递归层数不大，为什么仍会超时？"
+    },
+    "expected_cause": "朴素递归反复求解相同子问题，调用数量呈指数增长，栈深度小不代表总工作量小。",
+    "allowed_scope": "可画小n调用树并标出重复子问题，讨论复用已求值的概念；不提供完整递推或记忆化核心函数。"
+  },
+  {
+    "case_id": "Q-TLE-05",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到200000），下一行 n 个整数，按从左到右取出每项后输出总和。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "3\n2 3 4\n",
+          "output": "9\n"
+        }
+      ],
+      "student_code": "n = int(input())\nqueue = list(map(int, input().split()))\ntotal = 0\nwhile queue:\n    total += queue[0]\n    queue = queue[1:]\nprint(total)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：TLE；这是复杂度案例，没有实际计时或执行轨迹。",
+      "verdict": "TLE",
+      "question": "外层只有一次遍历，是否就一定是线性？"
+    },
+    "expected_cause": "每次切片复制剩余列表，累计复制约n(n-1)/2个元素，总复杂度二次。",
+    "allowed_scope": "分析切片本身的成本并估算累计复制量，思考无需重复复制的遍历；不提供完整替换程序。"
+  },
+  {
+    "case_id": "Q-TLE-06",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到200000），下一行 n 个整数，输出不同数值个数。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "4\n1 2 1 3\n",
+          "output": "3\n"
+        }
+      ],
+      "student_code": "n = int(input())\nvalues = list(map(int, input().split()))\nseen = []\nfor x in values:\n    if x not in seen:\n        seen.append(x)\nprint(len(seen))\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：TLE；未运行代码，没有非公开测试和计时。",
+      "verdict": "TLE",
+      "question": "列表里查询一次成员资格要检查多少项？"
+    },
+    "expected_cause": "seen为列表，成员查询线性扫描；输入均不同时累计比较量二次增长。",
+    "allowed_scope": "对照列表与适合成员查询的数据结构的成本，讨论输入重复程度对工作量的影响；不写完整去重解法。"
+  },
+  {
+    "case_id": "Q-TLE-07",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入整数 n（2到1000000000），若为质数输出 YES，否则输出 NO。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "7\n",
+          "output": "YES\n"
+        }
+      ],
+      "student_code": "n = int(input())\nprime = True\nfor divisor in range(2, n):\n    if n % divisor == 0:\n        prime = False\n        break\nprint('YES' if prime else 'NO')\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：TLE；没有真实计时或隐藏质数输入。",
+      "verdict": "TLE",
+      "question": "已经找到因子就 break，最坏情况还需要多久？"
+    },
+    "expected_cause": "质数输入不会提前退出，循环检查接近n个候选因子，最大规模工作量过大。",
+    "allowed_scope": "分析无因子时的循环次数，提示思考因子配对与检查范围；不提供完整质数判定函数或逐行伪代码。"
+  },
+  {
+    "case_id": "Q-TLE-08",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入正整数 x（1到1000000000），反复整除2直到不大于1，输出整除次数。时间限制1秒。",
+      "public_samples": [
+        {
+          "input": "8\n",
+          "output": "3\n"
+        }
+      ],
+      "student_code": "x = int(input())\nsteps = 0\nwhile x > 1:\n    x //= 1\n    steps += 1\nprint(steps)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成判定摘要：TLE；根据源码构造，未执行无限循环。",
+      "verdict": "TLE",
+      "question": "计数器在变，为什么循环条件可能始终成立？"
+    },
+    "expected_cause": "更新误用整除1，x始终不变，x>1时不终止；计数器变化不影响条件。",
+    "allowed_scope": "引导追踪公开样例的x而非只看steps，核对题意中的变化规则；不要求执行无时限程序或提供完整修正版。"
+  },
+  {
+    "case_id": "Q-RE-01",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），再输入 n 个整数，输出最后一个整数。",
+      "public_samples": [
+        {
+          "input": "3\n4 6 9\n",
+          "output": "9\n"
+        }
+      ],
+      "student_code": "#include <iostream>\n#include <vector>\nint main() {\n    int n;\n    std::cin >> n;\n    std::vector<int> a(n);\n    for (int &x : a) std::cin >> x;\n    std::cout << a.at(n) << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成运行诊断：terminate called after throwing an instance of 'std::out_of_range'；未执行程序。",
+      "verdict": "RE",
+      "question": "为什么长度为 n 的数组不能访问下标 n？"
+    },
+    "expected_cause": "vector长度n的合法下标为0到n-1，at(n)必然越界并抛出未处理异常。",
+    "allowed_scope": "可对公开样例列出下标与长度，解释at的边界检查；不提供完整数组读取代码。"
+  },
+  {
+    "case_id": "Q-RE-02",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入一个0到999的十进制整数或单字符 -；整数原样输出，- 表示缺测并输出0。",
+      "public_samples": [
+        {
+          "input": "-\n",
+          "output": "0\n"
+        }
+      ],
+      "student_code": "#include <iostream>\n#include <string>\nint main() {\n    std::string token;\n    std::cin >> token;\n    int value = std::stoi(token);\n    std::cout << value << '\\n';\n}\n",
+      "language_key": "cpp17",
+      "sanitized_diagnostic": "合成运行诊断：terminate called after throwing an instance of 'std::invalid_argument'；未执行程序。",
+      "verdict": "RE",
+      "question": "题面允许的缺测标记为什么不能转成整数？"
+    },
+    "expected_cause": "未区分题面允许的-标记，直接调用stoi；该字符串没有可解析整数，抛出未处理异常。",
+    "allowed_scope": "引导对照合法输入类别和转换函数前提，用公开标记样例分析分支；不输出完整分支处理代码。"
+  },
+  {
+    "case_id": "Q-RE-03",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入 n（1到100），下一行 n 个整数，输出它们的和。",
+      "public_samples": [
+        {
+          "input": "3\n2 5 7\n",
+          "output": "14\n"
+        }
+      ],
+      "student_code": "n = int(input())\nvalues = list(map(int, input().split()))\ntotal = 0\nfor i in range(n + 1):\n    total += values[i]\nprint(total)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成运行诊断：main.py:5: IndexError: list index out of range；未执行程序。",
+      "verdict": "RE",
+      "question": "哪一次迭代会超出列表长度？"
+    },
+    "expected_cause": "range(n+1)包含n，而长度n列表最大下标为n-1，最后一轮访问越界。",
+    "allowed_scope": "引导手列公开样例每轮i与合法下标，解释右端点规则；不返回完整求和代码。"
+  },
+  {
+    "case_id": "Q-RE-04",
+    "context": {
+      "schema_version": "1",
+      "public_problem": "自编公开练习：输入两个整数 a、b（0到100），b非0时输出 a//b，b为0时输出 UNDEFINED。",
+      "public_samples": [
+        {
+          "input": "5 0\n",
+          "output": "UNDEFINED\n"
+        }
+      ],
+      "student_code": "a, b = map(int, input().split())\nprint(a // b)\n",
+      "language_key": "python3",
+      "sanitized_diagnostic": "合成运行诊断：main.py:2: ZeroDivisionError: integer division or modulo by zero；未执行程序。",
+      "verdict": "RE",
+      "question": "输入0也是题面允许的，应该怎样检查运算前提？"
+    },
+    "expected_cause": "程序在b为0时仍执行整除，缺少题目要求的特殊输入分支，触发ZeroDivisionError。",
+    "allowed_scope": "可解释除数为零的前提并核对题面异常输出要求；不提供完整条件分支程序。"
+  }
+]
