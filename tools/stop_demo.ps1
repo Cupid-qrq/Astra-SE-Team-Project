@@ -9,6 +9,6 @@ function Stop-DemoTree([int]$TaskProcessId){
 }
 foreach($taskRecord in (Get-Content -LiteralPath $taskFile -Raw|ConvertFrom-Json)){
  $taskProcess=Get-Process -Id $taskRecord.id -ErrorAction SilentlyContinue
- if($taskProcess -and $taskProcess.StartTime.ToUniversalTime().ToString('o') -eq $taskRecord.started){Stop-DemoTree -TaskProcessId $taskProcess.Id}
+ if($taskProcess -and $taskProcess.StartTime.ToUniversalTime().Ticks -eq ([datetime]$taskRecord.started).ToUniversalTime().Ticks){Stop-DemoTree -TaskProcessId $taskProcess.Id}
 }
 Write-Output '已停止本次记录的演示进程。'

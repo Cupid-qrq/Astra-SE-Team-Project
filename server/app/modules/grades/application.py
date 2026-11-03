@@ -104,7 +104,10 @@ class Grades:
                 and snapshot["grade_epoch"] == assignment["grade_epoch"]
                 and assignment["fairness_review"] != "PENDING"
             ):
-                return self.snapshot(actor, snapshot["grade_version"])
+                value = self.snapshot(actor, snapshot["grade_version"])
+                if assignment["active_rejudge_batch_id"]:
+                    value["state"] = "REJUDGING"
+                return value
         students = self.calculate(assignment)
         if actor["role"] == "STUDENT":
             students = [row for row in students if row["student_id"] == actor["user_id"]]

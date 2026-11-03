@@ -100,6 +100,7 @@ def test_full_rejudge_keeps_old_grade_until_atomic_activation_and_can_lower_scor
         service = Rejudges(repo, effects)
         status = service.read(actor, batch["batch_id"])
         assert status["state"] == "READY"
+        assert Grades(repo, effects).read(actor, ids["assignment"])["state"] == "REJUDGING"
         assert (
             Grades(repo, effects).snapshot(actor, old["grade_version"])["students"][0]["total"]
             == 100
