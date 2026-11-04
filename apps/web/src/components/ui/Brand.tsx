@@ -1,3 +1,4 @@
+import { ParticleField } from './MotionEffects'
 export function BrandMark() {
   return (
     <svg className="brand-symbol" viewBox="0 0 48 36" fill="none" aria-hidden="true">
@@ -9,6 +10,7 @@ export function BrandMark() {
 export function OrbitGraphic() {
   return (
     <div className="orbit-graphic" aria-hidden="true">
+      <ParticleField />
       <svg viewBox="0 0 520 240" fill="none">
         <path
           d="M34 123h450M280 16v204M62 117v12m57-12v12m57-12v12m57-12v12m95-12v12m57-12v12m57-12v12M274 45h12m-12 40h12m-12 78h12m-12 40h12"

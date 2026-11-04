@@ -93,7 +93,7 @@ test('真实数据库：创建发布作业并进入学生编辑器，异常保�
   await expect(page.getByRole('heading', { name: '我的课程', exact: true })).toBeVisible()
   await page.goto(url)
   await page.getByRole('link', { name: '开始编程', exact: true }).click()
-  await expect(page.locator('html')).toHaveCSS('color', 'rgb(36, 35, 32)')
+  await expect(page.locator('html')).toHaveCSS('color', 'rgb(23, 27, 25)')
   await expect(page.locator('.back-link')).toHaveCSS('text-decoration-line', 'none')
   await expect(page.locator('.skip-link')).toHaveCSS('top', '-100px')
   if (info.project.name === 'mobile') {

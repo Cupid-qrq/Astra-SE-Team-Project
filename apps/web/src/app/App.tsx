@@ -1,3 +1,4 @@
+import { MotionProvider, MotionToggle, PageMotion } from '../components/ui/MotionEffects'
 import { BrandMark } from '../components/ui/Brand'
 import { ButtonHints } from '../components/ui/ButtonHints'
 import { RetentionPage } from '../features/operations/RetentionPage'
@@ -12,7 +13,6 @@ import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import {
   BookOpen,
-  Crosshair,
   KeyRound,
   Bell,
   Archive,
@@ -178,7 +178,7 @@ function Workspace() {
             <strong>课程工作区</strong>
             <span className="platform-name">ASTRA · 编程教学平台</span>
           </div>
-          <Crosshair className="topbar-mark" size={22} aria-hidden="true" />
+          <MotionToggle />
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
@@ -211,7 +211,8 @@ function Workspace() {
 }
 export function App() {
   return (
-    <>
+    <MotionProvider>
+      <PageMotion />
       <ButtonHints />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -256,6 +257,6 @@ export function App() {
           }
         />
       </Routes>
-    </>
+    </MotionProvider>
   )
 }

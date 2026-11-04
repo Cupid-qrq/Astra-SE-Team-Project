@@ -1361,3 +1361,145 @@ tbody tr:hover {
 .panel[aria-label='学生成绩'] h2 {
   font-size: 36px;
 }
+
+/* Ambient motion stays below content and follows native scrolling. */
+.particle-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: #9ab875;
+  opacity: 0.65;
+  pointer-events: none;
+}
+.login-intro > .particle-field {
+  color: #b4cd91;
+  opacity: 0.65;
+  z-index: 0;
+}
+.login-intro .brand,
+.intro-footer {
+  position: relative;
+  z-index: 1;
+}
+.orbit-graphic > .particle-field {
+  color: #7b9b53;
+  opacity: 0.5;
+}
+.login-intro .orbit-graphic > .particle-field {
+  color: #d0e6a8;
+  opacity: 0.6;
+}
+html[data-motion='on'] .orbit-graphic svg {
+  transform: translate3d(
+      calc(var(--cursor-x, 0) * 18px),
+      calc(var(--cursor-y, 0) * 14px - var(--scroll-offset, 0px) * 0.06),
+      0
+    )
+    rotate(calc(var(--scroll-ratio, 0) * 9deg));
+  transition: transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+html[data-motion='on'] .orbit-word {
+  transform: translate3d(
+    calc(var(--cursor-x, 0) * -14px),
+    calc(var(--scroll-offset, 0px) * 0.04),
+    0
+  );
+  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.motion-toggle {
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 9px;
+  font: 12px/1.5 var(--font-body);
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.motion-toggle[aria-pressed='true'] {
+  color: #48642d;
+  background: #eaf2dd;
+}
+.topbar .motion-toggle {
+  margin-left: auto;
+}
+.login-signature .login-wordmark {
+  flex: none;
+  height: auto;
+  background: transparent;
+}
+.login-signature .motion-toggle span {
+  flex: none;
+  height: auto;
+  background: transparent;
+}
+.login-signature {
+  gap: 16px;
+}
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: 3px;
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+}
+.reading-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #a7d83f;
+  transform-origin: left;
+  transform: scaleX(var(--scroll-ratio, 0));
+}
+html[data-motion='on'][data-reading='true'] .reading-progress {
+  opacity: 1;
+}
+html[data-motion-page='login'] .reading-progress {
+  left: 0;
+}
+html[data-motion='on'] .motion-arrived {
+  animation: motion-section-enter 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes motion-section-enter {
+  from {
+    transform: translateY(14px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+html[data-motion='off'] *,
+html[data-motion='off'] *::before,
+html[data-motion='off'] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+html[data-motion='off'] .particle-field {
+  opacity: 0;
+}
+@media (max-width: 700px) {
+  .reading-progress {
+    left: 0;
+  }
+  .motion-toggle {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .login-signature {
+    position: static;
+    display: flex;
+    width: 100%;
+    max-width: none;
+    margin-top: 28px;
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .particle-field,
+  .reading-progress {
+    display: none;
+  }
+}
