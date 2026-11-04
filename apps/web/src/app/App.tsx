@@ -1,3 +1,4 @@
+import { BrandMark } from '../components/ui/Brand'
 import { ButtonHints } from '../components/ui/ButtonHints'
 import { RetentionPage } from '../features/operations/RetentionPage'
 import { ControlsPage } from '../features/operations/ControlsPage'
@@ -9,7 +10,17 @@ import { SubmissionPage, SubmissionHistoryPage } from '../features/submissions/S
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
-import { BookOpen, ChevronRight, KeyRound } from 'lucide-react'
+import {
+  BookOpen,
+  Crosshair,
+  KeyRound,
+  Bell,
+  Archive,
+  SlidersHorizontal,
+  ShieldCheck,
+  FileText,
+  Braces,
+} from 'lucide-react'
 import { api, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
 import { PasswordPage } from '../features/auth/PasswordPage'
@@ -79,10 +90,8 @@ function Workspace() {
       </a>
       <aside className="sidebar">
         <NavLink className="brand" to="/courses">
-          <span className="brand-mark" aria-hidden="true">
-            a
-          </span>
-          Astra
+          <BrandMark />
+          <span>ASTRA</span>
         </NavLink>
         <p className="nav-label">学习工作区</p>
         <nav aria-label="主要导航">
@@ -95,7 +104,7 @@ function Workspace() {
               to={user.role === 'ADMIN' ? '/admin/feedback' : '/teacher/feedback'}
               className="nav-item"
             >
-              <BookOpen size={19} aria-hidden="true" />
+              <FileText size={19} aria-hidden="true" />
               {user.role === 'ADMIN' ? '全局固定帮助' : '固定帮助维护'}
             </NavLink>
           )}
@@ -104,7 +113,7 @@ function Workspace() {
               to={user.role === 'ADMIN' ? '/admin/hint-templates' : '/teacher/hint-templates'}
               className="nav-item"
             >
-              <BookOpen size={19} aria-hidden="true" />
+              <Braces size={19} aria-hidden="true" />
               {user.role === 'ADMIN' ? '全局提示模板' : '提示模板维护'}
             </NavLink>
           )}
@@ -116,19 +125,23 @@ function Workspace() {
           )}
           {user.role !== 'STUDENT' && (
             <NavLink to="/retention" className="nav-item">
+              <Archive size={19} aria-hidden="true" />
               课程留存
             </NavLink>
           )}
           {user.role === 'ADMIN' && (
             <NavLink to="/admin/operations/controls" className="nav-item">
+              <SlidersHorizontal size={19} aria-hidden="true" />
               运行与应急
             </NavLink>
           )}
           <NavLink to="/notifications" className="nav-item">
+            <Bell size={19} aria-hidden="true" />
             通知
           </NavLink>
           {user.role === 'ADMIN' && (
-            <NavLink to="/admin/operations" className="nav-item">
+            <NavLink to="/admin/operations" end className="nav-item">
+              <ShieldCheck size={19} aria-hidden="true" />
               平台管理
             </NavLink>
           )}
@@ -158,9 +171,14 @@ function Workspace() {
       </aside>
       <div className="workspace-body">
         <header className="topbar">
-          <span>Astra</span>
-          <ChevronRight size={14} aria-hidden="true" />
-          <span>课程工作区</span>
+          <div className="workspace-context">
+            <span className="context-slash" aria-hidden="true">
+              /
+            </span>
+            <strong>课程工作区</strong>
+            <span className="platform-name">ASTRA · 编程教学平台</span>
+          </div>
+          <Crosshair className="topbar-mark" size={22} aria-hidden="true" />
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
