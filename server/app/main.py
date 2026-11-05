@@ -54,6 +54,7 @@ from app.shared.config import Settings
 from app.shared.database import create_database_engine
 from app.shared.effects import TransactionalEffects
 from app.shared.passwords import ArgonPasswords
+from app.shared.presentation import PresentationNames
 from app.shared.repository import SqlRepository
 from app.shared.uow import UnitOfWork
 
@@ -77,6 +78,7 @@ def create_app(
         hint_configuration = model_profile.config_id if model_profile.enabled else None
     owned = engine is None
     database = engine if engine is not None else create_database_engine(settings.database_url)
+    presentation = PresentationNames.from_file(os.environ.get("ASTRA_PRESENTATION_NAMES_FILE"))
     configuration = settings
     contract, passwords = Contract.load(), ArgonPasswords()
     for profile in settings.profiles:
@@ -288,6 +290,8 @@ def create_app(
                             success, result = result
                         if path == "/submissions" and method == "POST":
                             result, replayed = result
+                        if method == "GET":
+                            result = presentation.project(result)
                         contract.response(operation, success, result)
                     except Fault as error:
                         # A's failed-login ledger must commit; all other faults escape and roll back.

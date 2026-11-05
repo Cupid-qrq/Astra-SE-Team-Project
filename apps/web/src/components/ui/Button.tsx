@@ -1,3 +1,4 @@
+import { controlHint } from './controlHint'
 import { Children, type ButtonHTMLAttributes } from 'react'
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
   busy?: boolean
@@ -19,9 +20,7 @@ export function Button({
       .filter((child) => typeof child === 'string' || typeof child === 'number')
       .join('') ||
     '执行此操作。'
-  const description = busy
-    ? '正在处理，请稍候。'
-    : title || (disabled ? '请先完成此操作的必填项并核对当前状态。' : label)
+  const description = controlHint(label, { busy, disabled, description: title })
   return (
     <button
       {...props}

@@ -65,3 +65,59 @@ it('指针可移入提示框阅读，Escape仍可关闭', () => {
   fireEvent.keyDown(document, { key: 'Escape' })
   expect(screen.queryByRole('tooltip')).toBeNull()
 })
+
+it('链接、折叠说明和选择控件都有提示且保留原无障碍说明', () => {
+  render(
+    <>
+      <ButtonHints />
+      <a href="/courses">返回课程</a>
+      <details>
+        <summary>管理讨论</summary>
+      </details>
+      <label>
+        显示我的姓名
+        <input type="checkbox" aria-describedby="existing" />
+      </label>
+      <span id="existing">仅本课程</span>
+    </>,
+  )
+  fireEvent.focusIn(screen.getByRole('link'))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('课程')
+  fireEvent.pointerOver(screen.getByText('管理讨论'))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('讨论')
+  const checkbox = screen.getByRole('checkbox')
+  fireEvent.focusIn(checkbox)
+  expect(screen.getByRole('tooltip')).toHaveTextContent('显示我的姓名')
+  expect(checkbox.getAttribute('aria-describedby')).toContain('existing')
+  const hintId = screen.getByRole('tooltip').id
+  expect(hintId).not.toBe('')
+  expect(checkbox.getAttribute('aria-describedby')).toContain(hintId)
+  fireEvent.keyDown(document, { key: 'Escape' })
+  expect(checkbox).toHaveAttribute('aria-describedby', 'existing')
+})
+
+it('fieldset禁用的选择控件解释不可用，页面移除后提示关闭', async () => {
+  const view = render(
+    <>
+      <ButtonHints />
+      <fieldset disabled>
+        <label>
+          作业状态
+          <select>
+            <option>全部</option>
+          </select>
+        </label>
+        <label>
+          显示姓名
+          <input type="checkbox" />
+        </label>
+      </fieldset>
+    </>,
+  )
+  fireEvent.pointerOver(screen.getByRole('combobox'))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('暂不可用')
+  fireEvent.pointerOver(screen.getByRole('checkbox'))
+  expect(screen.getByRole('tooltip')).toHaveTextContent('暂不可用')
+  view.rerender(<ButtonHints />)
+  await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+})

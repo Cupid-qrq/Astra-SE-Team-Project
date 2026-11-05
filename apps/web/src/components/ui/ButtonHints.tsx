@@ -1,10 +1,31 @@
-import { useEffect, useState } from 'react'
+import { controlHint } from './controlHint'
+import { useEffect, useId, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-type Hint = { button: HTMLButtonElement; text: string; left: number; top: number; above: boolean }
+type Hint = { button: HTMLElement; text: string; left: number; top: number; above: boolean }
 
 export function ButtonHints() {
+  const tooltipId = useId()
   const [hint, setHint] = useState<Hint | null>(null)
+  useEffect(() => {
+    if (!hint) return
+    const control = hint.button
+    const before = control.getAttribute('aria-describedby')
+    const observer = new MutationObserver(() => {
+      if (!control.isConnected) setHint(null)
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
+    control.setAttribute('aria-describedby', [before, tooltipId].filter(Boolean).join(' '))
+    return () => {
+      observer.disconnect()
+      const remaining = (control.getAttribute('aria-describedby') || '')
+        .split(/\s+/)
+        .filter((value) => value && value !== tooltipId)
+        .join(' ')
+      if (remaining) control.setAttribute('aria-describedby', remaining)
+      else control.removeAttribute('aria-describedby')
+    }
+  }, [hint, tooltipId])
   useEffect(() => {
     let closing: ReturnType<typeof setTimeout> | undefined
     const cancelClose = () => clearTimeout(closing)
@@ -20,13 +41,42 @@ export function ButtonHints() {
       if (!(event.target instanceof Element)) return
       cancelClose()
       if (event.target.closest('.button-tooltip')) return
-      const button = event.target.closest('button')
+      const selector =
+        'button, summary, a[href], [role="button"], [role="tab"], input[type="checkbox"], input[type="radio"], select'
+      const button =
+        event.target.closest<HTMLElement>(selector) ||
+        event.target
+          .closest('label')
+          ?.querySelector<HTMLElement>('input[type="checkbox"], input[type="radio"], select')
       if (!button) return closeSoon()
-      const text =
-        button.dataset.tooltip ||
-        button.title ||
-        button.getAttribute('aria-label') ||
-        button.textContent?.trim()
+      const explicit = button.dataset.tooltip || button.title || undefined
+      const labels = (button as HTMLInputElement).labels
+      const labelText = labels
+        ? [...labels]
+            .map((label) => {
+              const copy = label.cloneNode(true) as HTMLElement
+              copy
+                .querySelectorAll('input, select, textarea')
+                .forEach((control) => control.remove())
+              return copy.textContent?.trim() || ''
+            })
+            .join(' ')
+        : ''
+      const label =
+        button.getAttribute('aria-label') || labelText || button.textContent?.trim() || '当前操作'
+      const disabled =
+        button.matches(':disabled') || button.getAttribute('aria-disabled') === 'true'
+      const text = controlHint(label, {
+        description:
+          explicit ||
+          (!disabled && button.matches('input[type="checkbox"], input[type="radio"]')
+            ? `切换“${label}”选项。`
+            : !disabled && button.matches('select')
+              ? `选择“${label}”的选项。`
+              : undefined),
+        busy: button.getAttribute('aria-busy') === 'true',
+        disabled,
+      })
       if (!text) return close()
       const rect = button.getBoundingClientRect()
       const width = Math.min(320, window.innerWidth - 24)
@@ -38,7 +88,12 @@ export function ButtonHints() {
       setHint({ button, text, left, top: above ? rect.top - 8 : rect.bottom + 8, above })
     }
     function leave(event: PointerEvent) {
-      const button = event.target instanceof Element ? event.target.closest('button') : null
+      const button =
+        event.target instanceof Element
+          ? event.target.closest(
+              'button, summary, a[href], [role="button"], [role="tab"], input[type="checkbox"], input[type="radio"], select',
+            )
+          : null
       if (button && event.relatedTarget instanceof Node && button.contains(event.relatedTarget))
         return
       closeSoon()
@@ -71,6 +126,7 @@ export function ButtonHints() {
   if (!hint || !hint.button.isConnected) return null
   return createPortal(
     <div
+      id={tooltipId}
       role="tooltip"
       className="button-tooltip"
       style={{

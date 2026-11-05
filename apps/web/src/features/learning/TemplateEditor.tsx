@@ -228,8 +228,8 @@ export function TemplateEditor({
           )}
           {notice && <p role="status">{notice}</p>}
         </form>
-        <section className="panel stack" aria-label="示例预览">
-          <h2>示例预览</h2>
+        <section className="panel stack" aria-label="要求预览">
+          <h2>要求预览</h2>
           <p className="muted">用一组教学样例预览 AI 实际收到的要求。</p>
           <pre className="template-text">{preview}</pre>
         </section>

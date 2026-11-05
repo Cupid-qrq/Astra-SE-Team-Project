@@ -55,7 +55,7 @@ it('恢复按账号隔离，冲突重试仍绑定编辑时的修订', async () =
 })
 it('预览使用示例并拦截未勾选的占位符与超字节正文', () => {
   mount()
-  expect(screen.getByRole('region', { name: '示例预览' })).toHaveTextContent('我应该先检查哪个运算')
+  expect(screen.getByRole('region', { name: '要求预览' })).toHaveTextContent('我应该先检查哪个运算')
   for (const body of ['{student_code}', '{secret}', '{question', '题'.repeat(2731)]) {
     fireEvent.change(screen.getByLabelText('给 AI 的指导要求'), { target: { value: body } })
     expect(screen.getByRole('button', { name: '保存草稿' })).toBeDisabled()

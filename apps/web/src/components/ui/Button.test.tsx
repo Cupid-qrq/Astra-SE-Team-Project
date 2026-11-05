@@ -17,7 +17,7 @@ it('按钮显示操作提示，禁用与忙碌分别说明', () => {
   )
   expect(screen.getByRole('button')).toHaveAttribute('data-tooltip', '正在处理，请稍候。')
   view.rerender(<Button>保存</Button>)
-  expect(screen.getByRole('button')).toHaveAttribute('data-tooltip', '保存')
+  expect(screen.getByRole('button')).toHaveAttribute('data-tooltip', '点击“保存”执行该操作。')
 })
 
 it('编号有格式示例但保持空值，普通字段不添加编号说明', () => {
@@ -47,6 +47,6 @@ it('数字测试编号保持数字语义，组合按钮文字也提供提示', (
   expect(screen.queryByText(/仅展示编号格式/)).toBeNull()
   expect(screen.getByRole('button', { name: '载入测试 2' })).toHaveAttribute(
     'data-tooltip',
-    '载入测试 2',
+    '点击“载入测试 2”执行该操作。',
   )
 })
