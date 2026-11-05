@@ -1,8 +1,40 @@
-type State = { busy?: boolean; disabled?: boolean; description?: string }
-export function controlHint(label: string, { busy, disabled, description }: State = {}) {
+type State = { busy?: boolean; disabled?: boolean; description?: string; href?: string }
+export function controlHint(label: string, { busy, disabled, description, href }: State = {}) {
   if (busy) return '正在处理，请稍候。'
   if (description) return description
   if (disabled) return `“${label}”暂不可用，请先完成必填项并核对当前状态。`
+  const navigation: [RegExp, string][] = [
+    [/课程排行榜|通过题数与成绩/, '查看本课程的练习进度榜和已发布成绩榜，可设置本人姓名是否显示。'],
+    [/管理题目/, '查看本课程题库，创建题目、维护版本并进行预检发布。'],
+    [/新建作业/, '从本课程已发布题目中选题，设置分值、开放时间和截止时间。'],
+    [
+      /管理判题帮助|判题帮助维护|^判题帮助$/,
+      '编辑学生在评测结果页阅读的错误说明与检查清单，不调用 AI。',
+    ],
+    [
+      /管理AI辅导设置|AI辅导设置维护|^AI辅导设置$/,
+      '设置 AI 的引导方式与回复要求，供学生请求学习提示时使用。',
+    ],
+  ]
+  const named = navigation.find(([pattern]) => pattern.test(label.replace(/\s+/g, '')))
+  if (named) return named[1]
+  const paths: [RegExp, string][] = [
+    [/^\/courses$/, '查看课程目录，搜索课程名称或编号，并筛选进行中或已归档课程。'],
+    [/^\/courses\/[^/]+$/, '查看这门课程的作业、学习安排与排行榜。'],
+    [
+      /^\/assignments\/[^/]+\/problems\/[^/]+$/,
+      '打开题面与代码编辑器，编写程序、提交评测并查看结果。',
+    ],
+    [/^\/assignments\/[^/]+\/submissions$/, '查看本作业的提交历史，并按状态或判定筛选。'],
+    [/^\/assignments\/[^/]+\/grades$/, '查看作业成绩、题目得分与成绩版本。'],
+    [/^\/assignments\/[^/]+$/, '查看这项作业的开放时间、截止时间、题目与分值。'],
+    [/^\/submissions\/[^/]+$/, '查看这次提交的评测状态、判定、资源用量与判题帮助。'],
+    [/^\/learning$/, '查看错题、推荐练习和学习提示记录。'],
+    [/^\/account\/profile$/, '查看个人学习概况，调整隐私与页面动效设置。'],
+    [/^\/notifications$/, '查看作业、成绩和评测通知，并标记已读。'],
+  ]
+  const destination = href && paths.find(([pattern]) => pattern.test(href.split(/[?#]/)[0]))
+  if (destination) return destination[1]
   const actions: [RegExp, string][] = [
     [/复制/, '复制完整内容到剪贴板，便于粘贴使用。'],
     [/操作与功能说明/, '展开本页的功能介绍和操作步骤，再次点击可收起。'],
