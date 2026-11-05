@@ -1,3 +1,4 @@
+import { CopyIdentifier } from '../../components/ui/CopyIdentifier'
 import { useState } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
@@ -56,6 +57,7 @@ export function CoursePage() {
           {course.data.status === 'ACTIVE' ? '进行中' : '已归档'}
         </span>
       </header>
+      <CopyIdentifier label="课程编号" value={id} />
       {session.data?.user?.role === 'STUDENT' && (
         <p>
           <Link to={`/learning?course_id=${id}`}>本课学习记录</Link>

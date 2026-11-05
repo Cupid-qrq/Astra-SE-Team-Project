@@ -189,6 +189,7 @@ function Workspace() {
           <NavLink to="/account/profile" className="profile-entry">
             个人主页 ↗
           </NavLink>
+          <PageHelp key={location.pathname} />
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
@@ -212,7 +213,6 @@ function Workspace() {
               key={identityKey(session.data)}
               fallback={<StatePanel kind="loading" title="正在加载页面…" />}
             >
-              <PageHelp />
               <RouteSurface>
                 <LearningSupportNav />
                 <Outlet />

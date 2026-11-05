@@ -1,0 +1,128 @@
+.copy-identifier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 10px 0 20px;
+  padding: 10px 12px;
+  background: #eaf0e5;
+  border-left: 3px solid #789b35;
+  color: #26391c;
+  font-size: 12px;
+}
+.copy-identifier code {
+  font: 12px/1.6 var(--font-code, monospace);
+  user-select: all;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.identifier-label {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.copy-identifier .button {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.identifier-status {
+  font-size: 12px;
+}
+.course-directory-entry {
+  min-width: 0;
+}
+.course-directory-entry .copy-identifier {
+  margin-bottom: 0;
+  background: transparent;
+  border-left: 0;
+  padding: 0;
+}
+.topbar .topbar-help {
+  position: relative;
+  flex-shrink: 0;
+  margin: 0 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+.topbar-help summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid #6b853e;
+  background: #eaf2dd;
+  color: #30451f;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  list-style: none;
+  cursor: pointer;
+}
+.topbar-help summary::-webkit-details-marker {
+  display: none;
+}
+.topbar-help summary > span {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+.topbar-help[open] summary {
+  background: #dceac9;
+}
+.topbar-help > .help-content {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 220;
+  width: min(480px, calc(100vw - 36px));
+  max-height: 70vh;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #aeb8a8;
+  box-shadow: 0 12px 35px #17201b22;
+  padding: 22px 24px;
+  text-align: left;
+  white-space: normal;
+  font-weight: 400;
+  line-height: 1.8;
+}
+.help-content h2 {
+  font-size: 20px;
+  margin: 0 0 18px;
+}
+.help-content h3 {
+  font-size: 14px;
+  margin: 16px 0 8px;
+}
+.help-content p {
+  margin: 0;
+}
+.help-content ol {
+  padding-left: 20px;
+}
+@media (max-width: 700px) {
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 72px;
+    gap: 10px;
+    padding: 12px 18px;
+  }
+  .topbar .topbar-help {
+    margin-left: auto;
+  }
+  .topbar-help summary {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .topbar-help > .help-content {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: auto;
+    right: 0;
+    width: min(480px, calc(100vw - 36px));
+  }
+}

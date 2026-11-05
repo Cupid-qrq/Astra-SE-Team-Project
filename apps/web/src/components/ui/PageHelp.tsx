@@ -1,5 +1,24 @@
+import './help-identifiers.css'
 import { useLocation } from 'react-router-dom'
 const guides: [RegExp, string, string, string[]][] = [
+  [
+    /leaderboard/,
+    '课程排行榜',
+    '本课内查看正式作业通过题数与已发布成绩两个榜单，同分并列。',
+    [
+      '选择练习进度榜或已发布成绩榜，查看统计范围和更新时间。',
+      '学生可以设置是否显示姓名，榜单不会自动公开到其他课程。',
+    ],
+  ],
+  [
+    /discussions/,
+    '题目讨论',
+    '围绕当前课程和题目版本提问、回复和交流思路。',
+    [
+      '先阅读已有主题，再说明你遇到的问题和尝试过的方法，避免直接贴出完整答案。',
+      '问题解决后标记已解决；教师可以置顶、锁定或隐藏不合适的内容。',
+    ],
+  ],
   [
     /account\/profile/,
     '个人主页',
@@ -110,7 +129,7 @@ const guides: [RegExp, string, string, string[]][] = [
   ],
   [
     /courses/,
-    '我的课程',
+    '课程与作业',
     '进入已加入的课程，查看作业和教学内容。',
     ['使用搜索或状态筛选找到课程。', '进入课程选择作业；教师还可维护成员、题目和作业。'],
   ],
@@ -118,14 +137,33 @@ const guides: [RegExp, string, string, string[]][] = [
 export function PageHelp() {
   const { pathname } = useLocation()
   const guide = guides.find(([pattern]) => pattern.test(pathname))
-  if (!guide) return null
+  const selected = guide ?? [
+    /./,
+    '本页操作',
+    '使用本页入口查看或管理当前授权内容。',
+    ['先核对页面标题、对象编号和当前状态。', '按字段说明填写，敏感操作请确认对象和操作理由。'],
+  ]
   return (
-    <details className="page-help" key={pathname}>
-      <summary title="展开本页的功能与操作说明">使用说明 · {guide[1]}</summary>
-      <div>
-        <p>{guide[2]}</p>
+    <details
+      className="page-help topbar-help"
+      key={pathname}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.currentTarget.open = false
+          event.currentTarget.querySelector('summary')?.focus()
+        }
+      }}
+    >
+      <summary title="点击查看本页功能介绍与操作步骤">
+        <span aria-hidden="true">?</span> 操作与功能说明
+      </summary>
+      <div className="help-content">
+        <h2>{selected[1] as string}</h2>
+        <h3>功能介绍</h3>
+        <p>{selected[2] as string}</p>
+        <h3>操作步骤</h3>
         <ol>
-          {guide[3].map((step) => (
+          {(selected[3] as string[]).map((step) => (
             <li key={step}>{step}</li>
           ))}
         </ol>
