@@ -1,4 +1,4 @@
-import { MotionToggle, ParticleField } from '../../components/ui/MotionEffects'
+import { ParticleField } from '../../components/ui/MotionEffects'
 import { BrandMark, OrbitGraphic } from '../../components/ui/Brand'
 import { useMutation } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
@@ -115,7 +115,6 @@ export function LoginPage() {
             ASTRA
           </span>
           <span className="login-signature-rule" aria-hidden="true" />
-          <MotionToggle />
         </div>
       </section>
     </main>

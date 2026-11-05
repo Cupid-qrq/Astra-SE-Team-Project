@@ -1,4 +1,6 @@
-import { MotionProvider, MotionToggle, PageMotion } from '../components/ui/MotionEffects'
+import { ProfilePage } from '../features/auth/ProfilePage'
+import { PageHelp } from '../components/ui/PageHelp'
+import { MotionProvider, PageMotion } from '../components/ui/MotionEffects'
 import { BrandMark } from '../components/ui/Brand'
 import { ButtonHints } from '../components/ui/ButtonHints'
 import { RetentionPage } from '../features/operations/RetentionPage'
@@ -95,6 +97,9 @@ function Workspace() {
         </NavLink>
         <p className="nav-label">学习工作区</p>
         <nav aria-label="主要导航">
+          <NavLink to="/account/profile" className="nav-item">
+            个人主页
+          </NavLink>
           <NavLink to="/courses" className="nav-item">
             <BookOpen size={19} aria-hidden="true" />
             我的课程
@@ -163,7 +168,8 @@ function Workspace() {
             {user.display_name.slice(0, 1)}
           </span>
           <div>
-            <strong>{user.display_name}</strong>
+            <strong className="account-name">{user.display_name}</strong>
+            <strong className="private-name">当前账号</strong>
             <span>{{ STUDENT: '学生', TEACHER: '教师', ADMIN: '管理员' }[user.role]}</span>
           </div>
           <LogoutControl userId={user.user_id} />
@@ -178,7 +184,9 @@ function Workspace() {
             <strong>课程工作区</strong>
             <span className="platform-name">ASTRA · 编程教学平台</span>
           </div>
-          <MotionToggle />
+          <NavLink to="/account/profile" className="profile-entry">
+            个人主页 ↗
+          </NavLink>
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
@@ -186,6 +194,7 @@ function Workspace() {
             <PasswordPage forced />
           ) : user.role === 'ADMIN' &&
             location.pathname !== '/account/password' &&
+            location.pathname !== '/account/profile' &&
             !location.pathname.startsWith('/admin/feedback') &&
             !location.pathname.startsWith('/admin/hint-templates') &&
             !location.pathname.startsWith('/admin/operations') &&
@@ -201,7 +210,10 @@ function Workspace() {
               key={identityKey(session.data)}
               fallback={<StatePanel kind="loading" title="正在加载页面…" />}
             >
-              <Outlet />
+              <PageHelp />
+              <div className="route-surface">
+                <Outlet />
+              </div>
             </Suspense>
           )}
         </main>
@@ -217,6 +229,7 @@ export function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<Workspace />}>
+          <Route path="/account/profile" element={<ProfilePage />} />
           <Route path="/account/password" element={<PasswordPage />} />
           <Route path="/admin/operations" element={<AdminPage />} />
           <Route path="/admin/operations/controls" element={<ControlsPage />} />
