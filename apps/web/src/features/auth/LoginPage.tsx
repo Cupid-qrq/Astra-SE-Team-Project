@@ -1,7 +1,9 @@
+import { ParticleField } from '../../components/ui/MotionEffects'
+import { BrandMark, OrbitGraphic } from '../../components/ui/Brand'
 import { useMutation } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, BookOpen } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { api, queryClient, sessionKey } from '../../app/runtime'
 import { Button } from '../../components/ui/Button'
 import { Field } from '../../components/ui/Field'
@@ -44,15 +46,18 @@ export function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-intro">
+        <ParticleField />
         <a className="brand" href="/login">
-          <span className="brand-mark" aria-hidden="true">
-            a
-          </span>
-          Astra
+          <BrandMark />
+          <span>ASTRA</span>
         </a>
-        <div>
-          <BookOpen size={36} strokeWidth={1.25} aria-hidden="true" />
-          <h1>把思考写进代码。</h1>
+        <div className="login-message">
+          <OrbitGraphic />
+          <h1>
+            把思考
+            <br />
+            写进代码。
+          </h1>
           <p>
             从一道题开始，
             <br />
@@ -104,6 +109,12 @@ export function LoginPage() {
               账号 demo_student · 密码 ExamplePass123
             </aside>
           )}
+        </div>
+        <div className="login-signature">
+          <span className="login-wordmark" aria-hidden="true">
+            ASTRA
+          </span>
+          <span className="login-signature-rule" aria-hidden="true" />
         </div>
       </section>
     </main>

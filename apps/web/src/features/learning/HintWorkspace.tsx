@@ -10,6 +10,8 @@ import { StatePanel } from '../../components/ui/StatePanel'
 import { SafeMarkdown } from '../../components/ui/SafeMarkdown'
 import { beijingTime } from '../assignments/time'
 
+type SubmissionExample = { submission_id: string; title: string; verdict: string }
+
 type Create = components['schemas']['CreateHint']
 type Rating = components['schemas']['HintRating']['rating']
 type Version = components['schemas']['FeedbackVersion']
@@ -24,7 +26,9 @@ const labels = {
 export function HintWorkspace({
   ownerId,
   submissionId,
+  examples = [],
 }: {
+  examples?: SubmissionExample[]
   ownerId: string
   submissionId?: string
 }) {
@@ -53,7 +57,13 @@ export function HintWorkspace({
   return (
     <section className="stack" aria-label="学习提示">
       <h2>学习提示</h2>
-      <HintRequest key={submissionId || ''} submissionId={submissionId} onAccepted={accepted} />
+      <HintRequest
+        key={submissionId || ''}
+        submissionId={submissionId}
+        examples={examples}
+        recentHintId={history.isSuccess ? history.data.pages[0].items[0]?.hint_id : undefined}
+        onAccepted={accepted}
+      />
       <section className="panel stack" aria-label="提示历史">
         <h3>提示历史</h3>
         {history.isPending ? (
@@ -105,9 +115,27 @@ export function HintWorkspace({
             label="提示编号"
             value={lookup}
             onChange={(e) => setLookup(e.target.value)}
-            placeholder="输入提示 UUID"
+            placeholder="可从上方提示历史选取实际编号"
+            hint="可以点击历史记录直接查看，或填入最近提示编号后查阅。"
           />
-          <Button type="submit" disabled={!uuid.test(lookup.trim())}>
+          {history.isSuccess && history.data.pages[0].items[0] && (
+            <Button
+              variant="secondary"
+              title="将本人最近一条提示的编号填入输入框。"
+              onClick={() => setLookup(history.data!.pages[0].items[0].hint_id)}
+            >
+              填入最近提示编号
+            </Button>
+          )}
+          <Button
+            type="submit"
+            title={
+              uuid.test(lookup.trim())
+                ? '读取此编号对应的已授权提示。'
+                : '请先输入有效提示编号，或从提示历史选择。'
+            }
+            disabled={!uuid.test(lookup.trim())}
+          >
             查阅提示
           </Button>
         </form>
@@ -119,7 +147,11 @@ export function HintWorkspace({
 function HintRequest({
   submissionId,
   onAccepted,
+  examples,
+  recentHintId,
 }: {
+  recentHintId?: string
+  examples: SubmissionExample[]
   submissionId?: string
   onAccepted: (id: string) => void
 }) {
@@ -147,6 +179,19 @@ function HintRequest({
       if (error instanceof ApiError && error.status >= 400 && error.status < 500) setPending(null)
     },
   })
+  const example = useMutation({
+    mutationFn: async () => {
+      const value = await api.hint(recentHintId!)
+      if (value.status === 'BLOCKED')
+        throw new Error('这条提示的来源当前不可用，请从提交历史选择。')
+      return value.submission_id
+    },
+    onSuccess: (id) => {
+      setSource(id)
+      setConsent(false)
+      setHelpId('')
+    },
+  })
   const uncertain =
     !!pending &&
     !!request.error &&
@@ -154,7 +199,7 @@ function HintRequest({
       request.error.status === 0 ||
       (request.error.status >= 500 &&
         !['MODEL_DISABLED', 'INTEGRATION_UNAVAILABLE'].includes(request.error.code)))
-  const locked = uncertain || request.isPending
+  const locked = uncertain || request.isPending || example.isPending
   return (
     <form
       className="panel stack"
@@ -175,8 +220,41 @@ function HintRequest({
       }}
     >
       <h3>为已完成的提交请求提示</h3>
+      {recentHintId && (
+        <Button
+          variant="secondary"
+          disabled={locked}
+          busy={example.isPending}
+          title="读取本人最近提示对应的真实提交编号并填入，不发起新的模型请求。"
+          onClick={() => example.mutate()}
+        >
+          使用上次提问的提交
+        </Button>
+      )}
+      {example.error && <p role="alert">{example.error.message}</p>}
+      {examples.length > 0 && (
+        <label className="field">
+          选择一条错题记录
+          <select
+            disabled={locked}
+            value={examples.some((item) => item.submission_id === source) ? source : ''}
+            onChange={(event) => {
+              setSource(event.target.value)
+              setConsent(false)
+              setHelpId('')
+            }}
+          >
+            <option value="">选择记录后自动填入来源编号</option>
+            {examples.map((item) => (
+              <option key={item.submission_id} value={item.submission_id}>
+                {item.title} · {item.verdict} · {item.submission_id.slice(-8)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <Field
-        label="来源提交编号"
+        label="需要帮助的提交编号"
         value={source}
         onChange={(e) => {
           setSource(e.target.value)
@@ -190,16 +268,21 @@ function HintRequest({
       <Button
         variant="secondary"
         disabled={!uuid.test(source.trim()) || help.isFetching}
+        title={
+          uuid.test(source.trim())
+            ? '查看这次评测冻结的判题帮助。'
+            : '请先选择本人错题，或输入有效需要帮助的提交编号。'
+        }
         onClick={() => {
           if (helpId === source.trim()) void help.refetch()
           else setHelpId(source.trim())
         }}
       >
-        查看本轮固定帮助
+        查看检查建议
       </Button>
       {helpId &&
         (help.isFetching || help.isPending ? (
-          <p role="status">正在读取固定帮助…</p>
+          <p role="status">正在读取判题帮助…</p>
         ) : help.isError ? (
           <p role="alert">{help.error.message}</p>
         ) : (
@@ -207,6 +290,7 @@ function HintRequest({
         ))}
       <TextArea
         label="想问的问题（可选）"
+        placeholder="例如：为什么输出没有随输入变化？请提示我应该检查哪里。"
         maxLength={500}
         value={question}
         disabled={locked}
@@ -225,6 +309,13 @@ function HintRequest({
         type="submit"
         busy={request.isPending}
         disabled={!consent || !uuid.test(source.trim())}
+        title={
+          !uuid.test(source.trim())
+            ? '请先选择本人错题，或输入有效需要帮助的提交编号。'
+            : !consent
+              ? '请先勾选本次外发同意。'
+              : '发送本次同意的上下文并请求AI提示，将计入调用额度。'
+        }
       >
         {uncertain ? '核对上次请求' : '请求提示'}
       </Button>
@@ -241,7 +332,7 @@ function HintRequest({
 }
 function FrozenHelp({ value }: { value: Version }) {
   return (
-    <section className="stack" aria-label="固定帮助">
+    <section className="stack" aria-label="判题帮助">
       <h4>{value.title}</h4>
       <SafeMarkdown>{value.explanation}</SafeMarkdown>
       <ul>
@@ -251,7 +342,7 @@ function FrozenHelp({ value }: { value: Version }) {
           </li>
         ))}
       </ul>
-      <p>固定帮助版本 {value.feedback_version_id}</p>
+      <p>判题帮助版本 {value.feedback_version_id}</p>
     </section>
   )
 }

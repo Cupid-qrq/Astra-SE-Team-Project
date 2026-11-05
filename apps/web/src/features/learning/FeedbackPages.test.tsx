@@ -63,7 +63,7 @@ it('保存后立即离开再进入仍展示已保存的正文和修订', async (
   await user.click(screen.getByRole('link', { name: '← 返回帮助目录' }))
   await user.click(screen.getByRole('link', { name: '重新进入帮助' }))
   expect(await screen.findByLabelText('帮助标题')).toHaveValue('已经保存的新标题')
-  expect(screen.getByText(/草稿修订 2/)).toBeInTheDocument()
+  expect(screen.getByText(/草稿版本 2/)).toBeInTheDocument()
   expect(save).toHaveBeenCalledTimes(1)
 })
 
@@ -82,5 +82,5 @@ it('发布后立即重进显示生效版本及递增修订', async () => {
   await user.click(screen.getByRole('link', { name: '← 返回帮助目录' }))
   await user.click(screen.getByRole('link', { name: '重新进入帮助' }))
   expect(await screen.findByText('生效版本：1')).toBeVisible()
-  expect(screen.getByText(/草稿修订 2/)).toBeInTheDocument()
+  expect(screen.getByText(/草稿版本 2/)).toBeInTheDocument()
 })

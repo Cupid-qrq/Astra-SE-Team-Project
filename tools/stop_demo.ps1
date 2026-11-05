@@ -7,7 +7,7 @@ function Stop-DemoTree([int]$TaskProcessId){
  foreach($taskChild in (Get-CimInstance Win32_Process -Filter "ParentProcessId=$TaskProcessId" -ErrorAction SilentlyContinue)){Stop-DemoTree -TaskProcessId $taskChild.ProcessId}
  Stop-Process -Id $TaskProcessId -ErrorAction SilentlyContinue
 }
-foreach($taskRecord in (Get-Content -LiteralPath $taskFile -Raw|ConvertFrom-Json)){
+foreach($taskRecord in (Get-Content -LiteralPath $taskFile -Raw|ConvertFrom-Json|Sort-Object { $_.name -eq 'database-host' })){
  $taskProcess=Get-Process -Id $taskRecord.id -ErrorAction SilentlyContinue
  if($taskProcess -and $taskProcess.StartTime.ToUniversalTime().Ticks -eq ([datetime]$taskRecord.started).ToUniversalTime().Ticks){Stop-DemoTree -TaskProcessId $taskProcess.Id}
 }

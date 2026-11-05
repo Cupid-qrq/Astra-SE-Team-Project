@@ -24,8 +24,11 @@ button {
   cursor: pointer;
 }
 button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.65;
+}
+button[aria-busy='true'] {
+  cursor: wait;
 }
 :focus-visible {
   outline: 2px solid var(--brand);
@@ -970,4 +973,120 @@ tbody tr:hover {
 }
 .submission-dialog::backdrop {
   background: #24232066;
+}
+
+/* Shared form grouping keeps operation pages readable at both viewport sizes. */
+body {
+  line-height: 1.65;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+.stack > :where(h1, h2, h3, h4, p, ul, .field) {
+  margin: 0;
+}
+.stack > .button {
+  align-self: flex-start;
+  justify-self: start;
+}
+.panel {
+  padding: 24px;
+  margin-block: 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  min-width: 0;
+}
+.stack > .panel {
+  margin-block: 0;
+}
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+label.button-row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+}
+label.button-row input[type='checkbox'] {
+  margin-top: 5px;
+}
+.button {
+  max-width: 100%;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.main-content > .button + .button,
+.panel > .button + .button {
+  margin-inline-start: 12px;
+}
+.stack > .button + .button {
+  margin-inline-start: 0;
+}
+.filters {
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.field-hint,
+.field-error {
+  line-height: 1.65;
+}
+.resource-list li > * {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.table-scroll {
+  margin-block: 16px;
+}
+th,
+td {
+  vertical-align: top;
+  line-height: 1.65;
+}
+th {
+  white-space: nowrap;
+}
+.button-tooltip {
+  position: fixed;
+  z-index: 10000;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+  padding: 10px 14px;
+  border: 1px solid #545149;
+  border-radius: 8px;
+  background: #302e29;
+  color: #fff;
+  box-shadow: 0 6px 20px #0002;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+@media (max-width: 600px) {
+  .panel {
+    padding: 18px 16px;
+    margin-block: 20px;
+  }
+  .stack {
+    gap: 16px;
+  }
+  .button-row {
+    gap: 10px;
+  }
+  .main-content > .button + .button,
+  .panel > .button + .button {
+    margin-inline-start: 0;
+    margin-block-start: 10px;
+  }
+  .stack > .button + .button {
+    margin-block-start: 0;
+  }
 }

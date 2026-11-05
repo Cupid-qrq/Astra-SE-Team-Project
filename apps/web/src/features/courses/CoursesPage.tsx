@@ -1,3 +1,5 @@
+import { CopyIdentifier } from '../../components/ui/CopyIdentifier'
+import { OrbitGraphic } from '../../components/ui/Brand'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -21,20 +23,25 @@ export function CoursesPage() {
   const courses = query.data?.pages.flatMap((page) => page.items) || []
   const rows = courses.filter(
     (course) =>
-      course.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) &&
+      (course.title.toLocaleLowerCase().includes(search.toLocaleLowerCase()) ||
+        course.course_id.includes(search.trim())) &&
       (filter === 'ALL' || filter === course.status),
   )
   return (
     <>
-      <header className="page-heading">
+      <header className="page-heading course-heading">
         <div>
           <h1>我的课程</h1>
           <p>在这里继续学习，查看课程与作业。</p>
         </div>
-        <span className="quiet-note">一步一步，学有所获。</span>
+        <OrbitGraphic />
       </header>
       {session.data?.user?.role === 'TEACHER' && <CreateCourseForm />}
       <section className="course-section" aria-label="课程列表">
+        <div className="directory-heading">
+          <h2>课程目录</h2>
+          <span>{String(courses.length).padStart(2, '0')}</span>
+        </div>
         <div className="list-toolbar">
           <div className="filters" role="group" aria-label="课程状态">
             {[
@@ -46,6 +53,8 @@ export function CoursesPage() {
                 type="button"
                 key={value}
                 aria-pressed={filter === value}
+                data-tooltip={`筛选显示${label}`}
+                aria-description={`筛选显示${label}`}
                 onClick={() => setFilter(value)}
               >
                 {label}
@@ -58,7 +67,7 @@ export function CoursesPage() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="搜索课程"
+              placeholder="搜索课程名称或编号"
             />
           </label>
         </div>
@@ -86,13 +95,18 @@ export function CoursesPage() {
                 key: 'title',
                 heading: '课程名称',
                 render: (row) => (
-                  <Link className="course-link" to={`/courses/${row.course_id}`}>
-                    <span className="course-monogram" aria-hidden="true">
-                      {row.title.slice(0, 1)}
-                    </span>
-                    <span>{row.title}</span>
-                    <ArrowUpRight size={16} aria-hidden="true" />
-                  </Link>
+                  <div className="course-directory-entry">
+                    <Link className="course-link" to={`/courses/${row.course_id}`}>
+                      <span className="course-monogram" aria-hidden="true">
+                        {String(
+                          courses.findIndex((course) => course.course_id === row.course_id) + 1,
+                        ).padStart(2, '0')}
+                      </span>
+                      <span>{row.title}</span>
+                      <ArrowUpRight size={16} aria-hidden="true" />
+                    </Link>
+                    <CopyIdentifier label="课程编号" value={row.course_id} />
+                  </div>
                 ),
               },
               {
@@ -125,8 +139,8 @@ export function CoursesPage() {
         </p>
       </section>
       <footer className="workspace-footer">
-        <span>Astra</span>
-        <span>专注思考，持续进步。</span>
+        <span>ASTRA</span>
+        <span>从一道题，走向下一次进步。</span>
       </footer>
     </>
   )

@@ -18,13 +18,13 @@ export function inspectTemplate(fields: Fields) {
   })
   const bytes = new TextEncoder().encode(fields.body).length
   const error = !fields.body.trim()
-    ? '请填写模板正文。'
+    ? '请填写给 AI 的指导要求。'
     : bytes > 8192
-      ? '模板正文超过 8192 字节。'
+      ? '给 AI 的指导要求超过 8192 字节。'
       : invalidPlaceholder || /[{}]/.test(remainder)
         ? '请检查花括号，并勾选正文使用的每个占位符。'
         : !fields.schema_version.trim() || [...fields.schema_version].length > 40
-          ? '请填写有效的结构版本。'
+          ? '请填写有效的回复格式版本。'
           : ''
   const preview = fields.body.replace(/\{([a-z_]+)\}/g, (token, name: string) =>
     fields.allowed_placeholders.includes(name as Placeholder)

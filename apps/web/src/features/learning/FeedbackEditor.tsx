@@ -149,15 +149,15 @@ export function FeedbackEditor({
   return (
     <>
       <p className="notice">
-        <strong>{active === null ? '尚未发布' : `生效版本：${active}`}</strong> · 草稿修订{' '}
+        <strong>{active === null ? '尚未发布' : `生效版本：${active}`}</strong> · 草稿版本{' '}
         {revision}
         。发布后仅新的评测使用新版本，历史引用不变。
       </p>
-      {archived && <p className="notice">课程已归档，固定帮助只读。</p>}
+      {archived && <p className="notice">课程已归档，判题帮助只读。</p>}
       {recovery && (
         <div className="notice stack">
           <p>
-            本账号有未保存的编辑，可恢复后核对。恢复会保留原修订号，服务器有新修改时仍会提示冲突。
+            本账号有未保存的编辑，可恢复后核对。恢复后若发现他人已修改同一内容，会提示你重新核对。
           </p>
           <div className="button-row">
             <Button
@@ -263,8 +263,8 @@ export function FeedbackEditor({
       <FeedbackHistory catalogId={cid} />
       <ConfirmDialog
         open={pending !== null}
-        title="发布固定帮助新版本"
-        description={`将冻结已保存的草稿修订 ${pending?.expected_revision ?? ''}；既有版本和历史评测引用保持不变。`}
+        title="发布判题帮助新版本"
+        description={`将发布已保存的草稿版本 ${pending?.expected_revision ?? ''}；之前的版本和历史评测继续使用原内容。`}
         confirmLabel="确认发布"
         busy={publish.isPending}
         onCancel={() => setPending(null)}
@@ -342,7 +342,7 @@ function FeedbackHistory({ catalogId }: { catalogId: string }) {
       )}
       {selected !== null && (
         <section className="panel stack" aria-label="历史版本预览">
-          <h3>冻结版本 {selected}</h3>
+          <h3>已发布版本 {selected}</h3>
           {version.isPending ? (
             <p role="status">正在读取版本…</p>
           ) : version.isError ? (

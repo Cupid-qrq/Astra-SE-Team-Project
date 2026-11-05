@@ -4,8 +4,9 @@ import json
 from pathlib import Path
 from typing import Any
 
-from app.modules.identity.domain import Fault, require
 from jsonschema import Draft202012Validator, FormatChecker
+
+from app.modules.identity.domain import Fault, require
 
 SPEC = json.loads(
     (Path(__file__).resolve().parents[3] / "specs/openapi/a.openapi.json").read_text(

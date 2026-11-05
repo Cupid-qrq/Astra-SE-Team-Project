@@ -1787,6 +1787,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/courses/{id}/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getCourseLeaderboard
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        get: operations["getCourseLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{id}/leaderboard-preference": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * setLeaderboardPreference
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        patch: operations["setLeaderboardPreference"];
+        trace?: never;
+    };
+    "/courses/{id}/problems/{problem_id}/discussions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * listDiscussions
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        get: operations["listDiscussions"];
+        put?: never;
+        /**
+         * createDiscussion
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        post: operations["createDiscussion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discussions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * getDiscussion
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        get: operations["getDiscussion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * updateDiscussion
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        patch: operations["updateDiscussion"];
+        trace?: never;
+    };
+    "/discussions/{id}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * replyDiscussion
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        post: operations["replyDiscussion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discussion-replies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * updateDiscussionReply
+         * @description 课程内学习交流；身份、对象归属、版本可见性与写入条件由服务端校验。
+         */
+        patch: operations["updateDiscussionReply"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2841,6 +2969,98 @@ export interface components {
             language_key: string;
             /** Format: date-time */
             accepted_at: string;
+        };
+        LeaderboardEntry: {
+            /** Format: uuid */
+            entry_id: string;
+            rank: number;
+            display_name: string;
+            value: number;
+            is_me: boolean;
+        };
+        LeaderboardView: {
+            /** Format: uuid */
+            course_id: string;
+            /** @enum {string} */
+            kind: "progress" | "grades";
+            /** Format: date-time */
+            updated_at: string;
+            included_assignments: number;
+            show_name: boolean;
+            items: components["schemas"]["LeaderboardEntry"][];
+            next_cursor: string | null;
+        };
+        LeaderboardPreference: {
+            show_name: boolean;
+        };
+        DiscussionThread: {
+            /** Format: uuid */
+            thread_id: string;
+            /** Format: uuid */
+            course_id: string;
+            /** Format: uuid */
+            problem_id: string;
+            /** Format: uuid */
+            version_id: string;
+            title: string;
+            body: string;
+            author_name: string;
+            is_mine: boolean;
+            can_moderate: boolean;
+            resolved: boolean;
+            locked: boolean;
+            pinned: boolean;
+            hidden: boolean;
+            revision: number;
+            reply_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        DiscussionReply: {
+            /** Format: uuid */
+            reply_id: string;
+            /** Format: uuid */
+            thread_id: string;
+            body: string;
+            author_name: string;
+            is_mine: boolean;
+            hidden: boolean;
+            revision: number;
+            /** Format: date-time */
+            created_at: string;
+        };
+        DiscussionPage: {
+            items: components["schemas"]["DiscussionThread"][];
+            next_cursor: string | null;
+        };
+        DiscussionDetail: {
+            thread: components["schemas"]["DiscussionThread"];
+            replies: components["schemas"]["DiscussionReply"][];
+            next_cursor: string | null;
+        };
+        CreateDiscussion: {
+            /** Format: uuid */
+            version_id: string;
+            title: string;
+            body: string;
+        };
+        CreateDiscussionReply: {
+            body: string;
+        };
+        UpdateDiscussion: {
+            expected_revision: number;
+            reason: string;
+            resolved?: boolean;
+            locked?: boolean;
+            pinned?: boolean;
+            hidden?: boolean;
+        } | unknown | unknown | unknown | unknown;
+        UpdateDiscussionReply: {
+            expected_revision: number;
+            reason: string;
+            hidden: boolean;
         };
     };
     responses: {
@@ -6963,6 +7183,332 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubmissionPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getCourseLeaderboard: {
+        parameters: {
+            query: {
+                limit?: number;
+                cursor?: string;
+                kind: "progress" | "grades";
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaderboardView"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    setLeaderboardPreference: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaderboardPreference"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaderboardPreference"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    listDiscussions: {
+        parameters: {
+            query: {
+                limit?: number;
+                cursor?: string;
+                version_id: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionPage"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    createDiscussion: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+                problem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDiscussion"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            201: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionThread"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    getDiscussion: {
+        parameters: {
+            query?: {
+                limit?: number;
+                cursor?: string;
+            };
+            header?: {
+                /** @description Automatic GET poll: authenticate normally without renewing the idle session window. */
+                "X-Astra-Background"?: "1";
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionDetail"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    updateDiscussion: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDiscussion"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionThread"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    replyDiscussion: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDiscussionReply"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            201: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionReply"];
+                };
+            };
+            400: components["responses"]["Error400"];
+            401: components["responses"]["Error401"];
+            403: components["responses"]["Error403"];
+            404: components["responses"]["Error404"];
+            409: components["responses"]["Error409"];
+            413: components["responses"]["Error413"];
+            422: components["responses"]["Error422"];
+            429: components["responses"]["Error429"];
+            503: components["responses"]["Error503"];
+        };
+    };
+    updateDiscussionReply: {
+        parameters: {
+            query?: never;
+            header: {
+                "X-CSRF-Token": string;
+                /** @description Browser supplies Origin automatically; server MUST validate it for all writes including login. */
+                Origin?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateDiscussionReply"];
+            };
+        };
+        responses: {
+            /** @description 成功；仅返回当前身份可见字段 */
+            200: {
+                headers: {
+                    "X-Request-Id"?: string;
+                    "Cache-Control"?: "no-store";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiscussionReply"];
                 };
             };
             400: components["responses"]["Error400"];

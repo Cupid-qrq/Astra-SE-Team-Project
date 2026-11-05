@@ -156,3 +156,11 @@ assignment.revision负责所有并发写检查；grade_epoch只在延期重开�
 ### 提示来源冻结（b017 / A验证a007）
 
 source_snapshot为JSONB，仅保存submission/student/course/problem、state/verdict、feedback_version_id及result_basis_id/attempt_id/effective_version_id，不保存源码或诊断。新提示接纳前必须具备全部来源身份；派发、READY和读取与当前来源比较，换轮/换版本即阻断旧内容。历史NULL不回填、不外发，读取保持BLOCKED且不返回旧fallback；不修改既有计费账本。已存在非空快照时禁止降级删除追溯列。
+
+## 课程学习交流扩展（2026-11-05）
+
+| 表 | 用途 | 边界 |
+| --- | --- | --- |
+| leaderboard_preferences | 每课程每学生姓名显示偏好 | 默认匿名，学生仅写本人；不进入成绩快照 |
+| discussion_threads | 绑定课程/题目版本的主题与治理状态 | 服务端作者和时间，隐藏正文不删除，revision并发保护 |
+| discussion_replies | 主题回复及隐藏状态 | 同课授权、外键归属、正文保留供治理 |

@@ -87,7 +87,7 @@ test('前端契约样例：错题来源、推荐链接和就绪提示的四段�
     `/practice-problems/${id}`,
   )
   await page.getByRole('link', { name: '为此提交请求提示' }).click()
-  await expect(page.getByLabel('来源提交编号')).toHaveValue(id)
+  await expect(page.getByLabel('需要帮助的提交编号')).toHaveValue(id)
   await page.getByRole('checkbox').check()
   await page.getByRole('button', { name: '请求提示', exact: true }).click()
   await expect(page.getByRole('region', { name: '提示详情' })).toContainText('建议需自行验证')

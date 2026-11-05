@@ -75,7 +75,7 @@ export function TemplateEditor({
       setPublished(next)
       setRevision(command.expected_revision + 1)
       setReason('')
-      setNotice('已冻结新版本。')
+      setNotice('新版本已发布。')
       cache.setQueryData(['templateDraft', id], {
         ...initial,
         ...saved,
@@ -104,8 +104,8 @@ export function TemplateEditor({
     <>
       {id && (
         <p className="notice">
-          草稿修订 {revision} · {published ? `最新冻结版本 ${published}` : '尚未发布'}
-          。运行时启用由管理员另行配置。
+          草稿版本 {revision} · {published ? `最新发布版本 ${published}` : '尚未发布'}
+          。发布后还需管理员启用，才会用于新的 AI 提示。
         </p>
       )}
       {archived && <p className="notice">课程已归档，此模板只读。</p>}
@@ -146,15 +146,15 @@ export function TemplateEditor({
           <h2>{id ? '编辑草稿' : '新建草稿'}</h2>
           <fieldset className="material-fields stack" disabled={busy || archived}>
             <TextArea
-              label="模板正文"
+              label="给 AI 的指导要求"
               rows={8}
               maxLength={8192}
               value={fields.body}
-              hint="以花括号插入已勾选的占位符，例如 {question}。"
+              hint="勾选下方信息后，用花括号写入要求中，例如 {question} 会自动替换成学生的问题。"
               onChange={(e) => edit({ ...fields, body: e.target.value })}
             />
             <fieldset className="material-fields template-placeholders">
-              <legend>允许的占位符</legend>
+              <legend>自动填入的信息</legend>
               {names.map((name) => (
                 <label key={name} className="button-row">
                   <input
@@ -169,12 +169,20 @@ export function TemplateEditor({
                       })
                     }
                   />
-                  {name}
+                  {{
+                    verdict: '评测结果',
+                    question: '学生的问题',
+                    student_code: '学生代码',
+                    public_problem: '公开题面',
+                    public_samples: '公开样例',
+                    sanitized_diagnostic: '已脱敏的错误信息',
+                  }[name] ?? name}{' '}
+                  <span className="muted">{'{' + name + '}'}</span>
                 </label>
               ))}
             </fieldset>
             <Field
-              label="结构版本"
+              label="回复格式版本"
               maxLength={40}
               value={fields.schema_version}
               onChange={(e) => edit({ ...fields, schema_version: e.target.value })}
@@ -197,7 +205,7 @@ export function TemplateEditor({
                 value={reason}
                 maxLength={500}
                 disabled={archived || busy}
-                hint="10—500 字，发布会冻结已保存的修订。"
+                hint="10—500 字，发布后保留这次内容，之后修改需要发布新版本。"
                 onChange={(e) => setReason(e.target.value)}
               />
               <Button
@@ -220,16 +228,16 @@ export function TemplateEditor({
           )}
           {notice && <p role="status">{notice}</p>}
         </form>
-        <section className="panel stack" aria-label="示例预览">
-          <h2>示例预览</h2>
-          <p className="muted">占位符使用虚构教学样例填充。</p>
+        <section className="panel stack" aria-label="要求预览">
+          <h2>要求预览</h2>
+          <p className="muted">用一组教学样例预览 AI 实际收到的要求。</p>
           <pre className="template-text">{preview}</pre>
         </section>
       </div>
       <ConfirmDialog
         open={!!pending}
-        title="发布提示模板新版本"
-        description={`将冻结草稿修订 ${pending?.expected_revision ?? ''}。历史版本可继续查阅。`}
+        title="发布AI 辅导设置新版本"
+        description={`将发布已保存的草稿版本 ${pending?.expected_revision ?? ''}。历史版本可继续查阅。`}
         confirmLabel="确认发布"
         busy={publish.isPending}
         onCancel={() => setPending(null)}

@@ -20,6 +20,17 @@ try {
  $env:ASTRA_DEMO_TLS=Join-Path $taskDirectory 'tls'
  $env:VITE_API_PROXY_TARGET='http://127.0.0.1:8021'
  $taskProcesses=@()
+ # A foreground WSL command keeps the local PostgreSQL host alive during the demo.
+ $taskDatabaseHost=Start-Process -FilePath wsl.exe -ArgumentList @('-d','Ubuntu','--exec','sleep','infinity') -WindowStyle Hidden -RedirectStandardOutput (Join-Path $taskDirectory 'database-host.out.log') -RedirectStandardError (Join-Path $taskDirectory 'database-host.err.log') -PassThru
+ $taskProcesses+=@{name='database-host';id=$taskDatabaseHost.Id;started=$taskDatabaseHost.StartTime.ToUniversalTime().ToString('o')}
+ $taskProcesses|ConvertTo-Json -AsArray|Set-Content -LiteralPath (Join-Path $taskDirectory 'processes.json') -Encoding utf8
+ $taskDatabaseReady=$false
+ for($taskAttempt=0;$taskAttempt -lt 15;$taskAttempt++){
+  & $taskPython -c "import os; from sqlalchemy import create_engine; engine=create_engine(os.environ['ASTRA_DATABASE_URL'],hide_parameters=True,connect_args={'connect_timeout':2}); connection=engine.connect(); connection.exec_driver_sql('SELECT 1'); connection.close(); engine.dispose()" 2>$null | Out-Null
+  if($LASTEXITCODE -eq 0){$taskDatabaseReady=$true;break}
+  Start-Sleep -Seconds 1
+ }
+ if(-not $taskDatabaseReady){throw '演示数据库未就绪，请检查Ubuntu PostgreSQL状态；可用停止脚本清理本次进程。'}
  $taskSpecs=@(
   @{Name='api';Args=@('-m','uvicorn','app.main:create_app','--factory','--host','127.0.0.1','--port','8021','--no-access-log')},
   @{Name='judge';Args=@('-m','app.modules.judging.worker_cli','--enable-execution','--executor-host',$env:ASTRA_EXECUTOR_HOST,'--image',$env:ASTRA_EXECUTOR_IMAGE,'--executor-state-dir','/var/lib/astra-course-executor-demo')},

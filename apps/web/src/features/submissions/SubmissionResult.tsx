@@ -27,7 +27,11 @@ export function ResultSummary({ value }: { value: Summary }) {
       <p role="status">{states[value.state]}</p>
       <p>{value.mode === 'FORMAL' ? '正式提交' : '练习提交'}</p>
       <p>第 {value.generation} 轮</p>
-      {value.verdict && <h3>{verdictLabels[value.verdict]}</h3>}
+      {value.verdict && (
+        <h3 className={`verdict verdict--${value.verdict.toLowerCase()}`}>
+          {verdictLabels[value.verdict]}
+        </h3>
+      )}
       {value.verdict === 'SE' && <p>本次遇到平台故障，请保留提交编号并查看平台通知。</p>}
       <p>
         CPU {value.time_ms === null ? '未知' : `${value.time_ms} ms`} · 内存{' '}

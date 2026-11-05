@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { discussionPath } from '../community/communityApi'
 import { api } from '../../app/runtime'
 import { Button } from '../../components/ui/Button'
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
@@ -121,6 +122,8 @@ function PolicyForm({
 }
 
 export function PublicPracticePage() {
+  const [params] = useSearchParams()
+  const courseId = params.get('course_id')
   const { id = '' } = useParams()
   const q = useQuery({
     queryKey: ['practiceProblem', id],
@@ -145,6 +148,11 @@ export function PublicPracticePage() {
     <article>
       <h1>{p.title}</h1>
       <p>公开练习题面 · 只读</p>
+      {courseId && (
+        <p>
+          <Link to={discussionPath(courseId, p.problem_id, p.version_id)}>本课程题目讨论</Link>
+        </p>
+      )}
       <SafeMarkdown>{p.statement}</SafeMarkdown>
       <h2>公开样例</h2>
       {p.samples.map((s, i) => (

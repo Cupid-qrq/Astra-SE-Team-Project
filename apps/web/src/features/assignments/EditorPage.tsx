@@ -1,3 +1,4 @@
+import { discussionPath } from '../community/communityApi'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
@@ -124,11 +125,28 @@ function EditorWorkspace({
               : '只读预览'}
         </span>
       </header>
+      <p>
+        <Link to={discussionPath(assignment.course_id, problem.problem_id, problem.version_id)}>
+          题目讨论 · 交流思路
+        </Link>
+      </p>
       <div className="editor-tabs" role="tablist" aria-label="编程工作区视图">
-        <button role="tab" aria-selected={tab === 'problem'} onClick={() => setTab('problem')}>
+        <button
+          data-tooltip="切换到题面与样例。"
+          aria-description="切换到题面与样例。"
+          role="tab"
+          aria-selected={tab === 'problem'}
+          onClick={() => setTab('problem')}
+        >
           题目
         </button>
-        <button role="tab" aria-selected={tab === 'code'} onClick={() => setTab('code')}>
+        <button
+          data-tooltip="切换到代码编辑区。"
+          aria-description="切换到代码编辑区。"
+          role="tab"
+          aria-selected={tab === 'code'}
+          onClick={() => setTab('code')}
+        >
           代码
         </button>
       </div>

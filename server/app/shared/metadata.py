@@ -14,6 +14,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, TIMESTAMP, UUID
 
 import app.modules.assignments.models  # noqa: F401
+import app.modules.community.discussion_models  # noqa: F401
+import app.modules.community.leaderboard_models  # noqa: F401
 import app.modules.courses.models  # noqa: F401
 import app.modules.grades.models  # noqa: F401
 import app.modules.judging.models  # noqa: F401

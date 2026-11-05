@@ -20,6 +20,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 
 from app.adapters.judge_profiles import SnapshotCatalog
+from app.api.community import register as register_community
 from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
 from app.api.grades import register as register_grades
@@ -29,6 +30,8 @@ from app.api.preflights import register as register_preflights
 from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
+from app.modules.community.discussions import Discussions
+from app.modules.community.leaderboards import Leaderboards
 from app.modules.courses.application import Courses
 from app.modules.grades.application import GradeCoordination, Grades
 from app.modules.identity.application import Identity
@@ -51,6 +54,7 @@ from app.shared.config import Settings
 from app.shared.database import create_database_engine
 from app.shared.effects import TransactionalEffects
 from app.shared.passwords import ArgonPasswords
+from app.shared.presentation import PresentationNames
 from app.shared.repository import SqlRepository
 from app.shared.uow import UnitOfWork
 
@@ -74,6 +78,7 @@ def create_app(
         hint_configuration = model_profile.config_id if model_profile.enabled else None
     owned = engine is None
     database = engine if engine is not None else create_database_engine(settings.database_url)
+    presentation = PresentationNames.from_file(os.environ.get("ASTRA_PRESENTATION_NAMES_FILE"))
     configuration = settings
     contract, passwords = Contract.load(), ArgonPasswords()
     for profile in settings.profiles:
@@ -173,7 +178,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b017":
+                if head != "b019":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -249,6 +254,8 @@ def create_app(
                         request_id=request_id,
                         assignments=Assignments(repo, effects, GradeCoordination()),
                         grades=Grades(repo, effects),
+                        leaderboards=Leaderboards(repo, effects),
+                        discussions=Discussions(repo, effects),
                         rejudges=Rejudges(repo, effects),
                         operations=Operations(repo, effects),
                         fairness=Fairness(repo, effects),
@@ -283,6 +290,8 @@ def create_app(
                             success, result = result
                         if path == "/submissions" and method == "POST":
                             result, replayed = result
+                        if method == "GET":
+                            result = presentation.project(result)
                         contract.response(operation, success, result)
                     except Fault as error:
                         # A's failed-login ledger must commit; all other faults escape and roll back.
@@ -387,6 +396,7 @@ def create_app(
     register_preflights(add)
     register_submissions(add)
     register_grades(add)
+    register_community(add)
     register_operations(add)
 
     def export_openapi() -> Record:
