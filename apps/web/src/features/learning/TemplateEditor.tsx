@@ -156,7 +156,7 @@ export function TemplateEditor({
             <fieldset className="material-fields template-placeholders">
               <legend>自动填入的信息</legend>
               {names.map((name) => (
-                <label key={name} className="button-row">
+                <label key={name} className="button-row template-placeholder">
                   <input
                     type="checkbox"
                     checked={fields.allowed_placeholders.includes(name)}
@@ -169,15 +169,19 @@ export function TemplateEditor({
                       })
                     }
                   />
-                  {{
-                    verdict: '评测结果',
-                    question: '学生的问题',
-                    student_code: '学生代码',
-                    public_problem: '公开题面',
-                    public_samples: '公开样例',
-                    sanitized_diagnostic: '已脱敏的错误信息',
-                  }[name] ?? name}{' '}
-                  <span className="muted">{'{' + name + '}'}</span>
+                  <span className="template-placeholder-content">
+                    <span>
+                      {{
+                        verdict: '评测结果',
+                        question: '学生的问题',
+                        student_code: '学生代码',
+                        public_problem: '公开题面',
+                        public_samples: '公开样例',
+                        sanitized_diagnostic: '已脱敏的错误信息',
+                      }[name] ?? name}
+                    </span>
+                    <code className="muted">{'{' + name + '}'}</code>
+                  </span>
                 </label>
               ))}
             </fieldset>

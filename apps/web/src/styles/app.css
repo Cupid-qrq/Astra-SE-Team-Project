@@ -942,17 +942,28 @@ tbody tr:hover {
 }
 .template-placeholders {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px 24px;
 }
 .template-placeholders legend {
   margin-bottom: 8px;
 }
-.template-placeholders label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
+.template-placeholders .template-placeholder {
+  margin: 0;
+  min-width: 0;
+  column-gap: 10px;
+  row-gap: 0;
+  align-content: start;
+}
+.template-placeholder-content {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  line-height: 1.6;
+}
+.template-placeholder-content code {
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
 }
 .learning-page .panel {
   border-top: 1px solid #dcd9d1;
