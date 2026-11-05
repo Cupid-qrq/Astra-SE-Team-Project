@@ -6,14 +6,15 @@ from uuid import uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from app.modules.identity.domain import Fault
-from app.modules.identity.models import metadata
 from astra_a.app import create_app
 from astra_a.security import ArgonPasswords
 from astra_a.storage import SqlRepository
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
+
+from app.modules.identity.domain import Fault
+from app.modules.identity.models import metadata
 
 BASE = Path(__file__).resolve().parents[2] / "a_line"
 

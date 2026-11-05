@@ -2,6 +2,7 @@ from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import pytest
+
 from app.modules.identity.domain import Fault
 from app.modules.learning.policy_rules import HintPolicy, HintSource
 

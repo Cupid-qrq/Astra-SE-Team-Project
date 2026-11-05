@@ -14,11 +14,6 @@ sys.path[:0] = [str(SERVER), str(SERVER / "a_line")]
 import uvicorn
 from alembic import command
 from alembic.config import Config
-from app.modules.assignments.application import Assignments
-from app.modules.courses.application import Courses
-from app.modules.identity.domain import utc
-from app.modules.problems.application import Problems
-from app.modules.problems.domain import content_digest, profile_digest
 from astra_a.app import create_app
 from astra_a.security import ArgonPasswords
 from astra_a.storage import SqlRepository
@@ -30,6 +25,12 @@ from cryptography.x509.oid import NameOID
 from sqlalchemy import create_engine
 from sqlalchemy.engine import make_url
 from test_problems import SyntheticPreflight, profile
+
+from app.modules.assignments.application import Assignments
+from app.modules.courses.application import Courses
+from app.modules.identity.domain import utc
+from app.modules.problems.application import Problems
+from app.modules.problems.domain import content_digest, profile_digest
 
 
 def main():
