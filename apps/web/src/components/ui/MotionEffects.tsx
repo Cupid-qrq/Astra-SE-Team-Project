@@ -187,14 +187,6 @@ export function PageMotion() {
     }
     root.dataset.motionPage = pathname === '/login' ? 'login' : 'workspace'
     if (!enabled) return
-    const surface = document.querySelector('.route-surface')
-    const entrance = surface?.animate(
-      [
-        { opacity: 0.45, transform: 'translateY(8px)' },
-        { opacity: 1, transform: 'translateY(0)' },
-      ],
-      { duration: 260, easing: 'cubic-bezier(.2,.7,.2,1)' },
-    )
     let frame = 0,
       cursorX = 0,
       cursorY = 0
@@ -259,7 +251,6 @@ export function PageMotion() {
     window.addEventListener('scroll', schedule, { passive: true })
     window.addEventListener('resize', schedule, { passive: true })
     return () => {
-      entrance?.cancel()
       cancelAnimationFrame(frame)
       visibility.disconnect()
       content.disconnect()

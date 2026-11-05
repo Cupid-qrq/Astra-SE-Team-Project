@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router-dom'
 import { api, sessionKey } from '../../app/runtime'
@@ -14,6 +15,8 @@ const states = {
   ARCHIVED: '已归档',
 }
 export function CoursePage() {
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('ALL')
   const session = useQuery({ queryKey: sessionKey, queryFn: api.session })
   const { id = '' } = useParams()
   const course = useQuery({ queryKey: ['course', id], queryFn: () => api.course(id) })
@@ -23,6 +26,12 @@ export function CoursePage() {
     initialPageParam: undefined as string | undefined,
     getNextPageParam: (page) => page.next_cursor || undefined,
   })
+  const loaded = assignments.data?.pages.flatMap((page) => page.items) ?? []
+  const rows = loaded.filter(
+    (row) =>
+      row.title.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()) &&
+      (status === 'ALL' || row.state === status),
+  )
   if (course.isPending) return <StatePanel kind="loading" title="正在加载课程…" />
   if (course.isError)
     return (
@@ -56,14 +65,53 @@ export function CoursePage() {
         <p>
           <Link to={`/courses/${id}/problems`}>管理题目</Link> ·{' '}
           <Link to={`/courses/${id}/assignments/new`}>新建作业</Link> ·{' '}
-          <Link to={`/teacher/feedback?course_id=${id}`}>管理固定帮助</Link> ·{' '}
-          <Link to={`/teacher/hint-templates?course_id=${id}`}>管理提示模板</Link>
+          <Link to={`/teacher/feedback?course_id=${id}`}>管理判题帮助</Link> ·{' '}
+          <Link to={`/teacher/hint-templates?course_id=${id}`}>管理AI 辅导设置</Link>
         </p>
       )}
       {session.data?.user?.role === 'TEACHER' && course.data.status === 'ACTIVE' && (
         <CourseManagement key={id} course={course.data} />
       )}
       <h2 className="section-title">课程作业</h2>
+      <div className="assignment-toolbar">
+        <label>
+          搜索作业
+          <input
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="输入作业名称"
+          />
+        </label>
+        <label>
+          作业状态
+          <select value={status} onChange={(event) => setStatus(event.target.value)}>
+            <option value="ALL">全部状态</option>
+            {Object.entries(states).map(([key, label]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        {(search || status !== 'ALL') && (
+          <Button
+            variant="quiet"
+            onClick={() => {
+              setSearch('')
+              setStatus('ALL')
+            }}
+          >
+            清除筛选
+          </Button>
+        )}
+      </div>
+      {assignments.isSuccess && (
+        <p className="muted" role="status">
+          显示 {rows.length} 项 · 已加载 {loaded.length} 项
+          {assignments.hasNextPage ? '，可继续加载更多作业' : ''}
+        </p>
+      )}
       {assignments.isPending ? (
         <StatePanel kind="loading" title="正在加载作业…" />
       ) : assignments.isError ? (
@@ -76,9 +124,13 @@ export function CoursePage() {
       ) : (
         <DataTable
           caption="课程作业"
-          rows={assignments.data.pages.flatMap((page) => page.items)}
+          rows={rows}
           rowKey={(row) => row.assignment_id}
-          empty="暂无已发布的作业。"
+          empty={
+            search || status !== 'ALL'
+              ? '没有符合条件的作业，请调整或清除筛选。'
+              : '暂无已发布的作业。'
+          }
           columns={[
             {
               key: 'title',

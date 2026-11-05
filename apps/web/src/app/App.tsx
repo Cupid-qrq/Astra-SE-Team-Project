@@ -1,3 +1,5 @@
+import { RouteSurface } from '../components/ui/RouteSurface'
+import { LearningSupportNav } from '../components/ui/LearningSupportNav'
 import { ProfilePage } from '../features/auth/ProfilePage'
 import { PageHelp } from '../components/ui/PageHelp'
 import { MotionProvider, PageMotion } from '../components/ui/MotionEffects'
@@ -110,7 +112,7 @@ function Workspace() {
               className="nav-item"
             >
               <FileText size={19} aria-hidden="true" />
-              {user.role === 'ADMIN' ? '全局固定帮助' : '固定帮助维护'}
+              {user.role === 'ADMIN' ? '全局判题帮助' : '判题帮助维护'}
             </NavLink>
           )}
           {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
@@ -119,7 +121,7 @@ function Workspace() {
               className="nav-item"
             >
               <Braces size={19} aria-hidden="true" />
-              {user.role === 'ADMIN' ? '全局提示模板' : '提示模板维护'}
+              {user.role === 'ADMIN' ? '全局AI 辅导设置' : 'AI 辅导设置维护'}
             </NavLink>
           )}
           {user.role === 'STUDENT' && (
@@ -131,13 +133,13 @@ function Workspace() {
           {user.role !== 'STUDENT' && (
             <NavLink to="/retention" className="nav-item">
               <Archive size={19} aria-hidden="true" />
-              课程留存
+              课程归档与保留
             </NavLink>
           )}
           {user.role === 'ADMIN' && (
             <NavLink to="/admin/operations/controls" className="nav-item">
               <SlidersHorizontal size={19} aria-hidden="true" />
-              运行与应急
+              运行控制与应急访问
             </NavLink>
           )}
           <NavLink to="/notifications" className="nav-item">
@@ -211,9 +213,10 @@ function Workspace() {
               fallback={<StatePanel kind="loading" title="正在加载页面…" />}
             >
               <PageHelp />
-              <div className="route-surface">
+              <RouteSurface>
+                <LearningSupportNav />
                 <Outlet />
-              </div>
+              </RouteSurface>
             </Suspense>
           )}
         </main>

@@ -5,11 +5,11 @@ import { Field } from './Field'
 
 it('按钮显示操作提示，禁用与忙碌分别说明', () => {
   const view = render(
-    <Button disabled title="请填写来源提交编号">
+    <Button disabled title="请填写需要帮助的提交编号">
       请求提示
     </Button>,
   )
-  expect(screen.getByRole('button')).toHaveAttribute('data-tooltip', '请填写来源提交编号')
+  expect(screen.getByRole('button')).toHaveAttribute('data-tooltip', '请填写需要帮助的提交编号')
   view.rerender(
     <Button busy title="请求提示">
       请求提示

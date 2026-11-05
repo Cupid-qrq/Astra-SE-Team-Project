@@ -26,10 +26,10 @@ it('同页导航到另一来源提交时更新表单并要求重新同意', asyn
       </MemoryRouter>
     </QueryClientProvider>,
   )
-  expect(screen.getByLabelText('来源提交编号')).toHaveValue(first)
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(first)
   await userEvent.click(screen.getByRole('checkbox'))
   await userEvent.click(screen.getByRole('link', { name: '另一提交' }))
-  expect(screen.getByLabelText('来源提交编号')).toHaveValue(second)
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(second)
   expect(screen.getByRole('checkbox')).not.toBeChecked()
 })
 

@@ -151,7 +151,7 @@ it('从本人错题填入真实示例时清除外发同意，最近提示仅填�
   )
   await userEvent.click(screen.getByRole('checkbox'))
   await userEvent.selectOptions(screen.getByLabelText('选择一条错题记录'), submission)
-  expect(screen.getByLabelText('来源提交编号')).toHaveValue(submission)
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(submission)
   expect(screen.getByRole('checkbox')).not.toBeChecked()
   expect(screen.getByRole('button', { name: '请求提示' })).toHaveAttribute(
     'data-tooltip',
@@ -190,8 +190,8 @@ it('错题为空时可从最近已授权提示填入来源且不会发送新请�
   const create = vi.spyOn(api, 'createHint')
   mount()
   await userEvent.click(screen.getByRole('checkbox'))
-  await userEvent.click(await screen.findByRole('button', { name: '填入最近提示的来源提交' }))
+  await userEvent.click(await screen.findByRole('button', { name: '使用上次提问的提交' }))
   await waitFor(() => expect(screen.getByRole('checkbox')).not.toBeChecked())
-  expect(screen.getByLabelText('来源提交编号')).toHaveValue(submission)
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(submission)
   expect(create).not.toHaveBeenCalled()
 })

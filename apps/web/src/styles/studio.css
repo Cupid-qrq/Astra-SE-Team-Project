@@ -1614,3 +1614,110 @@ html[data-private-name='true'] .account .avatar {
 .profile-hero h1 {
   color: #f3f5f1;
 }
+
+/* Stable navigation with short, content-only transitions. */
+.route-surface {
+  min-height: 55vh;
+}
+.section-tabs {
+  display: flex;
+  gap: 28px;
+  border-bottom: 1px solid #d0d6ce;
+  overflow-x: auto;
+}
+.section-tabs a {
+  position: relative;
+  padding: 14px 2px;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #687069;
+}
+.section-tabs a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #9ecb36;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease;
+}
+.section-tabs a.active,
+.section-tabs a[aria-current='page'] {
+  color: #171b19;
+  font-weight: 700;
+}
+.section-tabs a.active::after,
+.section-tabs a[aria-current='page']::after {
+  transform: scaleX(1);
+}
+.section-tabs a:hover::after {
+  transform: scaleX(0.45);
+}
+.support-navigation {
+  margin-bottom: 28px;
+}
+.support-navigation p {
+  max-width: 760px;
+  line-height: 1.8;
+  margin: 16px 0;
+  color: #687069;
+}
+.profile-settings {
+  grid-column: 1/-1;
+}
+.workflow-steps {
+  padding-left: 24px;
+}
+.workflow-steps li {
+  padding: 8px 0;
+}
+.workflow-steps p {
+  margin: 4px 0;
+  color: #687069;
+}
+.assignment-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 18px 0;
+}
+.assignment-toolbar label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+.assignment-toolbar input {
+  min-width: 240px;
+}
+.assignment-toolbar select {
+  min-width: 150px;
+}
+.assignment-toolbar input,
+.assignment-toolbar select {
+  padding: 11px 12px;
+  border: 1px solid #aeb8a8;
+  border-radius: 2px;
+  background: white;
+  color: #171b19;
+}
+.nav-item {
+  transition:
+    background 180ms ease,
+    color 180ms ease;
+}
+@media (max-width: 700px) {
+  .section-tabs {
+    gap: 20px;
+  }
+  .assignment-toolbar label {
+    flex: 1;
+  }
+  .assignment-toolbar input {
+    min-width: 0;
+    width: 100%;
+  }
+}

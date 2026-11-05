@@ -228,7 +228,7 @@ function HintRequest({
           title="读取本人最近提示对应的真实提交编号并填入，不发起新的模型请求。"
           onClick={() => example.mutate()}
         >
-          填入最近提示的来源提交
+          使用上次提问的提交
         </Button>
       )}
       {example.error && <p role="alert">{example.error.message}</p>}
@@ -254,7 +254,7 @@ function HintRequest({
         </label>
       )}
       <Field
-        label="来源提交编号"
+        label="需要帮助的提交编号"
         value={source}
         onChange={(e) => {
           setSource(e.target.value)
@@ -270,19 +270,19 @@ function HintRequest({
         disabled={!uuid.test(source.trim()) || help.isFetching}
         title={
           uuid.test(source.trim())
-            ? '查看这次评测冻结的固定帮助。'
-            : '请先选择本人错题，或输入有效来源提交编号。'
+            ? '查看这次评测冻结的判题帮助。'
+            : '请先选择本人错题，或输入有效需要帮助的提交编号。'
         }
         onClick={() => {
           if (helpId === source.trim()) void help.refetch()
           else setHelpId(source.trim())
         }}
       >
-        查看本轮固定帮助
+        查看检查建议
       </Button>
       {helpId &&
         (help.isFetching || help.isPending ? (
-          <p role="status">正在读取固定帮助…</p>
+          <p role="status">正在读取判题帮助…</p>
         ) : help.isError ? (
           <p role="alert">{help.error.message}</p>
         ) : (
@@ -311,7 +311,7 @@ function HintRequest({
         disabled={!consent || !uuid.test(source.trim())}
         title={
           !uuid.test(source.trim())
-            ? '请先选择本人错题，或输入有效来源提交编号。'
+            ? '请先选择本人错题，或输入有效需要帮助的提交编号。'
             : !consent
               ? '请先勾选本次外发同意。'
               : '发送本次同意的上下文并请求AI提示，将计入调用额度。'
@@ -332,7 +332,7 @@ function HintRequest({
 }
 function FrozenHelp({ value }: { value: Version }) {
   return (
-    <section className="stack" aria-label="固定帮助">
+    <section className="stack" aria-label="判题帮助">
       <h4>{value.title}</h4>
       <SafeMarkdown>{value.explanation}</SafeMarkdown>
       <ul>
@@ -342,7 +342,7 @@ function FrozenHelp({ value }: { value: Version }) {
           </li>
         ))}
       </ul>
-      <p>固定帮助版本 {value.feedback_version_id}</p>
+      <p>判题帮助版本 {value.feedback_version_id}</p>
     </section>
   )
 }

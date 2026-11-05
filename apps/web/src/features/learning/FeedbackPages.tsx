@@ -32,7 +32,7 @@ export function FeedbackCatalogsPage() {
     return (
       <StatePanel
         kind="forbidden"
-        title="无权维护固定帮助"
+        title="无权维护判题帮助"
         description="请使用任课教师或全局管理员账号。"
       />
     )
@@ -47,12 +47,12 @@ export function FeedbackCatalogsPage() {
       )}
       <header className="page-heading">
         <div>
-          <h1>{global ? '全局固定帮助' : '课程固定帮助'}</h1>
+          <h1>{global ? '全局判题帮助' : '课程判题帮助'}</h1>
           <p>{course.data?.title || '维护错误说明与检查清单；已发布版本永久保留。'}</p>
         </div>
         {(global || course.data?.status === 'ACTIVE') && (
           <Button onClick={() => setCreating((v) => !v)}>
-            {creating ? '收起新建表单' : '新建固定帮助'}
+            {creating ? '收起新建表单' : '新建判题帮助'}
           </Button>
         )}
       </header>
@@ -63,7 +63,7 @@ export function FeedbackCatalogsPage() {
             (courseId && !global ? `?course_id=${courseId}` : '')
           }
         >
-          管理提示模板
+          管理AI 辅导设置
         </Link>
       </p>
       {course.isError && (
@@ -75,9 +75,9 @@ export function FeedbackCatalogsPage() {
         />
       )}
       {!global && !courseId && (
-        <p className="notice">此处列出本人课程的帮助。从课程中的“管理固定帮助”进入可新建草稿。</p>
+        <p className="notice">此处列出本人课程的帮助。从课程中的“管理判题帮助”进入可新建草稿。</p>
       )}
-      {course.data?.status === 'ARCHIVED' && <p className="notice">课程已归档，固定帮助只读。</p>}
+      {course.data?.status === 'ARCHIVED' && <p className="notice">课程已归档，判题帮助只读。</p>}
       {creating && (global || course.data?.status === 'ACTIVE') && (
         <CreateFeedbackForm
           key={`${global}:${courseId ?? ''}`}
@@ -97,15 +97,21 @@ export function FeedbackCatalogsPage() {
         />
       ) : (
         <DataTable
-          caption="固定帮助目录"
+          caption="判题帮助目录"
           rows={catalogs.data.pages.flatMap((p) => p.items)}
           rowKey={(row) => row.catalog_id}
-          empty="尚无固定帮助，可按判定和语言新建。"
+          empty="尚无判题帮助，可按判定和语言新建。"
           columns={[
             {
               key: 'title',
               heading: '草稿标题',
-              render: (row) => <Link to={`${root}/${row.catalog_id}`}>{row.title}</Link>,
+              render: (row) => (
+                <Link
+                  to={`${root}/${row.catalog_id}${row.course_id ? `?course_id=${row.course_id}` : ''}`}
+                >
+                  {row.title}
+                </Link>
+              ),
             },
             {
               key: 'scope',
@@ -154,7 +160,9 @@ function CreateFeedbackForm({
     mutationFn: api.createFeedback,
     onSuccess: (value) => {
       writeHelpDraft(ownerId, recoveryId, null)
-      navigate(`${global ? '/admin/feedback' : '/teacher/feedback'}/${value.catalog_id}`)
+      navigate(
+        `${global ? '/admin/feedback' : '/teacher/feedback'}/${value.catalog_id}${courseId ? `?course_id=${courseId}` : ''}`,
+      )
     },
   })
   function preserve(nextFields = fields, nextVerdict = verdict, nextLanguage = language) {
@@ -185,7 +193,7 @@ function CreateFeedbackForm({
         })
       }}
     >
-      <h2>新建固定帮助</h2>
+      <h2>新建判题帮助</h2>
       {recovery && (
         <div className="notice">
           <p>本账号在此范围有未完成的新建草稿，可恢复后核对。</p>
@@ -284,7 +292,7 @@ export function FeedbackDetailPage() {
     return (
       <StatePanel
         kind="forbidden"
-        title="无权维护固定帮助"
+        title="无权维护判题帮助"
         description="请使用任课教师或全局管理员账号。"
       />
     )
@@ -309,7 +317,7 @@ export function FeedbackDetailPage() {
       </Link>
       <header className="page-heading">
         <div>
-          <h1>编辑固定帮助</h1>
+          <h1>编辑判题帮助</h1>
           <p>
             {draft.data.verdict} ·{' '}
             {draft.data.language_key === 'ALL' ? '全部语言' : draft.data.language_key}
