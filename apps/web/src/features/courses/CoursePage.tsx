@@ -58,6 +58,9 @@ export function CoursePage() {
         </span>
       </header>
       <CopyIdentifier label="课程编号" value={id} />
+      <p>
+        <Link to={`/courses/${id}/leaderboard`}>课程排行榜 · 通过题数与成绩</Link>
+      </p>
       {session.data?.user?.role === 'STUDENT' && (
         <p>
           <Link to={`/learning?course_id=${id}`}>本课学习记录</Link>

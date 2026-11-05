@@ -1721,3 +1721,57 @@ html[data-private-name='true'] .account .avatar {
     width: 100%;
   }
 }
+
+/* Course community: reuse the studio palette and shared controls. */
+.community-page {
+  max-width: 1100px;
+  min-width: 0;
+}
+.community-page h1,
+.community-page p,
+.community-threads a {
+  overflow-wrap: anywhere;
+}
+.community-notice {
+  padding: 1rem 1.2rem;
+  border-left: 3px solid currentColor;
+  background: var(--surface-soft, #f3f4ed);
+  line-height: 1.7;
+}
+.community-threads {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.community-threads > li {
+  padding: 1.3rem 0;
+  border-bottom: 1px solid var(--border, #d5d7ce);
+}
+.community-threads a {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+.community-preference {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.community-preference input {
+  width: auto;
+}
+.community-management {
+  border-top: 1px solid var(--border, #d5d7ce);
+  padding-top: 1rem;
+}
+.community-management summary {
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+@media (max-width: 600px) {
+  .community-page .button-row {
+    flex-wrap: wrap;
+  }
+  .community-notice {
+    padding: 0.8rem;
+  }
+}

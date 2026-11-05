@@ -127,7 +127,11 @@ function StudentLearning({
           <ul className="resource-list">
             {recommendations.data.items.map((item) => (
               <li key={item.problem_id}>
-                <Link to={`/practice-problems/${item.problem_id}`}>{item.title}</Link>
+                <Link
+                  to={`/practice-problems/${item.problem_id}${courseId ? `?course_id=${encodeURIComponent(courseId)}` : ''}`}
+                >
+                  {item.title}
+                </Link>
                 <span>{item.tags.join(' · ')}</span>
               </li>
             ))}

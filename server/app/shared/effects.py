@@ -44,6 +44,8 @@ class TransactionalEffects:
                 object_type={
                     "MEMBER": "course",
                     "COURSE": "course",
+                    "LEADERBOARD": "course",
+                    "DISCUSSION": "discussion",
                     "USER": "user",
                     "PASSWORD": "user",
                     "VERSION": "problem_version",

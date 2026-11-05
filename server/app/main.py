@@ -20,6 +20,7 @@ from starlette.concurrency import run_in_threadpool
 from starlette.exceptions import HTTPException
 
 from app.adapters.judge_profiles import SnapshotCatalog
+from app.api.community import register as register_community
 from app.api.contracts import Contract, Cursor, parse_body
 from app.api.errors import error_response
 from app.api.grades import register as register_grades
@@ -29,6 +30,8 @@ from app.api.preflights import register as register_preflights
 from app.api.submissions import register as register_submissions
 from app.api.teaching import Handler, register
 from app.modules.assignments.application import Assignments
+from app.modules.community.discussions import Discussions
+from app.modules.community.leaderboards import Leaderboards
 from app.modules.courses.application import Courses
 from app.modules.grades.application import GradeCoordination, Grades
 from app.modules.identity.application import Identity
@@ -173,7 +176,7 @@ def create_app(
                 head = connection.exec_driver_sql(
                     "SELECT version_num FROM alembic_version"
                 ).scalar_one()
-                if head != "b017":
+                if head != "b019":
                     raise ValueError("Migration is not current")
             return JSONResponse({"status": "ready"})
         except (SQLAlchemyError, ValueError):
@@ -249,6 +252,8 @@ def create_app(
                         request_id=request_id,
                         assignments=Assignments(repo, effects, GradeCoordination()),
                         grades=Grades(repo, effects),
+                        leaderboards=Leaderboards(repo, effects),
+                        discussions=Discussions(repo, effects),
                         rejudges=Rejudges(repo, effects),
                         operations=Operations(repo, effects),
                         fairness=Fairness(repo, effects),
@@ -387,6 +392,7 @@ def create_app(
     register_preflights(add)
     register_submissions(add)
     register_grades(add)
+    register_community(add)
     register_operations(add)
 
     def export_openapi() -> Record:

@@ -84,7 +84,7 @@ def main():
             break
         pending = {key: deps - ready for key, deps in pending.items() if key not in ready}
     check(not pending, "任务依赖存在循环或悬空引用")
-    for kind, count in (("FR", 29), ("NFR", 24)):
+    for kind, count in (("FR", 31), ("NFR", 24)):
         expected = {f"{kind}-{i:02}" for i in range(1, count + 1)}
         found = re.findall(rf"^\| ({kind}-\d{{2}}) \|", req, re.M)
         check(len(found) == count and set(found) == expected, f"{kind} 需求定义不完整或重复")

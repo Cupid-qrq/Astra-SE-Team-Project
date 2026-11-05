@@ -1,3 +1,6 @@
+import { LeaderboardPage } from '../features/community/LeaderboardPage'
+import { DiscussionsPage } from '../features/community/DiscussionsPage'
+import { DiscussionPage } from '../features/community/DiscussionPage'
 import { RouteSurface } from '../components/ui/RouteSurface'
 import { LearningSupportNav } from '../components/ui/LearningSupportNav'
 import { ProfilePage } from '../features/auth/ProfilePage'
@@ -251,6 +254,12 @@ export function App() {
           <Route path="/learning" element={<LearningPage />} />
           <Route path="/courses" element={<CoursesPage />} />
           <Route path="/courses/:id" element={<CoursePage />} />
+          <Route path="/courses/:id/leaderboard" element={<LeaderboardPage />} />
+          <Route
+            path="/courses/:id/problems/:problemId/discussions"
+            element={<DiscussionsPage />}
+          />
+          <Route path="/discussions/:id" element={<DiscussionPage />} />
           <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
           <Route path="/assignments/:id" element={<AssignmentPage />} />
           <Route path="/assignments/:id/grades" element={<GradePage />} />
