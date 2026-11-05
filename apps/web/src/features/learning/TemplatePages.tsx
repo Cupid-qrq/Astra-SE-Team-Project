@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api, sessionKey } from '../../app/runtime'
@@ -39,6 +39,49 @@ export function TemplatesPage() {
     getNextPageParam: (p) => p.next_cursor || undefined,
     enabled: allowed,
   })
+  const directory = useInfiniteQuery({
+    queryKey: ['courses'],
+    queryFn: ({ pageParam }) => api.courses(pageParam),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (page) => page.next_cursor || undefined,
+    enabled: allowed && !global && !courseId,
+  })
+  const rows = useMemo(() => list.data?.pages.flatMap((page) => page.items) ?? [], [list.data])
+  const courseNames = useMemo(
+    () =>
+      new Map(
+        [
+          ...(directory.data?.pages.flatMap((page) => page.items) ?? []),
+          ...(course.data ? [course.data] : []),
+        ].map((item) => [item.course_id, item.title] as const),
+      ),
+    [directory.data, course.data],
+  )
+  const {
+    hasNextPage: moreNames,
+    isFetching: namesPending,
+    isError: namesFailed,
+    fetchNextPage: loadNames,
+  } = directory
+  useEffect(() => {
+    if (!allowed || global || courseId || !moreNames || namesPending || namesFailed) return
+    if (rows.some((row) => row.course_id && !courseNames.has(row.course_id)))
+      void loadNames({ cancelRefetch: false })
+  }, [
+    allowed,
+    global,
+    courseId,
+    moreNames,
+    namesPending,
+    namesFailed,
+    rows,
+    courseNames,
+    loadNames,
+  ])
+  const nameFor = (row: (typeof rows)[number]) =>
+    row.scope === 'GLOBAL'
+      ? '全局学习引导原则'
+      : courseNames.get(row.course_id || '') || `课程 ${row.course_id}`
   if (!allowed) return forbidden
   const canCreate =
     (global || course.data?.status === 'ACTIVE') &&
@@ -70,6 +113,14 @@ export function TemplatesPage() {
           onRetry={() => void course.refetch()}
         />
       )}
+      {!courseId && !global && directory.isError && (
+        <StatePanel
+          kind="error"
+          title="课程名称暂时无法读取"
+          description="仍可按课程编号打开辅导要求。"
+          onRetry={() => void directory.refetch()}
+        />
+      )}
       {!courseId && !global && (
         <p className="notice">从课程中的“管理AI 辅导设置”进入可新建草稿。</p>
       )}
@@ -94,7 +145,7 @@ export function TemplatesPage() {
       ) : (
         <DataTable
           caption="AI 辅导设置目录"
-          rows={list.data.pages.flatMap((p) => p.items)}
+          rows={rows}
           rowKey={(row) => row.template_id}
           empty="尚未设置 AI 辅导要求。"
           columns={[
@@ -104,8 +155,9 @@ export function TemplatesPage() {
               render: (row) => (
                 <Link
                   to={`${root}/${row.template_id}${row.course_id ? `?course_id=${row.course_id}` : ''}`}
+                  title={`查看${nameFor(row)}的辅导要求，编辑草稿或查阅已发布版本。`}
                 >
-                  {row.scope === 'GLOBAL' ? '查看全局辅导要求' : '查看课程辅导要求'}
+                  {nameFor(row)}
                 </Link>
               ),
             },
@@ -162,7 +214,13 @@ export function TemplatePage() {
       <header className="page-heading">
         <div>
           <h1>编辑AI 辅导设置</h1>
-          <p>{draft.data.scope === 'GLOBAL' ? '全局模板' : '课程模板'}</p>
+          <p>
+            {draft.data.body.trimStart().startsWith('# ')
+              ? draft.data.body.trimStart().split('\n', 1)[0].slice(2, 102)
+              : draft.data.scope === 'GLOBAL'
+                ? '全局辅导要求'
+                : '课程辅导要求'}
+          </p>
         </div>
       </header>
       <TemplateEditor
