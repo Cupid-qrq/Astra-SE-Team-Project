@@ -234,7 +234,7 @@ function HintRequest({
       {example.error && <p role="alert">{example.error.message}</p>}
       {examples.length > 0 && (
         <label className="field">
-          从本人错题选择示例
+          选择一条错题记录
           <select
             disabled={locked}
             value={examples.some((item) => item.submission_id === source) ? source : ''}

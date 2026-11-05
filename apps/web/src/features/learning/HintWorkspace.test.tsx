@@ -150,7 +150,7 @@ it('从本人错题填入真实示例时清除外发同意，最近提示仅填�
     </QueryClientProvider>,
   )
   await userEvent.click(screen.getByRole('checkbox'))
-  await userEvent.selectOptions(screen.getByLabelText('从本人错题选择示例'), submission)
+  await userEvent.selectOptions(screen.getByLabelText('选择一条错题记录'), submission)
   expect(screen.getByLabelText('来源提交编号')).toHaveValue(submission)
   expect(screen.getByRole('checkbox')).not.toBeChecked()
   expect(screen.getByRole('button', { name: '请求提示' })).toHaveAttribute(

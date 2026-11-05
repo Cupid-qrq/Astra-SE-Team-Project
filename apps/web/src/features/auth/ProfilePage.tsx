@@ -60,7 +60,7 @@ export function ProfilePage() {
           <div className="preference-row">
             <label htmlFor="private-name">
               <strong>遮住当前浏览器中的姓名</strong>
-              <p>适合投屏展示，仅遮住侧栏与个人主页中的姓名，业务页面内容仍可能包含姓名。</p>
+              <p>在共用屏幕时隐藏侧栏与个人主页中的姓名。课程和成绩页面仍按实际内容显示。</p>
             </label>
             <input
               id="private-name"

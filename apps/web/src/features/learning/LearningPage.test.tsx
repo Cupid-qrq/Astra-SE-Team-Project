@@ -65,10 +65,10 @@ it('重新核验错题失败后隐藏旧示例选项', async () => {
       </MemoryRouter>
     </QueryClientProvider>,
   )
-  await screen.findByLabelText('从本人错题选择示例')
+  await screen.findByLabelText('选择一条错题记录')
   review.mockRejectedValue(new Error('无权读取'))
   await act(async () => {
     await client.invalidateQueries({ queryKey: ['reviewItems'] })
   })
-  await waitFor(() => expect(screen.queryByLabelText('从本人错题选择示例')).toBeNull())
+  await waitFor(() => expect(screen.queryByLabelText('选择一条错题记录')).toBeNull())
 })
