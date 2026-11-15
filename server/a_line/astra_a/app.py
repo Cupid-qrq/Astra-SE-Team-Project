@@ -8,6 +8,12 @@ from collections.abc import Callable
 from typing import Any
 from uuid import UUID, uuid4
 
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse, Response
+from sqlalchemy.exc import IntegrityError, OperationalError
+from starlette.concurrency import run_in_threadpool
+from starlette.exceptions import HTTPException
+
 from app.api.contracts import Cursor
 from app.modules.assignments.api import register as assignment_routes
 from app.modules.assignments.application import Assignments
@@ -20,11 +26,6 @@ from app.modules.learning.hint_service import HintService, Sources
 from app.modules.learning.student import StudentLearning
 from app.modules.problems.api import register as problem_routes
 from app.modules.problems.application import Problems
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse, Response
-from sqlalchemy.exc import IntegrityError, OperationalError
-from starlette.concurrency import run_in_threadpool
-from starlette.exceptions import HTTPException
 
 from .contracts import SPEC, page, validate
 from .security import ArgonPasswords

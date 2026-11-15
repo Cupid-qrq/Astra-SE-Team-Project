@@ -115,7 +115,7 @@ test('前端契约样例：跨轮次帮助丢弃错配并支持读取失败重�
     Object.assign(window, { helpMismatches: observed })
     new MutationObserver(() => {
       const verdict = document.querySelector('[aria-label="评测结果"] h3')?.textContent
-      const help = document.querySelector('[aria-label="固定帮助"] h3')?.textContent
+      const help = document.querySelector('[aria-label="判题帮助"] h3')?.textContent
       if (verdict === '答案错误' && help === '新轮运行错误帮助') observed.push('mismatch')
     }).observe(document, { subtree: true, childList: true, characterData: true })
   })

@@ -44,7 +44,9 @@ def main():
     password = os.environ["ASTRA_DEMO_PASSWORD"]
     if len(password) < 12:
         raise ValueError("Demo password too short")
-    profile = json.loads(Path(os.environ["ASTRA_PROFILES_FILE"]).read_text(encoding="utf-8"))[0]
+    profile = json.loads(
+        Path(os.environ["ASTRA_PROFILES_FILE"]).read_text(encoding="utf-8")
+    )[0]
     image = profile["languages"][0]["image_digest"]
     catalog = SnapshotCatalog((profile,))
     executor = CourseExecutor(
@@ -76,9 +78,9 @@ def main():
                     user_id=uid,
                     login_name=name,
                     display_name={
-                        "ADMIN": "演示管理员",
-                        "TEACHER": "演示教师",
-                        "STUDENT": "演示学生",
+                        "ADMIN": "许知远",
+                        "TEACHER": "陈明远",
+                        "STUDENT": "林知行",
                     }[role],
                     role=role,
                     status="ACTIVE",
@@ -91,7 +93,9 @@ def main():
             )
         effects = TransactionalEffects(repo, str(uuid4()))
         teacher = repo.required("users", ids["TEACHER"])
-        cid = Courses(repo, effects).create(teacher, {"title": "Astra 三角色验收课程"})["course_id"]
+        cid = Courses(repo, effects).create(
+            teacher, {"title": "程序设计实践 · 秋季学期"}
+        )["course_id"]
         ids["course_id"] = cid
         course = repo.required("courses", cid)
         Courses(repo, effects).member(
@@ -102,7 +106,9 @@ def main():
         )
         seed_global_feedback(repo, ids["ADMIN"])
     WorkerStore(engine).bind_executor(
-        hashlib.sha256(json.dumps(executor.command, separators=(",", ":")).encode()).hexdigest()
+        hashlib.sha256(
+            json.dumps(executor.command, separators=(",", ":")).encode()
+        ).hexdigest()
     )
     preflight = PreflightWorker(
         WorkerStore(engine), catalog, {"cpp17": executor, "python3": executor}
@@ -120,7 +126,9 @@ def main():
             "product": "a,b=map(int,input().split());print(a*b)",
         }[operation]
         cpp = (
-            "#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<" + expression + ";}"
+            "#include <iostream>\nint main(){int a,b;std::cin>>a>>b;std::cout<<"
+            + expression
+            + ";}"
         )
         answer = {"sum": "5", "max": "3", "product": "6"}[operation]
         with engine.begin() as conn:
@@ -143,7 +151,7 @@ def main():
                     samples=[dict(input="2 3", output=answer)],
                     tags=["基础"],
                     profile=profile,
-                    source_ref="公开课程演示",
+                    source_ref="程序设计课程组原创",
                 ),
             )["version_id"]
             rev = service.put_case(
@@ -189,7 +197,10 @@ def main():
                 teacher,
                 dict(
                     course_id=cid,
-                    title=label,
+                    title={
+                        "开放作业": "基础运算练习",
+                        "成绩与重评验收": "第一单元综合练习",
+                    }[label],
                     items=[
                         dict(
                             problem_id=t["problem_id"],
@@ -203,7 +214,11 @@ def main():
                     ai_policy="DISABLED",
                 ),
             )["assignment_id"]
-            service.publish(teacher, aid, dict(expected_revision=1, reason="演示作业"))
+            service.publish(
+                teacher,
+                aid,
+                dict(expected_revision=1, reason="已核对题目分值与教学安排"),
+            )
             ids[label] = aid
     student_worker = SubmissionWorker(
         SubmissionStore(engine), catalog, {"cpp17": executor, "python3": executor}
@@ -243,7 +258,7 @@ def main():
         Grades(repo, effects).publish(
             repo.required("users", ids["TEACHER"]),
             ids["成绩与重评验收"],
-            dict(expected_revision=2, reason="真实评测完成的演示成绩"),
+            dict(expected_revision=2, reason="完成评测与分数核对后发布成绩"),
         )
         deliver(repo)
     Path(os.environ["ASTRA_DEMO_MANIFEST"]).write_text(

@@ -2,10 +2,11 @@ from copy import deepcopy
 from uuid import uuid4
 
 import pytest
-from app.modules.problems.application import Problems
-from app.modules.problems.domain import content_digest, profile_digest
 from astra_a.app import create_app
 from astra_a.storage import SqlRepository
+
+from app.modules.problems.application import Problems
+from app.modules.problems.domain import content_digest, profile_digest
 
 
 def profile():

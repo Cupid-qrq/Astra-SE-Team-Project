@@ -125,6 +125,23 @@ export function createApiClient({
     csrf = undefined
   }
   return {
+    async request<T>(method: 'GET' | 'POST' | 'PATCH', path: string, body?: unknown): Promise<T> {
+      if (
+        !/^\/(courses|discussions|discussion-replies)\//.test(path) ||
+        path.includes('://') ||
+        path.includes('\\')
+      )
+        throw new ApiError(0, 'INVALID_REQUEST', '请求地址无效。')
+      if (method !== 'GET' && !csrf) await session()
+      const dynamic = client as unknown as {
+        request(
+          method: string,
+          path: string,
+          init: { body?: unknown },
+        ): Promise<{ data?: T; response: Response }>
+      }
+      return unwrap(dynamic.request(method.toLowerCase(), path, body === undefined ? {} : { body }))
+    },
     sendSubmission: (
       body: components['schemas']['SubmissionCreate'],
       key: string,

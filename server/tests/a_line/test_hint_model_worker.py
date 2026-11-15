@@ -4,6 +4,7 @@ from dataclasses import replace
 from decimal import Decimal
 
 import pytest
+
 from app.modules.learning.model_worker import (
     FrozenModel,
     ModelReply,

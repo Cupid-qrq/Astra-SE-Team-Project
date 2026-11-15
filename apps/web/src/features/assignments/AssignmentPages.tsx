@@ -96,7 +96,8 @@ export function AssignmentPage() {
       )}
       <p>
         <Link to={`/assignments/${id}/submissions`}>查看提交历史</Link> ·{' '}
-        <Link to={`/assignments/${id}/grades`}>查看作业成绩</Link>
+        <Link to={`/assignments/${id}/grades`}>查看作业成绩</Link> ·{' '}
+        <Link to={`/courses/${value.course_id}/leaderboard`}>课程排行榜</Link>
       </p>
       <ul className="resource-list">
         {value.items.map((item) => (

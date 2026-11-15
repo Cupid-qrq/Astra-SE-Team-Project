@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
-from app.modules.identity.domain import utc
 from astra_a.contracts import SPEC
 from sqlalchemy.exc import OperationalError
 from test_assignments import make_assignment
 from test_problems import make_version
+
+from app.modules.identity.domain import utc
 
 
 def test_connect_failure_returns_safe_error_envelope(env):

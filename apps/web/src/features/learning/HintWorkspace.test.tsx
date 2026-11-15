@@ -132,3 +132,66 @@ it('后台权限复核隐藏旧内容，但保留尚未提交的评价', async (
   })
   expect(await screen.findByLabelText('评价说明（可选）')).toHaveValue('希望补充边界说明')
 })
+
+it('从本人错题填入真实示例时清除外发同意，最近提示仅填入编号', async () => {
+  vi.mocked(api.hintHistory).mockResolvedValue({
+    items: [{ hint_id: hint, created_at: view.created_at }],
+    next_cursor: null,
+  })
+  const create = vi.spyOn(api, 'createHint')
+  render(
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <HintWorkspace
+        ownerId="student-a"
+        examples={[{ submission_id: submission, title: '演示求和', verdict: 'WA' }]}
+      />
+    </QueryClientProvider>,
+  )
+  await userEvent.click(screen.getByRole('checkbox'))
+  await userEvent.selectOptions(screen.getByLabelText('选择一条错题记录'), submission)
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(submission)
+  expect(screen.getByRole('checkbox')).not.toBeChecked()
+  expect(screen.getByRole('button', { name: '请求提示' })).toHaveAttribute(
+    'data-tooltip',
+    '请先勾选本次外发同意。',
+  )
+  await userEvent.click(await screen.findByRole('button', { name: '填入最近提示编号' }))
+  expect(screen.getByLabelText('提示编号')).toHaveValue(hint)
+  expect(create).not.toHaveBeenCalled()
+})
+
+it('历史重新核验失败后隐藏最近编号快捷入口', async () => {
+  vi.mocked(api.hintHistory).mockResolvedValue({
+    items: [{ hint_id: hint, created_at: view.created_at }],
+    next_cursor: null,
+  })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(
+    <QueryClientProvider client={client}>
+      <HintWorkspace ownerId="student-a" />
+    </QueryClientProvider>,
+  )
+  await screen.findByRole('button', { name: '填入最近提示编号' })
+  vi.mocked(api.hintHistory).mockRejectedValue(new ApiError(403, 'FORBIDDEN', '无权读取'))
+  await act(async () => {
+    await client.invalidateQueries({ queryKey: ['hintHistory'] })
+  })
+  await waitFor(() => expect(screen.queryByRole('button', { name: '填入最近提示编号' })).toBeNull())
+})
+
+it('错题为空时可从最近已授权提示填入来源且不会发送新请求', async () => {
+  vi.mocked(api.hintHistory).mockResolvedValue({
+    items: [{ hint_id: hint, created_at: view.created_at }],
+    next_cursor: null,
+  })
+  vi.spyOn(api, 'hint').mockResolvedValue(view)
+  const create = vi.spyOn(api, 'createHint')
+  mount()
+  await userEvent.click(screen.getByRole('checkbox'))
+  await userEvent.click(await screen.findByRole('button', { name: '使用上次提问的提交' }))
+  await waitFor(() => expect(screen.getByRole('checkbox')).not.toBeChecked())
+  expect(screen.getByLabelText('需要帮助的提交编号')).toHaveValue(submission)
+  expect(create).not.toHaveBeenCalled()
+})

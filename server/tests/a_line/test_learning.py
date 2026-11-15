@@ -1,13 +1,14 @@
 from uuid import uuid4
 
 import pytest
-from app.modules.identity.domain import Fault
-from app.modules.learning.application import Learning, seed_global_feedback
-from app.modules.learning.domain import checksum, validate_body
 from astra_a.app import create_app
 from astra_a.storage import SqlRepository
 from sqlalchemy import text
 from sqlalchemy.exc import DBAPIError
+
+from app.modules.identity.domain import Fault
+from app.modules.learning.application import Learning, seed_global_feedback
+from app.modules.learning.domain import checksum, validate_body
 
 
 def seed(env):

@@ -174,3 +174,25 @@ it('管理员健康轮询使用后台标记，避免延长空闲会话', async (
   await api.adminHealth()
   expect(requests[0].headers.get('X-Astra-Background')).toBe('1')
 })
+
+it('课程交流请求复用CSRF与同源凭据，拒绝外部目标', async () => {
+  const writes: Request[] = []
+  const api = createApiClient({
+    baseUrl: 'http://localhost/api/v1',
+    fetch: async (request) => {
+      if (request.url.endsWith('/auth/session')) return Response.json(session('community-token'))
+      writes.push(request)
+      return Response.json({ show_name: true })
+    },
+  })
+  await expect(
+    api.request('PATCH', '/courses/course-a/leaderboard-preference', { show_name: true }),
+  ).resolves.toEqual({ show_name: true })
+  expect(writes[0].headers.get('X-CSRF-Token')).toBe('community-token')
+  expect(writes[0].credentials).toBe('same-origin')
+  expect(await writes[0].json()).toEqual({ show_name: true })
+  await expect(api.request('GET', 'https://example.com/courses/a')).rejects.toMatchObject({
+    code: 'INVALID_REQUEST',
+  })
+  expect(writes).toHaveLength(1)
+})

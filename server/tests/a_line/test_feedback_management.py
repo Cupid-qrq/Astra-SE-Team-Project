@@ -4,10 +4,11 @@ from concurrent.futures import ThreadPoolExecutor
 from uuid import uuid4
 
 import pytest
-from app.modules.identity.domain import Fault
-from app.modules.learning.application import Learning
 from astra_a.storage import SqlRepository
 from sqlalchemy import text
+
+from app.modules.identity.domain import Fault
+from app.modules.learning.application import Learning
 
 BASE = "/api/v1/feedback-catalogs"
 BODY = dict(

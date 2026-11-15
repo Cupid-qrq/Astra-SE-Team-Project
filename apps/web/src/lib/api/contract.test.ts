@@ -17,7 +17,7 @@ describe('A 模块 OpenAPI 3.1 交接契约', () => {
     const docs = readFileSync(resolve('../../docs/03-api-contract.md'), 'utf8')
     const rows = [...docs.matchAll(/^\| (GET|POST|PATCH|PUT|DELETE) (\/[^ |]+) \|/gm)]
     const isA = (method: string, url: string) => {
-      if (/preflight/.test(url)) return false
+      if (/preflight|leaderboard|discussions/.test(url)) return false
       if (url.startsWith('/auth/') || url.startsWith('/admin/users')) return true
       if (
         /^\/(feedback-catalogs|hint-templates|ai-hints|review-items|recommendations|practice-problems)/.test(
@@ -99,7 +99,7 @@ describe('正式总契约', () => {
     )
     expect(
       operations.filter((operation) => operation['x-implementation'] === 'implemented'),
-    ).toHaveLength(101)
+    ).toHaveLength(109)
     expect(total.paths['/problem-versions/{id}/preflight'].post).toMatchObject({
       operationId: 'enqueuePreflight',
       'x-owner': 'B祝祎帆',

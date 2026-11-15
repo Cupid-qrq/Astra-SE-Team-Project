@@ -6,6 +6,7 @@ import { App } from './app/App'
 import { queryClient } from './app/runtime'
 import './styles/tokens.css'
 import './styles/app.css'
+import './styles/studio.css'
 
 async function start() {
   if (__MOCK__) {

@@ -28,3 +28,7 @@ python_version = "3.12"
 ignore_missing_imports = true
 check_untyped_defs = true
 explicit_package_bases = true
+
+# Shared app imports must use the same grouping as server/pyproject.toml.
+[tool.ruff.lint.isort]
+known-first-party = ["app"]

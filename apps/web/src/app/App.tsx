@@ -1,3 +1,13 @@
+import { LeaderboardPage } from '../features/community/LeaderboardPage'
+import { DiscussionsPage } from '../features/community/DiscussionsPage'
+import { DiscussionPage } from '../features/community/DiscussionPage'
+import { RouteSurface } from '../components/ui/RouteSurface'
+import { LearningSupportNav } from '../components/ui/LearningSupportNav'
+import { ProfilePage } from '../features/auth/ProfilePage'
+import { PageHelp } from '../components/ui/PageHelp'
+import { MotionProvider, PageMotion } from '../components/ui/MotionEffects'
+import { BrandMark } from '../components/ui/Brand'
+import { ButtonHints } from '../components/ui/ButtonHints'
 import { RetentionPage } from '../features/operations/RetentionPage'
 import { ControlsPage } from '../features/operations/ControlsPage'
 import { AdminPage } from '../features/operations/AdminPage'
@@ -8,7 +18,16 @@ import { SubmissionPage, SubmissionHistoryPage } from '../features/submissions/S
 import { useQuery } from '@tanstack/react-query'
 import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
-import { BookOpen, ChevronRight, KeyRound } from 'lucide-react'
+import {
+  BookOpen,
+  KeyRound,
+  Bell,
+  Archive,
+  SlidersHorizontal,
+  ShieldCheck,
+  FileText,
+  Braces,
+} from 'lucide-react'
 import { api, sessionKey, identityKey } from './runtime'
 import { LoginPage } from '../features/auth/LoginPage'
 import { PasswordPage } from '../features/auth/PasswordPage'
@@ -78,13 +97,14 @@ function Workspace() {
       </a>
       <aside className="sidebar">
         <NavLink className="brand" to="/courses">
-          <span className="brand-mark" aria-hidden="true">
-            a
-          </span>
-          Astra
+          <BrandMark />
+          <span>ASTRA</span>
         </NavLink>
         <p className="nav-label">学习工作区</p>
         <nav aria-label="主要导航">
+          <NavLink to="/account/profile" className="nav-item">
+            个人主页
+          </NavLink>
           <NavLink to="/courses" className="nav-item">
             <BookOpen size={19} aria-hidden="true" />
             我的课程
@@ -94,8 +114,8 @@ function Workspace() {
               to={user.role === 'ADMIN' ? '/admin/feedback' : '/teacher/feedback'}
               className="nav-item"
             >
-              <BookOpen size={19} aria-hidden="true" />
-              {user.role === 'ADMIN' ? '全局固定帮助' : '固定帮助维护'}
+              <FileText size={19} aria-hidden="true" />
+              {user.role === 'ADMIN' ? '全局判题帮助' : '判题帮助维护'}
             </NavLink>
           )}
           {(user.role === 'TEACHER' || user.role === 'ADMIN') && (
@@ -103,8 +123,8 @@ function Workspace() {
               to={user.role === 'ADMIN' ? '/admin/hint-templates' : '/teacher/hint-templates'}
               className="nav-item"
             >
-              <BookOpen size={19} aria-hidden="true" />
-              {user.role === 'ADMIN' ? '全局提示模板' : '提示模板维护'}
+              <Braces size={19} aria-hidden="true" />
+              {user.role === 'ADMIN' ? '全局AI 辅导设置' : 'AI 辅导设置维护'}
             </NavLink>
           )}
           {user.role === 'STUDENT' && (
@@ -115,19 +135,23 @@ function Workspace() {
           )}
           {user.role !== 'STUDENT' && (
             <NavLink to="/retention" className="nav-item">
-              课程留存
+              <Archive size={19} aria-hidden="true" />
+              课程归档与保留
             </NavLink>
           )}
           {user.role === 'ADMIN' && (
             <NavLink to="/admin/operations/controls" className="nav-item">
-              运行与应急
+              <SlidersHorizontal size={19} aria-hidden="true" />
+              运行控制与应急访问
             </NavLink>
           )}
           <NavLink to="/notifications" className="nav-item">
+            <Bell size={19} aria-hidden="true" />
             通知
           </NavLink>
           {user.role === 'ADMIN' && (
-            <NavLink to="/admin/operations" className="nav-item">
+            <NavLink to="/admin/operations" end className="nav-item">
+              <ShieldCheck size={19} aria-hidden="true" />
               平台管理
             </NavLink>
           )}
@@ -149,7 +173,8 @@ function Workspace() {
             {user.display_name.slice(0, 1)}
           </span>
           <div>
-            <strong>{user.display_name}</strong>
+            <strong className="account-name">{user.display_name}</strong>
+            <strong className="private-name">当前账号</strong>
             <span>{{ STUDENT: '学生', TEACHER: '教师', ADMIN: '管理员' }[user.role]}</span>
           </div>
           <LogoutControl userId={user.user_id} />
@@ -157,9 +182,17 @@ function Workspace() {
       </aside>
       <div className="workspace-body">
         <header className="topbar">
-          <span>Astra</span>
-          <ChevronRight size={14} aria-hidden="true" />
-          <span>课程工作区</span>
+          <div className="workspace-context">
+            <span className="context-slash" aria-hidden="true">
+              /
+            </span>
+            <strong>课程工作区</strong>
+            <span className="platform-name">ASTRA · 编程教学平台</span>
+          </div>
+          <NavLink to="/account/profile" className="profile-entry">
+            个人主页 ↗
+          </NavLink>
+          <PageHelp key={location.pathname} />
           {__MOCK__ && <span className="mock-badge">演示 · 虚构数据</span>}
         </header>
         <main id="main" tabIndex={-1} className="main-content">
@@ -167,6 +200,7 @@ function Workspace() {
             <PasswordPage forced />
           ) : user.role === 'ADMIN' &&
             location.pathname !== '/account/password' &&
+            location.pathname !== '/account/profile' &&
             !location.pathname.startsWith('/admin/feedback') &&
             !location.pathname.startsWith('/admin/hint-templates') &&
             !location.pathname.startsWith('/admin/operations') &&
@@ -182,7 +216,10 @@ function Workspace() {
               key={identityKey(session.data)}
               fallback={<StatePanel kind="loading" title="正在加载页面…" />}
             >
-              <Outlet />
+              <RouteSurface>
+                <LearningSupportNav />
+                <Outlet />
+              </RouteSurface>
             </Suspense>
           )}
         </main>
@@ -192,48 +229,59 @@ function Workspace() {
 }
 export function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<Workspace />}>
-        <Route path="/account/password" element={<PasswordPage />} />
-        <Route path="/admin/operations" element={<AdminPage />} />
-        <Route path="/admin/operations/controls" element={<ControlsPage />} />
-        <Route path="/retention" element={<RetentionPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
-        <Route path="/assignments/:id/operations" element={<TeacherOperations />} />
-        <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
-        <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
-        <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
-        <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
-        <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
-        <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
-        <Route path="/admin/hint-templates" element={<TemplatesPage />} />
-        <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
-        <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
-        <Route path="/learning" element={<LearningPage />} />
-        <Route path="/courses" element={<CoursesPage />} />
-        <Route path="/courses/:id" element={<CoursePage />} />
-        <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
-        <Route path="/assignments/:id" element={<AssignmentPage />} />
-        <Route path="/assignments/:id/grades" element={<GradePage />} />
-        <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
-        <Route path="/submissions/:id" element={<SubmissionPage />} />
-        <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
-        <Route path="/courses/:id/problems" element={<ProblemsPage />} />
-        <Route path="/teacher/problems/:id" element={<VersionsPage />} />
-        <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />
-        <Route path="/teacher/problem-versions/:id" element={<VersionPage />} />
-      </Route>
-      <Route path="/" element={<Navigate to="/courses" replace />} />
-      <Route
-        path="*"
-        element={
-          <main className="not-found">
-            <StatePanel kind="empty" title="页面不存在" description="请从课程入口继续。" />
-            <a href="/courses">返回我的课程</a>
-          </main>
-        }
-      />
-    </Routes>
+    <MotionProvider>
+      <PageMotion />
+      <ButtonHints />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<Workspace />}>
+          <Route path="/account/profile" element={<ProfilePage />} />
+          <Route path="/account/password" element={<PasswordPage />} />
+          <Route path="/admin/operations" element={<AdminPage />} />
+          <Route path="/admin/operations/controls" element={<ControlsPage />} />
+          <Route path="/retention" element={<RetentionPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/assignments/:id/operations" element={<TeacherOperations />} />
+          <Route path="/teacher/feedback" element={<FeedbackCatalogsPage />} />
+          <Route path="/teacher/feedback/:id" element={<FeedbackDetailPage />} />
+          <Route path="/admin/feedback" element={<FeedbackCatalogsPage />} />
+          <Route path="/admin/feedback/:id" element={<FeedbackDetailPage />} />
+          <Route path="/teacher/hint-templates" element={<TemplatesPage />} />
+          <Route path="/teacher/hint-templates/:id" element={<TemplatePage />} />
+          <Route path="/admin/hint-templates" element={<TemplatesPage />} />
+          <Route path="/admin/hint-templates/:id" element={<TemplatePage />} />
+          <Route path="/practice-problems/:id" element={<PublicPracticePage />} />
+          <Route path="/learning" element={<LearningPage />} />
+          <Route path="/courses" element={<CoursesPage />} />
+          <Route path="/courses/:id" element={<CoursePage />} />
+          <Route path="/courses/:id/leaderboard" element={<LeaderboardPage />} />
+          <Route
+            path="/courses/:id/problems/:problemId/discussions"
+            element={<DiscussionsPage />}
+          />
+          <Route path="/discussions/:id" element={<DiscussionPage />} />
+          <Route path="/courses/:id/assignments/new" element={<CreateAssignmentPage />} />
+          <Route path="/assignments/:id" element={<AssignmentPage />} />
+          <Route path="/assignments/:id/grades" element={<GradePage />} />
+          <Route path="/assignments/:id/submissions" element={<SubmissionHistoryPage />} />
+          <Route path="/submissions/:id" element={<SubmissionPage />} />
+          <Route path="/assignments/:id/problems/:problemId" element={<EditorPage />} />
+          <Route path="/courses/:id/problems" element={<ProblemsPage />} />
+          <Route path="/teacher/problems/:id" element={<VersionsPage />} />
+          <Route path="/teacher/problems/:id/new" element={<CreateVersionPage />} />
+          <Route path="/teacher/problem-versions/:id" element={<VersionPage />} />
+        </Route>
+        <Route path="/" element={<Navigate to="/courses" replace />} />
+        <Route
+          path="*"
+          element={
+            <main className="not-found">
+              <StatePanel kind="empty" title="页面不存在" description="请从课程入口继续。" />
+              <a href="/courses">返回我的课程</a>
+            </main>
+          }
+        />
+      </Routes>
+    </MotionProvider>
   )
 }

@@ -33,7 +33,7 @@ def app_and_contract():
 
 def test_registered_route_and_schema_drift_are_rejected():
     app, spec = app_and_contract()
-    assert checker.compare(app, spec) == 101
+    assert checker.compare(app, spec) == 109
     missing_preflight = deepcopy(spec)
     del missing_preflight["paths"]["/preflights/{id}"]
     with pytest.raises(ValueError, match="route set"):

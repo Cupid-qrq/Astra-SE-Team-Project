@@ -1,9 +1,10 @@
 from datetime import timedelta
 from uuid import uuid4
 
-from app.modules.learning.hint_service import HintService
 from astra_a.storage import SqlRepository
 from test_hint_store import setup_hint
+
+from app.modules.learning.hint_service import HintService
 
 
 def test_history_is_private_paged_and_contains_only_receipt_identifiers(env):

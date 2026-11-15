@@ -2,13 +2,14 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from astra_a.storage import SqlRepository
+from test_assignments import make_assignment
+
 from app.modules.identity.domain import Fault
 from app.modules.learning.application import seed_global_feedback
 from app.modules.learning.hint_service import HintService
 from app.modules.learning.model_worker import Candidate
 from app.modules.learning.policy_rules import HintSource
-from astra_a.storage import SqlRepository
-from test_assignments import make_assignment
 
 
 def setup_hint(env):

@@ -573,6 +573,43 @@
         "retention_holds",
         "retention_confirmations"
       ]
+    },
+    {
+      "id": "FR-30",
+      "owner": "B",
+      "phase": "P3",
+      "module": "community",
+      "acceptance": "AC-30",
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
+      "tasks": [
+        "P3-B4"
+      ],
+      "api": [
+        "GET /courses/{id}/leaderboard"
+      ],
+      "data": [
+        "leaderboard_preferences"
+      ]
+    },
+    {
+      "id": "FR-31",
+      "owner": "B",
+      "phase": "P3",
+      "module": "community",
+      "acceptance": "AC-31",
+      "status": "in_progress",
+      "evidence": "docs/project-status.md",
+      "tasks": [
+        "P3-B4"
+      ],
+      "api": [
+        "POST /courses/{id}/problems/{problem_id}/discussions"
+      ],
+      "data": [
+        "discussion_threads",
+        "discussion_replies"
+      ]
     }
   ],
   "NFR": [
@@ -1119,6 +1156,15 @@
       "depends_on": [
         "P3-A2",
         "P3-B3"
+      ]
+    },
+    {
+      "id": "P3-B4",
+      "owner": "B",
+      "phase": "P3",
+      "person_days": 3,
+      "depends_on": [
+        "P3-B1"
       ]
     }
   ],

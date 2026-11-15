@@ -212,3 +212,18 @@ Judge0 的原生状态、language_id 与默认比较规则不直接暴露为产�
 ## 6. 契约管理
 
 P0 将本文件全部路由落实为 `specs/openapi.yaml`（OpenAPI 3.1），每条包含请求、角色、安全响应、所有状态码及示例。FastAPI 导出与该文件做语义差异检查，前端生成类型/客户端；后端、Mock 和测试共享 schema。实现前先合并契约变更；删除字段、改类型/枚举/错误语义属于不兼容变更，须同步两个路线并迁移客户端。
+
+## 课程学习交流（2026-11-05增补）
+
+| 方法与路径 | 角色 | 请求与响应 |
+| --- | --- | --- |
+| GET /courses/{id}/leaderboard | 本课S/T | kind=progress/grades；同分并列、匿名摘要、计入作业数量与时间，稳定游标分页 |
+| PATCH /courses/{id}/leaderboard-preference | 本课S | show_name；仅改本人偏好 |
+| GET /courses/{id}/problems/{problem_id}/discussions | 本课且可阅读版本的S/T | version_id与游标；无权查看的题版本拒绝 |
+| POST /courses/{id}/problems/{problem_id}/discussions | 同上 | version_id/title/body；201主题 |
+| GET /discussions/{id} | 本课且可阅读版本的S/T | 主题与回复分页，隐藏内容不向普通读者返回 |
+| POST /discussions/{id}/replies | 同上 | body；锁定及归档拒绝，限流 |
+| PATCH /discussions/{id} | 作者或本课T | expected_revision/reason及状态；置顶、锁定仅教师 |
+| PATCH /discussion-replies/{id} | 作者或本课T | expected_revision/hidden/reason |
+
+排名不公开个人源码、提交时间与学生账号编号；成绩榜仅当前有效已发布成绩，进度榜只计当前有效正式AC。讨论治理动作审计。正文不自动外发模型。

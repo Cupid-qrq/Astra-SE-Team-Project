@@ -121,3 +121,9 @@ Outbox 与业务事实同事务写入；消费者按 event_key 幂等。通知�
 结果查询使用退避轮询：初始 1 秒，逐步增至 5 秒，页面后台暂停高频轮询，终态停止；会话失效停止请求并保留草稿。SSE 可作为后续传输优化，不改变查询真值。
 
 [PostgreSQL 事务文档](https://www.postgresql.org/docs/current/transaction-iso.html)与 [Judge0 接口文档](https://ce.judge0.com/)用于实现核对，不能代替项目并发与隔离测试。
+
+## 课程学习交流扩展（2026-11-05）
+
+| 模块 | 职责 | 依赖 |
+| --- | --- | --- |
+| community | 课程双榜单、学生显示偏好、按题目版本讨论与教师治理 | identity/courses/assignments/submissions/grades；只读取成绩与评测来源，不修改计分 |

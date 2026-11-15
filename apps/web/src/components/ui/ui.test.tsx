@@ -18,7 +18,7 @@ describe('公共组件的可访问行为', () => {
           <ConfirmDialog
             open
             title="确认发布"
-            description="发布后冻结版本"
+            description="发布后已发布版本"
             confirmLabel="发布"
             busy={busy}
             onCancel={() => {}}

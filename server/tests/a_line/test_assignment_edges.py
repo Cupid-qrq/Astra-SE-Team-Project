@@ -1,13 +1,14 @@
 from datetime import timedelta
 
 import pytest
-from app.modules.assignments.application import Assignments
-from app.modules.identity.domain import Fault, utc
 from astra_a.app import create_app
 from astra_a.storage import SqlRepository
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from test_assignments import make_assignment, publish
+
+from app.modules.assignments.application import Assignments
+from app.modules.identity.domain import Fault, utc
 
 
 def test_missing_coordination_port_fails_closed(env):

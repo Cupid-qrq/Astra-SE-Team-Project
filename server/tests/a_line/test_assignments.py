@@ -3,10 +3,11 @@ from datetime import timedelta
 from uuid import uuid4
 
 import pytest
-from app.modules.assignments.domain import assignment_state, submission_mode
-from app.modules.identity.domain import Fault, utc
 from sqlalchemy import text
 from test_problems import attach_evidence, make_version
+
+from app.modules.assignments.domain import assignment_state, submission_mode
+from app.modules.identity.domain import Fault, utc
 
 
 def make_assignment(env, *, ai_policy="DISABLED"):
